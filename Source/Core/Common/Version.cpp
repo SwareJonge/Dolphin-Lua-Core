@@ -13,9 +13,9 @@
 	#define BUILD_TYPE_STR ""
 #endif
 
-const std::string scm_rev_str = "Dolphin "
+const std::string scm_rev_str = "Dolphin 4.0 Sucks"
 #if !SCM_IS_MASTER
-	"[" SCM_BRANCH_STR "] "
+	"" SCM_BRANCH_STR ""
 #endif
 
 #ifdef __INTEL_COMPILER
