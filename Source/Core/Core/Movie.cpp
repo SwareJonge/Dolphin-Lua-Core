@@ -337,26 +337,27 @@ namespace Movie {
 						{
 							//ToD
 							int time = output2Bytes;
-							int hours = time / 256;
+							int minutes = (time / (60 * 60)) % 60;
 
-							float minutes = (float)time / 256;
-							minutes = (minutes - hours) * 256;
+							float seconds = (float)time / 60;
+							seconds = (seconds - (minutes * 60));
 
-							int finalMinutes = (int)minutes;
+							int finalMinutes = (int)seconds;
 
 							std::stringstream ss;
 
 							ss << finalMinutes;
 							std::string minutesString = ss.str();
 
+
 							if (finalMinutes < 10)
 								minutesString = "0" + minutesString;
+
 
 							std::string newIdentifier = identifier;
 							newIdentifier.append(":%s");
 
-							finalOutput = StringFromFormat(newIdentifier.c_str(), hours, minutesString.c_str());
-						}
+							finalOutput = StringFromFormat(newIdentifier.c_str(), minutes, minutesString.c_str());						}
 						else
 						{
 							finalOutput = StringFromFormat(identifier.c_str(), output2Bytes);
