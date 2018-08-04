@@ -333,16 +333,16 @@ namespace Movie {
 
 							finalOutput = StringFromFormat(newIdentifier.c_str(), output2Bytes, finalDegrees);
 						}
-						else if (currHint.compare("Time") == 0)
+						else if (currHint.compare("seconds") == 0)
 						{
 							//ToD
-							int time = output2Bytes;
-							int minutes = (time / (60 * 60)) % 60;
+						    int time = output2Bytes;
+						    int seconds = (time / 60) % 60;
 
-							float seconds = (float)time / 60;
-							seconds = (seconds - (minutes * 60));
+						    float miliseconds = (float)time / 60;
+						    miliseconds = (miliseconds - seconds) * 999;
 
-							int finalMinutes = (int)seconds;
+						    int finalMinutes = (int)miliseconds;
 
 							std::stringstream ss;
 
@@ -355,9 +355,32 @@ namespace Movie {
 
 
 							std::string newIdentifier = identifier;
-							newIdentifier.append(":%s");
+							newIdentifier.append(".%s");
 
-							finalOutput = StringFromFormat(newIdentifier.c_str(), minutes, minutesString.c_str());						}
+							finalOutput = StringFromFormat(newIdentifier.c_str(), seconds, minutesString.c_str());
+						}
+					    else if (currHint.compare("minutes") == 0)
+					    {
+						    // ToD
+						    int time = output2Bytes;
+						    int hours = (time / (60 * 60 * 60));
+						    int minutes = (time / (60 * 60)) % 60;
+
+						    int finalMinutes = (int)minutes;
+
+						    std::stringstream ss;
+
+						    ss << finalMinutes;
+						    std::string minutesString = ss.str();
+
+						    if (finalMinutes < 10)
+							    minutesString = "0" + minutesString;
+
+						    std::string newIdentifier = identifier;
+						    newIdentifier.append(":%s");
+
+						    finalOutput = StringFromFormat(newIdentifier.c_str(), hours, minutesString.c_str());
+					    }
 						else
 						{
 							finalOutput = StringFromFormat(identifier.c_str(), output2Bytes);
