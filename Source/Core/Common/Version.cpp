@@ -13,7 +13,7 @@
 	#define BUILD_TYPE_STR ""
 #endif
 
-const std::string scm_rev_str = "Dolphin 4.0 Sucks"
+const std::string scm_rev_str = "Dolphin 5.0"
 #if !SCM_IS_MASTER
 	"" SCM_BRANCH_STR ""
 #endif
