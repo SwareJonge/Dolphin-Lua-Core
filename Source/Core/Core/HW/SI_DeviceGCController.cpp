@@ -119,6 +119,11 @@ int CSIDevice_GCController::RunBuffer(u8* _pBuffer, int _iLength)
 
 void CSIDevice_GCController::HandleMoviePadStatus(GCPadStatus* PadStatus)
 {
+	if (!Movie::IsPlayingInput())
+	{
+		Lua::UpdateScripts(PadStatus);
+	}
+
 	Movie::CallGCInputManip(PadStatus, ISIDevice::m_iDeviceNumber);
 
 	Movie::SetPolledDevice();
@@ -127,7 +132,6 @@ void CSIDevice_GCController::HandleMoviePadStatus(GCPadStatus* PadStatus)
 	}
 	else if (Movie::IsPlayingInput())
 	{
-		Lua::UpdateScripts(PadStatus);
 		Movie::PlayController(PadStatus, ISIDevice::m_iDeviceNumber);
 		Movie::InputUpdate();
 	}
@@ -139,6 +143,7 @@ void CSIDevice_GCController::HandleMoviePadStatus(GCPadStatus* PadStatus)
 	else
 	{
 		Movie::CheckPadStatus(PadStatus, ISIDevice::m_iDeviceNumber);
+		Movie::InputUpdate();
 	}
 }
 
