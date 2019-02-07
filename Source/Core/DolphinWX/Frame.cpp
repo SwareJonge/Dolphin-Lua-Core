@@ -58,6 +58,8 @@
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
 
+#include "DolphinWX/LaunchLuaScript.h" //ADDED
+
 int g_saveSlot = 1;
 
 #if defined(HAVE_X11) && HAVE_X11
@@ -274,6 +276,7 @@ EVT_MENU_RANGE(IDM_FLOAT_LOG_WINDOW, IDM_FLOAT_CODE_WINDOW, CFrame::OnFloatWindo
 
 EVT_MENU(IDM_NETPLAY, CFrame::OnNetPlay)
 EVT_MENU(IDM_MEMCARD, CFrame::OnMemcard)
+EVT_MENU(IDM_SCRIPTLAUNCH, CFrame::OnScriptLaunch) // ADDED
 EVT_MENU(IDM_IMPORT_SAVE, CFrame::OnImportSave)
 EVT_MENU(IDM_EXPORT_ALL_SAVE, CFrame::OnExportAllSaves)
 EVT_MENU(IDM_CHEATS, CFrame::OnShowCheatsWindow)
@@ -439,6 +442,8 @@ CFrame::CFrame(wxFrame* parent,
 	m_LogWindow = new CLogWindow(this, IDM_LOG_WINDOW);
 	m_LogWindow->Hide();
 	m_LogWindow->Disable();
+
+	g_ScriptLauncher = new LuaWindow(this); // ADDED
 
 	for (int i = 0; i < 8; ++i)
 		g_TASInputDlg[i] = new TASInputDlg(this);

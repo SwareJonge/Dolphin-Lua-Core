@@ -8,6 +8,7 @@
 #include "Common/Logging/Log.h"
 #include "Core/CoreTiming.h"
 #include "Core/Movie.h"
+#include "Core/LUA/Lua.h"
 #include "Core/NetPlayProto.h"
 #include "Core/HW/GCPad.h"
 #include "Core/HW/ProcessorInterface.h"
@@ -126,6 +127,7 @@ void CSIDevice_GCController::HandleMoviePadStatus(GCPadStatus* PadStatus)
 	}
 	else if (Movie::IsPlayingInput())
 	{
+		Lua::UpdateScripts(PadStatus);
 		Movie::PlayController(PadStatus, ISIDevice::m_iDeviceNumber);
 		Movie::InputUpdate();
 	}

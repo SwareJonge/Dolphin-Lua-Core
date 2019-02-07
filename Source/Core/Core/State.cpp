@@ -25,6 +25,7 @@
 #include "Core/CoreTiming.h"
 #include "Core/Host.h"
 #include "Core/Movie.h"
+#include "Core/LUA/Lua.h"
 #include "Core/NetPlayClient.h"
 #include "Core/State.h"
 #include "Core/HW/HW.h"
@@ -397,6 +398,11 @@ static void CompressAndDumpState(CompressAndDumpState_args save_args)
 
 	Core::DisplayMessage(StringFromFormat("Saved State to %s", filename.c_str()), 2000);
 	Host_UpdateMainFrame();
+
+	// === EDITTED PART ===
+	if (Lua::lua_isStateOperation)
+		Lua::lua_isStateSaved = true;
+	// === ===
 }
 
 void SaveAs(const std::string& filename, bool wait)
@@ -594,6 +600,11 @@ void LoadAs(const std::string& filename)
 				Movie::LoadInput(filename + ".dtm");
 			else if (!Movie::IsJustStartingRecordingInputFromSaveState() && !Movie::IsJustStartingPlayingInputFromSaveState())
 				Movie::EndPlayInput(false);
+
+			// === EDITTED PART ===
+			if (Lua::lua_isStateOperation)
+				Lua::lua_isStateLoaded = true;
+			// === ===
 		}
 		else
 		{

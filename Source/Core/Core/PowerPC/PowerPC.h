@@ -258,6 +258,7 @@ void Write_U32_Swap(const u32 var, const u32 address);
 void Write_U64_Swap(const u64 var, const u32 address);
 
 // Useful helper functions, used by ARM JIT
+void Write_F32(const float var, const u32 address); // NEW FUNCTION
 void Write_F64(const double var, const u32 address);
 
 void DMA_LCToMemory(const u32 memAddr, const u32 cacheAddr, const u32 numBlocks);

@@ -616,6 +616,16 @@ void Write_U64_Swap(const u64 var, const u32 address)
 	Write_U64(Common::swap64(var), address);
 }
 
+void Write_F32(const float var, const u32 address)
+{
+	union {
+		u32 i;
+		float d;
+	} cvt;
+	cvt.d = var;
+	Write_U32(cvt.i, address);
+}
+
 void Write_F64(const double var, const u32 address)
 {
 	union

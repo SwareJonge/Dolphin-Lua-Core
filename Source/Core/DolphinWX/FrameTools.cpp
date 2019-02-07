@@ -37,6 +37,7 @@
 #include "Core/Host.h"
 #include "Core/HotkeyManager.h"
 #include "Core/Movie.h"
+#include "Core/LUA/Lua.h"
 #include "Core/State.h"
 #include "Core/HW/CPU.h"
 #include "Core/HW/DVDInterface.h"
@@ -53,6 +54,7 @@
 
 #include "DiscIO/NANDContentLoader.h"
 
+#include "DolphinWX/LaunchLuaScript.h"
 #include "DolphinWX/AboutDolphin.h"
 #include "DolphinWX/ControllerConfigDiag.h"
 #include "DolphinWX/FifoPlayerDlg.h"
@@ -230,6 +232,7 @@ wxMenuBar* CFrame::CreateMenu()
 	// Tools menu
 	wxMenu* toolsMenu = new wxMenu;
 	toolsMenu->Append(IDM_MEMCARD, _("&Memcard Manager (GC)"));
+	toolsMenu->Append(IDM_SCRIPTLAUNCH, "Execute Script"); // ADDED
 	toolsMenu->Append(IDM_IMPORT_SAVE, _("Import Wii Save"));
 	toolsMenu->Append(IDM_EXPORT_ALL_SAVE, _("Export All Wii Saves"));
 	toolsMenu->Append(IDM_CHEATS, _("&Cheat Manager"));
@@ -1632,6 +1635,14 @@ void CFrame::OnUndoSaveState(wxCommandEvent& WXUNUSED (event))
 		State::UndoSaveState();
 }
 
+// === ADDED FUNCTION ===
+void CFrame::OnScriptLaunch(wxCommandEvent &WXUNUSED(event))
+{
+	g_ScriptLauncher->Show(true);
+	g_ScriptLauncher->Shown();
+}
+// === ===
+
 
 void CFrame::OnLoadState(wxCommandEvent& event)
 {
@@ -1872,7 +1883,32 @@ void CFrame::UpdateGUI()
 		else
 			g_CheatsWindow->Close();
 	}
+
+	// === ADDED ===
+	// Savestate functions for LUA
+	if (Lua::lua_isStateOperation && !Lua::lua_isStateDone)
+	{
+		Lua::lua_isStateDone = true;
+
+		if (Lua::m_stateData.doSave) // Save State
+		{
+			if (Lua::m_stateData.useSlot)
+				State::Save(Lua::m_stateData.slotID);
+			else
+				State::SaveAs(File::GetUserPath(D_STATESAVES_IDX) + Lua::m_stateData.fileName);
+		}
+		else // Load State
+		{
+			if (Lua::m_stateData.useSlot)
+				State::Load(Lua::m_stateData.slotID);
+			else
+				State::LoadAs(File::GetUserPath(D_STATESAVES_IDX) + Lua::m_stateData.fileName);
+		}
+	}
+	// === ===
 }
+
+
 
 void CFrame::UpdateGameList()
 {
