@@ -321,6 +321,17 @@ void Renderer::DrawDebugText()
 		final_cyan += StringFromFormat("Lag: %" PRIu64 "\n", Movie::g_currentLagCount);
 		final_yellow += "\n";
 	}
+	
+	if (SConfig::GetInstance().m_ShowRerecordCount)
+	{
+		if (Movie::IsPlayingInput())
+			final_cyan += Movie::GetRerecordCount();
+		    final_yellow += "\n";
+		if (Movie::IsRecordingInput())
+			final_cyan += Movie::GetRerecordCount();
+		    final_yellow += "\n";
+	}
+	
 
 	if (SConfig::GetInstance().m_ShowInputDisplay)
 	{
@@ -419,8 +430,18 @@ void Renderer::DrawDebugText()
 		final_cyan += Statistics::ToStringProj();
 
 	//and then the text
-	g_renderer->RenderText(final_cyan, 20, 20, 0xFF00FFFF);
-	g_renderer->RenderText(final_yellow, 20, 20, 0xFFFFFF00);
+	g_renderer->RenderText(final_cyan, 20, 30, 0xFF00FFFF);
+	g_renderer->RenderText(final_yellow, 20, 30, 0xFFFFFF00);
+
+	// Dragonbane: Recording Notice
+	if (Movie::IsRecordingInput())
+	{
+		g_renderer->RenderText("RECORDING", 20, 14, 0xFFFF00FF);
+	}
+	else if (Movie::IsPlayingInput())
+	{
+		g_renderer->RenderText("PLAYBACK", 20, 14, 0xFF00FF00);
+	}
 }
 
 void Renderer::UpdateDrawRectangle(int backbuffer_width, int backbuffer_height)
