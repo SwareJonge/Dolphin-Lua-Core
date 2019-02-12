@@ -204,6 +204,8 @@ wxMenuBar* CFrame::CreateMenu()
 	movieMenu->Check(IDM_SHOW_LAG, SConfig::GetInstance().m_ShowLag);
 	movieMenu->AppendCheckItem(IDM_SHOW_FRAME_COUNT, _("Show Frame Counter"));
 	movieMenu->Check(IDM_SHOW_FRAME_COUNT, SConfig::GetInstance().m_ShowFrameCount);
+	movieMenu->AppendCheckItem(IDM_SHOW_RERECORDS, _("Show Rerecords"));
+	movieMenu->Check(IDM_SHOW_RERECORDS, SConfig::GetInstance().m_ShowRerecordCount);	
 	movieMenu->Check(IDM_RECORD_READ_ONLY, true);
 	movieMenu->AppendCheckItem(IDM_SHOW_INPUT_DISPLAY, _("Show Input/Info Display"));
 	movieMenu->Check(IDM_SHOW_INPUT_DISPLAY, SConfig::GetInstance().m_ShowInputDisplay);
@@ -755,6 +757,12 @@ void CFrame::OnShowLag(wxCommandEvent& WXUNUSED (event))
 void CFrame::OnShowFrameCount(wxCommandEvent& WXUNUSED (event))
 {
 	SConfig::GetInstance().m_ShowFrameCount = !SConfig::GetInstance().m_ShowFrameCount;
+	SConfig::GetInstance().SaveSettings();
+}
+
+void CFrame::OnShowRerecordCount(wxCommandEvent& WXUNUSED(event))
+{
+	SConfig::GetInstance().m_ShowRerecordCount = !SConfig::GetInstance().m_ShowRerecordCount;
 	SConfig::GetInstance().SaveSettings();
 }
 
