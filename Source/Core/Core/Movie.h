@@ -129,6 +129,7 @@ bool IsPlayingInput();
 bool IsMovieActive();
 bool IsReadOnly();
 u64  GetRecordingStartTime();
+std::string GetRerecordCount();
 
 bool IsConfigSaved();
 bool IsDualCore();
