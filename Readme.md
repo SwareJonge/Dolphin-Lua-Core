@@ -19,13 +19,13 @@ ReadValue8(memoryAddress as Number) //Reads 1 Byte from the address
 ReadValue16(memoryAddress as Number) //Reads 2 Byte from the address
 ReadValue32(memoryAddress as Number) //Reads 4 Byte from the address
 ReadValueFloat(memoryAddress as Number)  //Reads 4 Bytes as a Float from the address
-ReadValueString(memoryAddress as Number, length as Number) //Reads "length" amount of characters from the address as a String (NOT WORKING YET)
+ReadValueString(memoryAddress as Number, length as Number) //Reads "length" amount of characters from the address as a String
  
 WriteValue8(memoryAddress as Number, value as Number) //Writes 1 Byte to the address
 WriteValue16(memoryAddress as Number, value as Number) //Writes 2 Byte to the address
 WriteValue32(memoryAddress as Number, value as Number) //Writes 4 Byte to the address
 WriteValueFloat(memoryAddress as Number, value as Number)  //Writes 4 Bytes as a Float to the address
-WriteValueString(memoryAddress as Number, text as String) //Writes the string to the address (NOT WORKING YET)
+WriteValueString(memoryAddress as Number, text as String) //Writes the string to the address
  
 GetPointerNormal(memoryAddress as Number) //Reads the pointer address from the memory, checks if its valid and if so returns the normal address. You can use this function for example to get Links Pointer from the address 0x3ad860. To the return value you simply need to add the offset 0x34E4 and then do a ReadValueFloat with the resulting address to get Links speed (in TWW)
  
