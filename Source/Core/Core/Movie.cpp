@@ -619,6 +619,7 @@ namespace Movie {
 	std::string GetRerecordCount()
         {
 	    std::string output = StringFromFormat("Rerecords: %d", s_rerecords);
+	    output.append("\n");
 	    return output;
         }	
 
