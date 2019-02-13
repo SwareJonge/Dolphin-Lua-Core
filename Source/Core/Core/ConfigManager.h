@@ -256,6 +256,7 @@ struct SConfig : NonCopyable
 	bool m_DumpFrames;
 	bool m_DumpFramesSilent;
 	bool m_ShowInputDisplay;
+	bool m_ShowRAMDisplay;
 
 	bool m_PauseOnFocusLost;
 

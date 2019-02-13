@@ -28,7 +28,7 @@
     <Filter Include="GUI\Config">
       <UniqueIdentifier>{9d8b4144-f335-4fa4-b995-852533298474}</UniqueIdentifier>
     </Filter>
-	<Filter Include="GUI\LuaCore">
+    <Filter Include="GUI\LuaCore">
       <UniqueIdentifier>{e83c2185-9d54-4972-9796-dfe21fde49dc}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
@@ -163,7 +163,7 @@
     <ClCompile Include="SoftwareVideoConfigDialog.cpp">
       <Filter>GUI\Video</Filter>
     </ClCompile>
-	  <ClCompile Include="LaunchLuaScript.cpp">
+    <ClCompile Include="LaunchLuaScript.cpp">
       <Filter>GUI\LuaCore</Filter>
     </ClCompile>
     <ClCompile Include="ControllerConfigDiag.cpp">
@@ -196,13 +196,13 @@
     <ClCompile Include="Config\AdvancedConfigPane.cpp">
       <Filter>GUI\Config</Filter>
     </ClCompile>
-    <ClCompile Include="NetPlay\NetPlaySetupFrame.cpp">
-      <Filter>GUI\NetPlay</Filter>
-    </ClCompile>
     <ClCompile Include="NetPlay\ChangeGameDialog.cpp">
       <Filter>GUI\NetPlay</Filter>
     </ClCompile>
     <ClCompile Include="NetPlay\PadMapDialog.cpp">
+      <Filter>GUI\NetPlay</Filter>
+    </ClCompile>
+    <ClCompile Include="NetPlay\NetPlaySetupFrame.cpp">
       <Filter>GUI\NetPlay</Filter>
     </ClCompile>
   </ItemGroup>
@@ -330,7 +330,7 @@
     <ClInclude Include="SoftwareVideoConfigDialog.h">
       <Filter>GUI\Video</Filter>
     </ClInclude>
-	  <ClInclude Include="LaunchLuaScript.h">
+    <ClInclude Include="LaunchLuaScript.h">
       <Filter>GUI\LuaCore</Filter>
     </ClInclude>
     <ClInclude Include="ControllerConfigDiag.h">

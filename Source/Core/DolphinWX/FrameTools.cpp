@@ -207,8 +207,10 @@ wxMenuBar* CFrame::CreateMenu()
 	movieMenu->AppendCheckItem(IDM_SHOW_RERECORDS, _("Show Rerecords"));
 	movieMenu->Check(IDM_SHOW_RERECORDS, SConfig::GetInstance().m_ShowRerecordCount);	
 	movieMenu->Check(IDM_RECORD_READ_ONLY, true);
-	movieMenu->AppendCheckItem(IDM_SHOW_INPUT_DISPLAY, _("Show Input/Info Display"));
+	movieMenu->AppendCheckItem(IDM_SHOW_INPUT_DISPLAY, _("Show Input Display"));
 	movieMenu->Check(IDM_SHOW_INPUT_DISPLAY, SConfig::GetInstance().m_ShowInputDisplay);
+	movieMenu->AppendCheckItem(IDM_SHOW_RAM_DISPLAY, _("Show Info Display"));
+	movieMenu->Check(IDM_SHOW_RAM_DISPLAY, SConfig::GetInstance().m_ShowRAMDisplay);
 	movieMenu->AppendSeparator();
 	movieMenu->AppendCheckItem(IDM_TOGGLE_DUMP_FRAMES, _("Dump Frames"));
 	movieMenu->Check(IDM_TOGGLE_DUMP_FRAMES, SConfig::GetInstance().m_DumpFrames);
@@ -769,6 +771,12 @@ void CFrame::OnShowRerecordCount(wxCommandEvent& WXUNUSED(event))
 void CFrame::OnShowInputDisplay(wxCommandEvent& WXUNUSED(event))
 {
 	SConfig::GetInstance().m_ShowInputDisplay = !SConfig::GetInstance().m_ShowInputDisplay;
+	SConfig::GetInstance().SaveSettings();
+}
+
+void CFrame::OnShowRAMDisplay(wxCommandEvent& WXUNUSED(event))
+{
+	SConfig::GetInstance().m_ShowRAMDisplay = !SConfig::GetInstance().m_ShowRAMDisplay;
 	SConfig::GetInstance().SaveSettings();
 }
 

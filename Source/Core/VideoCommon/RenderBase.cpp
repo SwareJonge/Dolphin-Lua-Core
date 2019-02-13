@@ -339,6 +339,12 @@ void Renderer::DrawDebugText()
 		final_yellow += "\n";
 	}
 
+	if (SConfig::GetInstance().m_ShowRAMDisplay)
+	{
+		final_cyan += Movie::GetRAMDisplay();
+		final_yellow += "\n";
+	}
+
 	// OSD Menu messages
 	if (OSDChoice > 0)
 	{
