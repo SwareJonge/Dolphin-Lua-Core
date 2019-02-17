@@ -47,6 +47,7 @@ GetFrameCount() //Returns the current visual frame count. Can use this and a glo
 GetInputFrameCount() //Returns the current input frame count
  
 MsgBox(message as String, delayMS as Number) //Dolphin will show the indicated message in the upper-left corner for the indicated length (in milliseconds). Default length is 5 seconds
+SetScreenText(message as String) //Displays Text on Screen
  
 CancelScript() //Cancels the script
 ```
