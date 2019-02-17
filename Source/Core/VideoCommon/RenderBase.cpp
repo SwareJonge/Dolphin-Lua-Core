@@ -428,6 +428,7 @@ void Renderer::DrawDebugText()
 	}
 
 	final_cyan += Common::Profiler::ToString();
+	final_cyan += Statistics::ToLuaString();
 
 	if (g_ActiveConfig.bOverlayStats)
 		final_cyan += Statistics::ToString();

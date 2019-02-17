@@ -26,6 +26,16 @@ void Statistics::SwapDL()
 	std::swap(stats.thisFrame.numBPLoadsInDL, stats.thisFrame.numBPLoads);
 }
 
+void Statistics::SetString(std::string text)
+{
+	stats.statistics_text = text;
+}
+
+std::string Statistics::ToLuaString()
+{
+	return stats.statistics_text;
+}
+
 std::string Statistics::ToString()
 {
 	std::string str;
@@ -98,8 +108,10 @@ std::string Statistics::ToStringProj()
 	projections += StringFromFormat("Projection 7: %f (%f)\n\n", stats.gproj_7, stats.g2proj_7);
 	projections += StringFromFormat("Projection 8: %f (%f)\n", stats.gproj_8, stats.g2proj_8);
 	projections += StringFromFormat("Projection 9: %f (%f)\n", stats.gproj_9, stats.g2proj_9);
-	projections += StringFromFormat("Projection 10: %f (%f) Raw 4: %f\n\n", stats.gproj_10, stats.g2proj_10, stats.proj_4);
-	projections += StringFromFormat("Projection 11: %f (%f) Raw 5: %f\n\n", stats.gproj_11, stats.g2proj_11, stats.proj_5);
+	projections +=
+	    StringFromFormat("Projection 10: %f (%f) Raw 4: %f\n\n", stats.gproj_10, stats.g2proj_10, stats.proj_4);
+	projections +=
+	    StringFromFormat("Projection 11: %f (%f) Raw 5: %f\n\n", stats.gproj_11, stats.g2proj_11, stats.proj_5);
 	projections += StringFromFormat("Projection 12: %f (%f)\n", stats.gproj_12, stats.g2proj_12);
 	projections += StringFromFormat("Projection 13: %f (%f)\n", stats.gproj_13, stats.g2proj_13);
 	projections += StringFromFormat("Projection 14: %f (%f)\n", stats.gproj_14, stats.g2proj_14);

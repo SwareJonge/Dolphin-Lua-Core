@@ -33,6 +33,7 @@
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "InputCommon/GCPadStatus.h"
+#include "VideoCommon/Statistics.h"
 #include "VideoCommon/VideoConfig.h"
 #include "Core/Host.h"
 
@@ -373,6 +374,23 @@ int GetInputFrameCount(lua_State *L)
 	return 1; // number of return values
 }
 
+int SetScreenText(lua_State *L)
+{
+	int argc = lua_gettop(L);
+
+	if (argc < 1)
+		return 0;
+
+	const char *text = lua_tostring(L, 1);
+
+	std::string screen_text = StringFromFormat("%s", text);
+	screen_text.append("\n");
+
+	Statistics::SetString(screen_text);
+
+	return 0;
+}
+
 int MsgBox(lua_State *L)
 {
 	int argc = lua_gettop(L);
@@ -677,6 +695,7 @@ namespace Lua
 		lua_register(luaState, "GetFrameCount", GetFrameCount);
 		lua_register(luaState, "GetInputFrameCount", GetInputFrameCount);
 		lua_register(luaState, "MsgBox", MsgBox);
+	    lua_register(luaState, "SetScreenText", SetScreenText);
 	}
 
 	void Init()
