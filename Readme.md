@@ -76,7 +76,8 @@ function onStateSaved()
 end
 ```
 
-TODO: Make Wiimotes working with Lua Scripts
+TODO: Make Wiimotes working with Lua Scripts.
+
 NOTE: If you want to build this version: Use Microsoft Visual Studio 2017 without any upgrades or use Microsoft Visual Studio 2015 Update 2 and Windows 10 SDK 10.0.10586.0
 MAKE SURE YOU'VE SELECTED "Release" IN VISUAL STUDIO, OTHERWISE THE BUILD WILL FAIL
 http://prntscr.com/mkjgvw
