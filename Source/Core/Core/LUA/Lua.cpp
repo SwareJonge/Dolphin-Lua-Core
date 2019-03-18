@@ -119,6 +119,9 @@ int ReadValueString(lua_State *L)
 //Write Stuff
 int WriteValue8(lua_State *L)
 {
+	if (Movie::IsPlayingInput())
+		return 0;
+	
 	int argc = lua_gettop(L);
 
 	if (argc < 2)
@@ -134,6 +137,9 @@ int WriteValue8(lua_State *L)
 
 int WriteValue16(lua_State *L)
 {
+	if (Movie::IsPlayingInput())
+		return 0;
+	
 	int argc = lua_gettop(L);
 
 	if (argc < 2)
@@ -149,6 +155,9 @@ int WriteValue16(lua_State *L)
 
 int WriteValue32(lua_State *L)
 {
+	if (Movie::IsPlayingInput())
+		return 0;
+	
 	int argc = lua_gettop(L);
 
 	if (argc < 2)
@@ -164,6 +173,9 @@ int WriteValue32(lua_State *L)
 
 int WriteValueFloat(lua_State *L)
 {
+	if (Movie::IsPlayingInput())
+		return 0;
+	
 	int argc = lua_gettop(L);
 
 	if (argc < 2)
@@ -178,6 +190,9 @@ int WriteValueFloat(lua_State *L)
 }
 int WriteValueString(lua_State *L)
 {
+	if (Movie::IsPlayingInput())
+		return 0;
+	
 	int argc = lua_gettop(L);
 
 	if (argc < 2)
@@ -219,6 +234,9 @@ int GetPointerNormal(lua_State *L)
 
 int PressButton(lua_State *L)
 {
+	if (Movie::IsPlayingInput())
+		return 0;
+	
 	int argc = lua_gettop(L);
 
 	if (argc < 1)
@@ -233,6 +251,9 @@ int PressButton(lua_State *L)
 
 int ReleaseButton(lua_State *L)
 {
+	if (Movie::IsPlayingInput())
+		return 0;
+	
 	int argc = lua_gettop(L);
 
 	if (argc < 1)
@@ -247,6 +268,9 @@ int ReleaseButton(lua_State *L)
 
 int SetMainStickX(lua_State *L)
 {
+	if (Movie::IsPlayingInput())
+		return 0;
+	
 	int argc = lua_gettop(L);
 
 	if (argc < 1)
@@ -260,6 +284,9 @@ int SetMainStickX(lua_State *L)
 }
 int SetMainStickY(lua_State *L)
 {
+	if (Movie::IsPlayingInput())
+		return 0;
+	
 	int argc = lua_gettop(L);
 
 	if (argc < 1)
@@ -274,6 +301,9 @@ int SetMainStickY(lua_State *L)
 
 int SetCStickX(lua_State *L)
 {
+	if (Movie::IsPlayingInput())
+		return 0;
+	
 	int argc = lua_gettop(L);
 
 	if (argc < 1)
@@ -287,6 +317,9 @@ int SetCStickX(lua_State *L)
 }
 int SetCStickY(lua_State *L)
 {
+	if (Movie::IsPlayingInput())
+		return 0;
+	
 	int argc = lua_gettop(L);
 
 	if (argc < 1)
@@ -330,6 +363,9 @@ int SaveState(lua_State *L)
 
 int LoadState(lua_State *L)
 {
+	if (Movie::IsPlayingInput())
+		return 0;
+	
 	int argc = lua_gettop(L);
 
 	if (argc < 2)
@@ -391,6 +427,15 @@ int SetScreenText(lua_State *L)
 	return 0;
 }
 
+int PauseEmulation(lua_State *L)
+{
+	int argc = lua_gettop(L);
+
+	Core::SetState(Core::CORE_PAUSE);
+
+	return 0;
+}
+
 int MsgBox(lua_State *L)
 {
 	int argc = lua_gettop(L);
@@ -439,8 +484,6 @@ void HandleLuaErrors(lua_State *L, int status)
 namespace Lua
 {
 	//Dragonbane: Lua Stuff
-	static lua_State *luaState_Superswim;
-
 	static std::list<LuaScript> scriptList;
 	static int currScriptID;
 
@@ -695,7 +738,9 @@ namespace Lua
 		lua_register(luaState, "GetFrameCount", GetFrameCount);
 		lua_register(luaState, "GetInputFrameCount", GetInputFrameCount);
 		lua_register(luaState, "MsgBox", MsgBox);
-	    lua_register(luaState, "SetScreenText", SetScreenText);
+		
+		lua_register(luaState, "SetScreenText", SetScreenText);
+		lua_register(luaState, "PauseEmulation", PauseEmulation);
 	}
 
 	void Init()

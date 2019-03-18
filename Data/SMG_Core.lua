@@ -6,46 +6,22 @@ local function getGameID()
 end
 core.getGameID = getGameID
 
-local function getXpos()
+local function getPos()
   local address = 0
-
   if getGameID() == "RMGE01" then address = 0xF8EF88
   elseif getGameID() == "RMGJ01" then address = 0xF8F328
   elseif getGameID() == "RMGP01" then address = 0xF8EF88
   end
   local offset1 = 0x3EEC
   local address1 = GetPointerNormal(address)
-  return ReadValueFloat(address1 + offset1)
-end
-core.getXpos = getXpos
-
-local function getYpos()
-  local address = 0
-
-  if getGameID() == "RMGE01" then address = 0xF8EF88
-  elseif getGameID() == "RMGJ01" then address = 0xF8F328
-  elseif getGameID() == "RMGP01" then address = 0xF8EF88
+  if ReadValue32(address) == 0 then
+		return {X = 0, Y = 0, Z = 0}
   end
-  local offset1 = 0x3EF0
-  local address1 = GetPointerNormal(address)
-  return ReadValueFloat(address1 + offset1)
+  return {X = ReadValueFloat(address1 + offset1), Y = ReadValueFloat(address1 + offset1 + 4), Z = ReadValueFloat(address1 + offset1 + 8)}
 end
-core.getYpos = getYpos
+core.getPos = getPos
 
-local function getZpos()
-  local address = 0
-
-  if getGameID() == "RMGE01" then address = 0xF8EF88
-  elseif getGameID() == "RMGJ01" then address = 0xF8F328
-  elseif getGameID() == "RMGP01" then address = 0xF8EF88
-  end
-  local offset1 = 0x3EF4
-  local address1 = GetPointerNormal(address)
-  return ReadValueFloat(address1 + offset1)
-end
-core.getYpos = getYpos
-
-local function getPrevXpos()
+local function getPrevPos()
   local address = 0
   if getGameID() == "RMGE01" then address = 0xF8EF88
   elseif getGameID() == "RMGJ01" then address = 0xF8F328
@@ -53,64 +29,23 @@ local function getPrevXpos()
   end
   local offset1 = 0x18DC
   local address1 = GetPointerNormal(address)
-  return ReadValueFloat(address1 + offset1)
-end
-core.getPrevXpos = getPrevXpos
-
-local function getPrevYpos()
-  local address = 0
-
-  if getGameID() == "RMGE01" then address = 0xF8EF88
-  elseif getGameID() == "RMGJ01" then address = 0xF8F328
-  elseif getGameID() == "RMGP01" then address = 0xF8EF88
+  if ReadValue32(address) == 0 then
+		return {X = 0, Y = 0, Z = 0}
   end
-  local offset1 = 0x18E0
-  local address1 = GetPointerNormal(address)
-  return ReadValueFloat(address1 + offset1)
+  return {X = ReadValueFloat(address1 + offset1), Y = ReadValueFloat(address1 + offset1 + 4), Z = ReadValueFloat(address1 + offset1 + 8)}
 end
-core.getPrevYpos = getPrevYpos
+core.getPrevPos = getPrevPos
 
-local function getPrevZpos()
-  local address = 0
 
-  if getGameID() == "RMGE01" then address = 0xF8EF88
-  elseif getGameID() == "RMGJ01" then address = 0xF8F328
-  elseif getGameID() == "RMGP01" then address = 0xF8EF88
-  end
-  local offset1 = 0x18E4
-  local address1 = GetPointerNormal(address)
-  return ReadValueFloat(address1 + offset1)
+local function getSpd()
+  local PrevXpos = getPrevPos().X
+  local PrevYpos = getPrevPos().Y
+  local PrevZpos = getPrevPos().Z
+  local Xpos = getPos().X
+  local Ypos = getPos().Y
+  local Zpos = getPos().Z
+  return {Y = (Ypos - PrevYpos), XZ = math.sqrt(((Xpos - PrevXpos)^2) + (Zpos - PrevZpos)^2), XYZ = math.sqrt(((Xpos - PrevXpos)^2) + ((Ypos - PrevYpos)^2) + (Zpos - PrevZpos)^2)}
 end
-core.getPrevZpos = getPrevZpos
-
-local function getXYZSpeed()
-  local PrevXpos = getPrevXpos()
-  local PrevYpos = getPrevYpos()
-  local PrevZpos = getPrevZpos()
-  local Xpos = getXpos()
-  local Ypos = getYpos()
-  local Zpos = getZpos()
-  local XYZSpeed = math.sqrt(((Xpos - PrevXpos)^2) + ((Ypos - PrevYpos)^2) + (Zpos - PrevZpos)^2)
-  return XYZSpeed
-end
-core.getXYZSpeed = getXYZSpeed
-
-local function getXZSpeed()
-  local PrevXpos = getPrevXpos()
-  local PrevZpos = getPrevZpos()
-  local Xpos = getXpos()
-  local Zpos = getZpos()
-  local XZSpeed = math.sqrt(((Xpos - PrevXpos)^2) + (Zpos - PrevZpos)^2)
-  return XZSpeed
-end
-core.getXZSpeed = getXZSpeed
-
-local function getYVel()
-  local PrevYpos = getPrevYpos()
-  local Ypos = getYpos()
-  local YVel = Ypos - PrevYpos
-  return YVel
-end
-core.getYVel = getYVel
+core.getSpd = getSpd
 
 return core

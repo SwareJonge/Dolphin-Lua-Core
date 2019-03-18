@@ -1,18 +1,26 @@
-local core = require "SMG_Core"
+----- GLOBAL VARIABLES -----
+local core = require "SMG_core"
+--Add an underscore (_) to the beginning of the filename if you want the script to auto launch once you start a game!
+
 
 function onScriptStart()
-	MsgBox("Hello Xander!")
 end
 
 function onScriptCancel()
-	MsgBox("Thanks For using this script! If there are any bugs, message SwareJonge#2388") SetScreenText("")
+	MsgBox("Bye :(") SetScreenText("")
 end
 
 function onScriptUpdate()
-  Yvel = core.getYVel()
-  XZSpeed = core.getXZSpeed()
-  XYZSpeed = core.getXYZSpeed()
-  SetScreenText(string.format("\n\n\n\n\n\n\n\n\n\n\n\nY Vel: %f \nXZ Speed: %f \nXYZ Speed: %f", Yvel, XZSpeed, XYZSpeed))
+	local text = "\n\n\n\n\n\n\n\n\n\n===== Speed ====="
+	text = text .. string.format("\nY: %10.6f | XZ: %10.6f | XYZ: %10.6f", core.getSpd().Y, core.getSpd().XZ, core.getSpd().XYZ)
+
+	text = text .. "\n"
+
+
+	text = text .. "\n\n===== Position ====="
+	text = text .. string.format("\nX: %12.6f \nY: %12.6f \nZ: %12.6f", core.getPos().X, core.getPos().Y, core.getPos().Z)
+
+	SetScreenText(text)
 end
 
 function onStateLoaded()

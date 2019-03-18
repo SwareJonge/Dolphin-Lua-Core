@@ -1,7 +1,7 @@
 angleSetPoint = 0
 
-local core = require "sa2b_core"
-local target_angle = require "sa2b_target_angle"
+local core = require "sonic_core"
+local target_angle = require "sonic_target_angle"
 
 function onScriptStart()
 

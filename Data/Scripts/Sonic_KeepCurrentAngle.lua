@@ -1,4 +1,4 @@
-local core = require "sadx_core"
+local core = require "sonic_core"
 
 function onScriptStart()
 	
@@ -11,7 +11,7 @@ end
 function onScriptUpdate()
 	
 	-- input the current Y rotation angle to the main stick
-	core.angleInput(core.getYRot())
+	core.angleInput(core.getRot().Y)
 	
 end
 

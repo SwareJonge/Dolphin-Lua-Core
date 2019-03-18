@@ -1,12 +1,12 @@
 ----- EDIT YOUR ANGLE SET POINT HERE -----
 angleSetPoint = 0
 
-local core = require "sadx_core"
-local target_angle = require "sadx_target_angle"
+local core = require "sonic_core"
+local target_angle = require "sonic_target_angle"
 
 function onScriptStart()
 
-	-- set the angleSetPoint as the value read in sa2b_target_angle.lua file
+	-- set the angleSetPoint as the value read in sonic_target_angle.lua file
 	angleSetPoint = target_angle.Y
 	MsgBox(string.format("Target angle: %d", angleSetPoint))
 	

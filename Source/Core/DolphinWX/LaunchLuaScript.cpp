@@ -160,7 +160,7 @@ void LuaWindow::Shown()
 			std::string FileName;
 			SplitPath(rFilenames[i], nullptr, &FileName, nullptr);
 
-			if (FileName.substr(0, 1).compare("_") && FileName.compare("Superswim"))
+			if (FileName.substr(0, 1).compare("_"))
 			{
 				m_choice_script->Append(StrToWxStr(FileName + ".lua"));
 			}

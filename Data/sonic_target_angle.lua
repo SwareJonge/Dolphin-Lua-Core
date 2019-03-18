@@ -1,5 +1,5 @@
 local target_angle = {
-    Y = 39463
+    Y = 40858
 }
 
 return target_angle

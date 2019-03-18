@@ -4,7 +4,7 @@ local core = require "MKW_core"
 input_file = io.open("mkw_input_reader_output.lua", "w")
 io.output(input_file)
 
-local prevFrame = core.getFrameOfinput()
+local prevFrame = core.getFrameOfInput()
 
 function onScriptStart()
 	MsgBox("Script started.")
@@ -17,7 +17,7 @@ function onScriptCancel()
 end
 
 function getInputs()
-  button_data = core.getButtonInput()
+  button_data = core.getInput().ABLR
   if button_data == 0 then A = 0 B = 0 L = 0
   elseif button_data == 1 then A = 1 B = 0 L = 0
   elseif button_data == 2 then A = 0 B = 1 L = 0
@@ -29,13 +29,13 @@ function getInputs()
   elseif button_data == 8 then A = 0 B = 1 L = 0
   elseif button_data == 10 then A = 0 B = 1 L = 0
   elseif button_data == 11 then A = 1 B = 1 L = 0
-  elseif button_data == 14 then A = 0 B = 1 L = 1		
+  elseif button_data == 14 then A = 0 B = 1 L = 1
   else A = 1 B = 1 L = 1
   end
 
-  Horiz = core.getHzInput()
-  Vert = core.getVerticalInput()
-  dpad_data = core.getDPADInput()
+	Horiz = core.getInput().X
+  Vert = core.getInput().Y
+  dpad_data = core.getInput().DPAD
   if dpad_data == 0 then DU = 0 DD = 0 DL = 0 DR = 0
   elseif dpad_data == 1 then DU = 1 DD = 0 DL = 0 DR = 0
   elseif dpad_data == 2 then DU = 0 DD = 1 DL = 0 DR = 0
@@ -46,7 +46,7 @@ function getInputs()
 end
 
 function onScriptUpdate()
-  currentFrame = core.getFrameOfinput()
+  currentFrame = core.getFrameOfInput()
   if currentFrame == 0 then return 0 end
   if currentFrame  == prevFrame + 1 then  --If the framecount has increased, start looking at the next row of the input file.
     prevFrame = currentFrame
@@ -70,7 +70,13 @@ function onScriptUpdate()
     io.write(", DR = ")
     io.write(DR)
     io.write("},")
+  elseif currentFrame < prevFrame then  --This occurs when we load a savestate.
+    local frameDifference = currentFrame - prevFrame
+    for i=1, currentFrame, 1 do
+      input_file:seek ("end",frameDifference)
 
+
+    end
   end
 
 end

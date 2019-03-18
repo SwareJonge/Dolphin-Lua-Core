@@ -4,7 +4,7 @@
 --TODO: Instead of 0-255 values, read 0-24 from file and convert to 0-255
 local core = require "MKW_core"
 local input_file = require "mkw_input_reader_output"
-local prevFrame = core.getFrameOfinput()
+local prevFrame = core.getFrameOfInput()
 local input_file_frame = 0
 
 function onScriptStart()
@@ -16,12 +16,11 @@ function onScriptCancel()
 end
 
 function onScriptUpdate()
-  currentFrame = core.getFrameOfinput()
+  currentFrame = core.getFrameOfInput()
   if currentFrame  == prevFrame + 1 then  --If the framecount has increased, start looking at the next row of the input file.
     prevFrame = currentFrame
     input_file_frame = input_file_frame + 1  --Keeps track of what index of the mkw_input_file row we are currently looking at.
   elseif input_file_frame == 0 then input_file_frame = 1 end  --Lua array indexes start at 1 for some God-forsaken reason.
-  
   inputs = input_file[input_file_frame]
   horizInput = inputs.Horiz
   vertInput = inputs.Vert
@@ -32,7 +31,6 @@ function onScriptUpdate()
   DD = inputs.DD
   DL = inputs.DL
   DR = inputs.DR
-  
   if horizInput ~= 7 and vertInput ~= 7 then
     
   end

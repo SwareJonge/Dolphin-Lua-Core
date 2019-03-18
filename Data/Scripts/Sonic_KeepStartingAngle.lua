@@ -1,12 +1,11 @@
 angleSetPoint = 0
 
-local core = require "sa2b_core"
-local angles = require "sa2b_angles"
+local core = require "sonic_core"
 
 function onScriptStart()
 
 	-- set the angleSetPoint as the starting Y rotation angle
-	angleSetPoint = core.getYRot()
+	angleSetPoint = core.getRot().Y
 	MsgBox(string.format("Target angle: %d", angleSetPoint))
 	
 end
