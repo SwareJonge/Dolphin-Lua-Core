@@ -46,6 +46,7 @@ set(GUI_SRCS
 	ISOProperties.cpp
 	InputConfigDiag.cpp
 	InputConfigDiagBitmaps.cpp
+        LaunchLuaScript.cpp
 	LogConfigWindow.cpp
 	LogWindow.cpp
 	Main.cpp

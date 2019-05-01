@@ -8,7 +8,7 @@
 
 #include <string>
 #include "Common/CommonTypes.h"
-#include <DolphinWX/MAIN.H>
+#include "DolphinWX/Main.h"
 
 #include <lua.hpp>
 
