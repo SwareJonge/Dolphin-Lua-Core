@@ -625,6 +625,8 @@ endif()
 #
 add_subdirectory(Externals/Bochs_disasm)
 include_directories(Externals/Bochs_disasm)
+add_subdirectory(Externals/lua-5.3.1)
+include_directories(Externals/lua-5.3.1/src)
 
 if(USE_SHARED_ENET)
 	check_lib(ENET libenet enet enet/enet.h QUIET)

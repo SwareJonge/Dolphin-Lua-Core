@@ -225,6 +225,7 @@ elseif(_M_ARM_64)
 endif()
 
 set(LIBS
+        lua
 	audiocommon
 	bdisasm
 	common

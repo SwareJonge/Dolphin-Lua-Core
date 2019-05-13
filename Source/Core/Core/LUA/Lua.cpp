@@ -3,6 +3,9 @@
 // Refer to the license.txt file included.
 
 #include <mbedtls/md5.h>
+#include <lua.hpp>
+#include <lua.h>
+#include <luaconf.h>
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonPaths.h"
@@ -37,11 +40,9 @@
 #include "VideoCommon/VideoConfig.h"
 #include "Core/Host.h"
 
-#include <lua.hpp> //Dragonbane
-
 
 //Lua Functions (C)
-int ReadValue8(lua_State *L)
+int ReadValue8(lua_State* L)
 {
 	int argc = lua_gettop(L);
 
@@ -56,7 +57,7 @@ int ReadValue8(lua_State *L)
 	return 1; // number of return values
 }
 
-int ReadValue16(lua_State *L)
+int ReadValue16(lua_State* L)
 {
 	int argc = lua_gettop(L);
 
@@ -71,7 +72,7 @@ int ReadValue16(lua_State *L)
 	return 1; // number of return values
 }
 
-int ReadValue32(lua_State *L)
+int ReadValue32(lua_State* L)
 {
 	int argc = lua_gettop(L);
 
@@ -86,7 +87,7 @@ int ReadValue32(lua_State *L)
 	return 1; // number of return values
 }
 
-int ReadValueFloat(lua_State *L)
+int ReadValueFloat(lua_State* L)
 {
 	int argc = lua_gettop(L);
 
@@ -100,7 +101,7 @@ int ReadValueFloat(lua_State *L)
 	lua_pushnumber(L, result); // return value
 	return 1; // number of return values
 }
-int ReadValueString(lua_State *L)
+int ReadValueString(lua_State* L)
 {
 	int argc = lua_gettop(L);
 
@@ -117,7 +118,7 @@ int ReadValueString(lua_State *L)
 }
 
 //Write Stuff
-int WriteValue8(lua_State *L)
+int WriteValue8(lua_State* L)
 {
 	if (Movie::IsPlayingInput())
 		return 0;
@@ -135,7 +136,7 @@ int WriteValue8(lua_State *L)
 	return 0; // number of return values
 }
 
-int WriteValue16(lua_State *L)
+int WriteValue16(lua_State* L)
 {
 	if (Movie::IsPlayingInput())
 		return 0;
@@ -153,7 +154,7 @@ int WriteValue16(lua_State *L)
 	return 0; // number of return values
 }
 
-int WriteValue32(lua_State *L)
+int WriteValue32(lua_State* L)
 {
 	if (Movie::IsPlayingInput())
 		return 0;
@@ -171,7 +172,7 @@ int WriteValue32(lua_State *L)
 	return 0; // number of return values
 }
 
-int WriteValueFloat(lua_State *L)
+int WriteValueFloat(lua_State* L)
 {
 	if (Movie::IsPlayingInput())
 		return 0;
@@ -188,7 +189,7 @@ int WriteValueFloat(lua_State *L)
 
 	return 0; // number of return values
 }
-int WriteValueString(lua_State *L)
+int WriteValueString(lua_State* L)
 {
 	if (Movie::IsPlayingInput())
 		return 0;
@@ -208,7 +209,7 @@ int WriteValueString(lua_State *L)
 	return 0; // number of return values
 }
 
-int GetPointerNormal(lua_State *L)
+int GetPointerNormal(lua_State* L)
 {
 	int argc = lua_gettop(L);
 
@@ -232,7 +233,7 @@ int GetPointerNormal(lua_State *L)
 	return 1; // number of return values
 }
 
-int PressButton(lua_State *L)
+int PressButton(lua_State* L)
 {
 	if (Movie::IsPlayingInput())
 		return 0;
@@ -249,7 +250,7 @@ int PressButton(lua_State *L)
 	return 0; // number of return values
 }
 
-int ReleaseButton(lua_State *L)
+int ReleaseButton(lua_State* L)
 {
 	if (Movie::IsPlayingInput())
 		return 0;
@@ -266,7 +267,7 @@ int ReleaseButton(lua_State *L)
 	return 0; // number of return values
 }
 
-int SetMainStickX(lua_State *L)
+int SetMainStickX(lua_State* L)
 {
 	if (Movie::IsPlayingInput())
 		return 0;
@@ -282,7 +283,7 @@ int SetMainStickX(lua_State *L)
 
 	return 0;
 }
-int SetMainStickY(lua_State *L)
+int SetMainStickY(lua_State* L)
 {
 	if (Movie::IsPlayingInput())
 		return 0;
@@ -299,7 +300,7 @@ int SetMainStickY(lua_State *L)
 	return 0;
 }
 
-int SetCStickX(lua_State *L)
+int SetCStickX(lua_State* L)
 {
 	if (Movie::IsPlayingInput())
 		return 0;
@@ -315,7 +316,7 @@ int SetCStickX(lua_State *L)
 
 	return 0;
 }
-int SetCStickY(lua_State *L)
+int SetCStickY(lua_State* L)
 {
 	if (Movie::IsPlayingInput())
 		return 0;
@@ -332,7 +333,7 @@ int SetCStickY(lua_State *L)
 	return 0;
 }
 
-int SaveState(lua_State *L)
+int SaveState(lua_State* L)
 {
 	int argc = lua_gettop(L);
 
@@ -361,7 +362,7 @@ int SaveState(lua_State *L)
 	return 0; // number of return values
 }
 
-int LoadState(lua_State *L)
+int LoadState(lua_State* L)
 {
 	if (Movie::IsPlayingInput())
 		return 0;
@@ -394,7 +395,7 @@ int LoadState(lua_State *L)
 }
 
 
-int GetFrameCount(lua_State *L)
+int GetFrameCount(lua_State* L)
 {
 	int argc = lua_gettop(L);
 
@@ -402,7 +403,7 @@ int GetFrameCount(lua_State *L)
 	return 1; // number of return values
 }
 
-int GetInputFrameCount(lua_State *L)
+int GetInputFrameCount(lua_State* L)
 {
 	int argc = lua_gettop(L);
 
@@ -410,7 +411,7 @@ int GetInputFrameCount(lua_State *L)
 	return 1; // number of return values
 }
 
-int SetScreenText(lua_State *L)
+int SetScreenText(lua_State* L)
 {
 	int argc = lua_gettop(L);
 
@@ -427,7 +428,7 @@ int SetScreenText(lua_State *L)
 	return 0;
 }
 
-int PauseEmulation(lua_State *L)
+int PauseEmulation(lua_State* L)
 {
 	int argc = lua_gettop(L);
 
@@ -436,7 +437,7 @@ int PauseEmulation(lua_State *L)
 	return 0;
 }
 
-int MsgBox(lua_State *L)
+int MsgBox(lua_State* L)
 {
 	int argc = lua_gettop(L);
 
@@ -459,7 +460,7 @@ int MsgBox(lua_State *L)
 	return 0; // number of return values
 }
 
-int CancelScript(lua_State *L)
+int CancelScript(lua_State* L)
 {
 	int argc = lua_gettop(L);
 
@@ -468,7 +469,7 @@ int CancelScript(lua_State *L)
 	return 0; // number of return values
 }
 
-void HandleLuaErrors(lua_State *L, int status)
+void HandleLuaErrors(lua_State* L, int status)
 {
 	if (status != 0)
 	{
