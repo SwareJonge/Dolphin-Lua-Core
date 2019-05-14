@@ -119,7 +119,7 @@ void LuaWindow::OnButtonPressed(wxCommandEvent& event)
 
 	if (event.GetId() == 2) //Start
 	{
-		if (File::Exists(SYSDATA_DIR "/Scripts" + FileName) == false)
+		if (File::Exists(SYSDATA_DIR "/Scripts/" + FileName) == false)
 		{
 			wxMessageBox("Script file does not exist anymore!");
 			return;
