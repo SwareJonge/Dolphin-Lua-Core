@@ -25,6 +25,7 @@
 #include "Core/Core.h"
 #include "Core/HW/Memmap.h"
 #include "Common/IniFile.h"
+#include "Common/CommonPaths.h"
 
 #include "Common/StringUtil.h"
 #include "Common/FileUtil.h"
@@ -118,7 +119,7 @@ void LuaWindow::OnButtonPressed(wxCommandEvent& event)
 
 	if (event.GetId() == 2) //Start
 	{
-		if (File::Exists(File::GetExeDirectory() + "\\Scripts\\" + FileName) == false)
+		if (File::Exists(SYSDATA_DIR "/Scripts" + FileName) == false)
 		{
 			wxMessageBox("Script file does not exist anymore!");
 			return;
@@ -151,7 +152,7 @@ void LuaWindow::Shown()
 	m_choice_script->Clear();
 
 	//Find all Lua files
-	std::vector<std::string> rFilenames = DoFileSearch({".lua"}, {File::GetExeDirectory() + "\\Scripts"});
+	std::vector<std::string> rFilenames = DoFileSearch({".lua"}, {SYSDATA_DIR "/Scripts" });
 
 	if (rFilenames.size() > 0)
 	{

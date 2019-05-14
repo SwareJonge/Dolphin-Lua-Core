@@ -992,6 +992,7 @@ add_subdirectory(Source)
 #
 if(NOT APPLE)
 	install(DIRECTORY Data/Sys/ DESTINATION ${datadir}/sys PATTERN)
+        install(DIRECTORY Data/Scripts/ DESTINATION ${datadir}/sys/Scripts PATTERN)
 endif()
 if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Linux|FreeBSD|Darwin")
 	install(FILES Data/license.txt DESTINATION ${datadir})

@@ -752,7 +752,7 @@ namespace Lua
 		//Auto launch Scripts that start with _
 
 
-	    std::vector<std::string> rFilenames = DoFileSearch({".lua"}, {File::GetExeDirectory() + "\\Scripts"});
+	    std::vector<std::string> rFilenames = DoFileSearch({".lua"}, {SYSDATA_DIR "/Scripts"});
 
 		if (rFilenames.size() > 0)
 		{
@@ -853,7 +853,7 @@ namespace Lua
 				//Unique to normal Scripts
 				lua_register(it->luaState, "CancelScript", CancelScript);
 
-				std::string file = File::GetExeDirectory() + "\\Scripts\\" + it->fileName;
+				std::string file = SYSDATA_DIR "/Scripts/" + it->fileName;
 
 				status = luaL_dofile(it->luaState, file.c_str());
 
