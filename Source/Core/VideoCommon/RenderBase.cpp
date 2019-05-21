@@ -339,12 +339,6 @@ void Renderer::DrawDebugText()
 		final_yellow += "\n";
 	}
 
-	if (SConfig::GetInstance().m_ShowRAMDisplay)
-	{
-		final_cyan += Movie::GetRAMDisplay();
-		final_yellow += "\n";
-	}
-
 	// OSD Menu messages
 	if (OSDChoice > 0)
 	{
@@ -427,9 +421,16 @@ void Renderer::DrawDebugText()
 		}
 	}
 
-	final_cyan += Common::Profiler::ToString();
 	final_cyan += Statistics::ToLuaString();
 
+	if (SConfig::GetInstance().m_ShowRAMDisplay)
+	{
+		final_cyan += Movie::GetRAMDisplay();
+		final_yellow += "\n";
+	}
+
+	final_cyan += Common::Profiler::ToString();
+	
 	if (g_ActiveConfig.bOverlayStats)
 		final_cyan += Statistics::ToString();
 

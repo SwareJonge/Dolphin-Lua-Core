@@ -54,6 +54,10 @@
     <ClCompile>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ExternalsDir)lua-5.3.1\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
+    <PostBuildEvent>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">xcopy /y /d "$(DolphinRootDir)Data\lua5.3.dll" "$(BinaryOutputDir)"
+xcopy /y /d "$(DolphinRootDir)Data\*.lua" "$(BinaryOutputDir)"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AboutDolphin.cpp" />

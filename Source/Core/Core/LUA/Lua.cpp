@@ -40,7 +40,6 @@
 #include "VideoCommon/VideoConfig.h"
 #include "Core/Host.h"
 
-
 //Lua Functions (C)
 int ReadValue8(lua_State* L)
 {

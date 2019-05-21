@@ -11,16 +11,16 @@ function onScriptStart()
 end
 
 function onScriptCancel()
-	MsgBox("Bye :(") SetScreenText("")
+	SetScreenText("")
 end
 
 function onScriptUpdate()
-	local text = "\n\n\n\n\n\n\n\n\n\n===== Speed ====="
-	text = text .. string.format("\nY: %10.6f | XZ: %10.6f | XYZ: %10.6f", core.getSpd().Y, core.getSpd().XZ, core.getSpd().XYZ)
-	text = text .. "\n"
-	text = text .. "\n\n===== Position ====="
-	text = text .. string.format("\nX: %12.6f \nY: %12.6f \nZ: %12.6f", core.getPos().X, core.getPos().Y, core.getPos().Z)
-
+  local text = ""
+  text = text .. string.format("\nFrame: %d\n", core.getFrameOfInput())
+	text = text .. "\n===== Speed ====="
+	text = text .. string.format("\nY: %12.6f \nXZ: %11.6f \nXYZ: %10.6f", core.getSpd().Y, core.getSpd().XZ, core.getSpd().XYZ)
+	text = text .. "\n\n===== Rotation ====="
+	text = text .. string.format("\nX: %6.2f \nY: %6.2f \nZ: %6.2f", core.calculateEuler().X, core.calculateEuler().Y, core.calculateEuler().Z)
 	SetScreenText(text)
 end
 
