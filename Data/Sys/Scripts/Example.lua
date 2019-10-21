@@ -6,6 +6,7 @@ saidHello = false
 
 function onScriptStart()
 	MsgBox("Hello World")
+	SetInfoDisplay()
 end
 
 function onScriptCancel()
@@ -13,16 +14,14 @@ function onScriptCancel()
 end
 
 function onScriptUpdate()
-	if saidHello == false and GetFrameCount() == 300 then
-		saidHello = true
-		MsgBox("Test 12, 123")
-	end
+	CancelScript()
+
 end
 
 function onStateLoaded()
-	
+
 end
 
 function onStateSaved()
-	
+
 end
