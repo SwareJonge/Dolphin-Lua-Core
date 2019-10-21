@@ -436,6 +436,14 @@ int PauseEmulation(lua_State* L)
 	return 0;
 }
 
+int SetInfoDisplay(lua_State* L)
+{
+	int argc = lua_gettop(L);	
+	SConfig::GetInstance().m_ShowRAMDisplay = !SConfig::GetInstance().m_ShowRAMDisplay;	
+	SConfig::GetInstance().SaveSettings();
+	return 0;
+}
+
 int MsgBox(lua_State* L)
 {
 	int argc = lua_gettop(L);
@@ -741,6 +749,7 @@ namespace Lua
 		
 		lua_register(luaState, "SetScreenText", SetScreenText);
 		lua_register(luaState, "PauseEmulation", PauseEmulation);
+	    lua_register(luaState, "SetInfoDisplay", SetInfoDisplay);
 	}
 
 	void Init()

@@ -1,0 +1,79 @@
+IMPORTANT information is marked and suggest to be the minimum to read.
+
+This is a compilation of multiple lua scripts for Swarejonge's custom LUA Dolphin Version.
+
+This includes scripts to run the players inputs using an input file and manipulate the racing ghost using an input file, effectively replacing TAS Code.
+There is also a script of storing the raw ghost data as both the ghost input file and the runners input file.
+
+This is using the latest MKW_core.lua version
+
+How to use:
+-Download Swarejonge's custom LUA Dolphin Version
+-Merge this folder with the custom LUA Dolphin version, so that the folder "Scripts" gets merged and MKW_core.lua gets replaced
+-Run the Scripts with "Tools > Execute Script"
+
+Credits:
+-Swarejonge for his custom Dolphin version and his provided MKW_core.lua
+-Star and Swarejonge for help with specific pointers in memory data
+-Malleo and TASPlasma for their previous input reader scripts
+
+
+IMPORTANT: Using MKW_ghost_store_inputs_runner.lua WILL OVERWRITE BOTH RUNNER AND GHOST INPUT FILES. Prepare copies of them if you want to store inputs of a new ghost.
+IMPORTANT: MKW_TAS_Toolkit_active_reload.lua RELOADS BOTH INPUT FILES ON EVERY FRAME. This will cause HUGE FRAMEDROPS for running Dolphin normally. ONLY USE WHILE TASING.
+
+Executable Files:
+~/Scripts/MKW_GHOST_store_inputs.lua 			--stores the ghosts input from the internal mkw memory into the ~/mkw_input_reader_ghost.lua input file
+~/Scripts/MKW_GHOST_store_inputs_runner.lua 	--stores the ghosts input from the internal mkw memory into BOTH ~/mkw_input_reader_ghost.lua AND ~/mkw_input_reader_runner.lua input files
+~/Scripts/MKW_TAS_Toolkit.lua					--when loaded, uses the currently saved ~/mkw_input_reader_ghost.lua AND ~/mkw_input_reader_runner.lua input files to influence the runners and ghosts inputs, savestate compatible
+~/Scripts/MKW_TAS_Toolkit_active_reload.lua		--when loaded, uses ~/mkw_input_reader_ghost.lua AND ~/mkw_input_reader_runner.lua input files to influence the runners and ghosts inputs, savestate compatible
+												--updates with changing the files in realtime, CAUSES HEAVY FRAMEDROPS, ONLY USE WHILE TASING
+~/Scripts/MKW_TAS_Toolkit_input_writer.lua		--writes inputs made with Controller/TAS-Input into the ~/mkw_input_reader_runner.lua input file, saves file when script is canceled, savestate compatible
+												--keeps old inputs alive, if they are not overwritten, fills gaps between frames with the basic input of no button pressed
+~/Scripts/MKW_TAS_Toolkit_rewrite.lua			--rewrites the ~/mkw_input_reader_runner.lua input file to match the commentated frames
+												--can be run while MKW_TAS_Toolkit_active_reload is active, if you pause the game, start the script and then run the next frame
+
+Helper Files:
+~/MKW_core.lua  			--latest MKW_core.lua version, current standard
+~/MKW_ghost_core.lua  		--used for pointer finding in all ghost based lua scripts
+							--includes basic function to overwrite ghost data using an input list
+
+Input Files:
+~/mkw_input_reader_ghost.lua	--representates the inputs of the ghost
+~/mkw_input_reader_runner.lua	--representates the inputs of the runner
+
+Test Files:
+~/Test_Scripts/TEST_MKW_GHOST_overwrite_data_copy.lua	--converts the ~/mkw_input_reader_ghost.lua input file into binary RKG data saved in the ~/mkw_input_reader_ghost_raw.rrkg file (Raw RKG, does not include header or checksum)
+														--made to compare converted inputs with the actual RKG file
+
+Deprecated/Deleted Files:
+~/Scripts/MKW_ghost_overwrite.lua				--overwrite the ghost in the internal mkw memory using the ~/mkw_input_reader_ghost.lua input file, DOES NOT affect save data
+												--effectively replaced by MKW_TAS_Toolkit.lua
+
+
+-----------------------
+versions:
+
+v1.2
+-fixed ~/MKW_ghost_core.lua RKG face button masking
+-fixed ~/Scripts/MKW_TAS_Toolkit.lua and ~/Scripts/MKW_TAS_Toolkit_active_reload.lua to not crash when frame does not exist
+-added ~/Scripts/MKW_TAS_Toolkit_rewrite.lua for a quality of life change
+-added ~/Test_Scripts/TEST_MKW_GHOST_overwrite_data_copy.lua to write raw RKG data into a file
+-not mentioned v1.1 changes:
+	-added ~/MKW_Pointers.lua for some global race data pointers__by Swarejonge
+	-updated ~/MKW_ghost_core.lua for ghost data pointers of other ISO-regions__by Swarejonge
+
+v1.1 
+-swapped position of horizontal and vertical inputs
+-updated ~/MKW_core.lua to match latest version__by Swarejonge 
+-updated ~/Scripts/MKW_GHOST_store_inputs.lua and ~/Scripts/MKW_GHOST_store_inputs_runner.lua to be able to convert *.RKG files corrupted by "Ghost always saves"-code
+-updated ~/MKW_ghost_core.lua to refactor the ghost overwriting function
+-updated ~/Scripts/MKW_TAS_Toolkit.lua and ~/Scripts/MKW_TAS_Toolkit_active_reload.lua:
+	-ghost and/or runner files will now only be read, if they are existing
+	-deleting the ~/mkw_input_reader_runner.lua will cause to only replace ghost in the memory, effectively replacing the deprecated ~/Scripts/MKW_ghost_overwrite.lua
+	-deleting the ~/mkw_input_reader_ghost.lua will cause to only the runner inputs to be run
+	-deleting both input files will effectively do nothing
+-updated ~/Scripts/MKW_TAS_Toolkit_active_reload.lua to surely only reload, when a savestate or new frame is loaded
+-added ~/Scripts/MKW_TAS_Toolkit_input_writer.lua as a new support for TASing with Controller/TAS-Input
+
+v1
+-initial release

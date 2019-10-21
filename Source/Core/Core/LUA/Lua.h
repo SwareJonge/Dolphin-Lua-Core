@@ -39,6 +39,7 @@ int GetFrameCount(lua_State *L);
 int GetInputFrameCount(lua_State *L);
 int SetScreenText(lua_State *L);
 int PauseEmulation(lua_State *L);
+int SetInfoDisplay(lua_State *L);
 int MsgBox(lua_State *L);
 int CancelScript(lua_State *L);
 void HandleLuaErrors(lua_State *L, int status);

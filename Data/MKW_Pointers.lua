@@ -47,6 +47,9 @@ local function getPlayerBasePointer()
   local offset3 = 0x10
   local offset4 = 0x10
   local offset5 = 0x0
+  if ReadValue32(pointer) == 0 then
+    return 0
+  end
   local address1 = GetPointerNormal(pointer)
   local address2 = GetPointerNormal(address1 + offset1)
   local address3 = GetPointerNormal(address2 + offset2)
