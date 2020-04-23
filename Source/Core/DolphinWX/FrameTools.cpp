@@ -197,6 +197,7 @@ wxMenuBar* CFrame::CreateMenu()
 	movieMenu->Append(IDM_RECORD_EXPORT, GetMenuLabel(HK_EXPORT_RECORDING));
 	movieMenu->Append(IDM_RECORD_READ_ONLY, GetMenuLabel(HK_READ_ONLY_MODE), wxEmptyString, wxITEM_CHECK);
 	movieMenu->Append(IDM_TAS_INPUT, _("TAS Input"));
+	movieMenu->Append(IDM_TASTUDIO, _("TAStudio")); // TAStudio - Added by THC98
 	movieMenu->AppendSeparator();
 	movieMenu->AppendCheckItem(IDM_TOGGLE_PAUSE_MOVIE, _("Pause at End of Movie"));
 	movieMenu->Check(IDM_TOGGLE_PAUSE_MOVIE, SConfig::GetInstance().m_PauseMovie);
@@ -732,6 +733,13 @@ void CFrame::OnTASInput(wxCommandEvent& event)
 		}
 	}
 }
+
+// ======
+void CFrame::OnTAStudio(wxCommandEvent& event) // TAStudio - Added by THC98
+{
+	g_TAStudioFrame->Show();
+}
+// ======
 
 void CFrame::OnTogglePauseMovie(wxCommandEvent& WXUNUSED (event))
 {

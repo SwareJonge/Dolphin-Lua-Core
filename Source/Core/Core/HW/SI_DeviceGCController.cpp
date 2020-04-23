@@ -120,6 +120,8 @@ int CSIDevice_GCController::RunBuffer(u8* _pBuffer, int _iLength)
 void CSIDevice_GCController::HandleMoviePadStatus(GCPadStatus* PadStatus)
 {
 	Movie::CallGCInputManip(PadStatus, ISIDevice::m_iDeviceNumber);
+
+	Movie::CallTAStudioManip(PadStatus); // TAStudio - Added by THC98
 	
 	Lua::UpdateScripts(PadStatus);
 
@@ -141,6 +143,8 @@ void CSIDevice_GCController::HandleMoviePadStatus(GCPadStatus* PadStatus)
 	{
 		Movie::CheckPadStatus(PadStatus, ISIDevice::m_iDeviceNumber);
 	}
+
+	Movie::CallTAStudioReceiver(PadStatus); // TAStudio - Added by THC98
 }
 
 GCPadStatus CSIDevice_GCController::GetPadStatus()

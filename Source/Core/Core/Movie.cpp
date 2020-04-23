@@ -92,6 +92,8 @@ namespace Movie {
 	static std::mutex  s_input_display_lock;
 	static std::string s_InputDisplay[8];
 
+	static TAStudioManip tasmfunc = nullptr; // TAStudio - Added by THC98
+	static TAStudioReceiver tasrfunc = nullptr; // TAStudio - Added by THC98
 	static GCManipFunction gcmfunc = nullptr;
 	static WiiManipFunction wiimfunc = nullptr;
 
@@ -1624,6 +1626,16 @@ namespace Movie {
 			Core::DisplayMessage(StringFromFormat("Failed to save %s", filename.c_str()), 2000);
 	}
 
+	void SetTAStudioManip(TAStudioManip func) // TAStudio - Added by THC98
+	{
+		tasmfunc = func;
+	}
+
+	void SetTAStudioReceiver(TAStudioReceiver func) // TAStudio - Added by THC98
+	{
+		tasrfunc = func;
+	}
+
 	void SetGCInputManip(GCManipFunction func)
 	{
 		gcmfunc = func;
@@ -1631,6 +1643,18 @@ namespace Movie {
 	void SetWiiInputManip(WiiManipFunction func)
 	{
 		wiimfunc = func;
+	}
+
+	void CallTAStudioManip(GCPadStatus* PadStatus) // TAStudio - Added by THC98
+	{
+		if (tasmfunc)
+			(*tasmfunc)(PadStatus);
+	}
+
+	void CallTAStudioReceiver(GCPadStatus* PadStatus) // TAStudio - Added by THC98
+	{
+		if (tasrfunc)
+			(*tasrfunc)(PadStatus);
 	}
 
 	// NOTE: CPU Thread

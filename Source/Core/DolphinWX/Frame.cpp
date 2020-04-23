@@ -245,6 +245,7 @@ EVT_MENU(IDM_PLAY_RECORD, CFrame::OnPlayRecording)
 EVT_MENU(IDM_RECORD_EXPORT, CFrame::OnRecordExport)
 EVT_MENU(IDM_RECORD_READ_ONLY, CFrame::OnRecordReadOnly)
 EVT_MENU(IDM_TAS_INPUT, CFrame::OnTASInput)
+EVT_MENU(IDM_TASTUDIO, CFrame::OnTAStudio) // TAStudio - Added by THC98
 EVT_MENU(IDM_TOGGLE_PAUSE_MOVIE, CFrame::OnTogglePauseMovie)
 EVT_MENU(IDM_SHOW_LAG, CFrame::OnShowLag)
 EVT_MENU(IDM_SHOW_FRAME_COUNT, CFrame::OnShowFrameCount)
@@ -447,9 +448,13 @@ CFrame::CFrame(wxFrame* parent,
 
 	g_ScriptLauncher = new LuaWindow(this); // ADDED
 
+	g_TAStudioFrame = new TAStudioFrame(this); // TAStudio - Added by THC98
+
 	for (int i = 0; i < 8; ++i)
 		g_TASInputDlg[i] = new TASInputDlg(this);
 
+	Movie::SetTAStudioManip(TAStudioManip); // TAStudio - Added by THC98
+	Movie::SetTAStudioReceiver(TAStudioReceiver); // TAStudio - Added by THC98
 	Movie::SetGCInputManip(GCTASManipFunction);
 	Movie::SetWiiInputManip(WiiTASManipFunction);
 
@@ -1048,6 +1053,18 @@ void OnStoppedCallback()
 		wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_STOPPED);
 		main_frame->GetEventHandler()->AddPendingEvent(event);
 	}
+}
+
+void TAStudioManip(GCPadStatus* PadStatus) // TAStudio - Added by THC98
+{
+	if (main_frame)
+		main_frame->g_TAStudioFrame->SetInput(PadStatus);
+}
+
+void TAStudioReceiver(GCPadStatus* PadStatus) // TAStudio - Added by THC98
+{
+	if (main_frame)
+		main_frame->g_TAStudioFrame->GetInput(PadStatus);
 }
 
 void GCTASManipFunction(GCPadStatus* PadStatus, int controllerID)

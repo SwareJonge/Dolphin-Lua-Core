@@ -31,6 +31,9 @@
     <Filter Include="GUI\LuaCore">
       <UniqueIdentifier>{e83c2185-9d54-4972-9796-dfe21fde49dc}</UniqueIdentifier>
     </Filter>
+    <Filter Include="GUI\TAStudio">
+      <UniqueIdentifier>{469d5b51-fd30-4be1-b1de-8dc7e56c746b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp" />
@@ -205,6 +208,9 @@
     <ClCompile Include="NetPlay\NetPlaySetupFrame.cpp">
       <Filter>GUI\NetPlay</Filter>
     </ClCompile>
+    <ClCompile Include="TAStudioFrame.cpp">
+      <Filter>GUI\TAStudio</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Main.h" />
@@ -372,6 +378,9 @@
     <ClInclude Include="NetPlay\PadMapDialog.h">
       <Filter>GUI\NetPlay</Filter>
     </ClInclude>
+    <ClInclude Include="TAStudioFrame.h">
+      <Filter>GUI\TAStudio</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />
@@ -383,5 +392,8 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="$(CoreDir)..\..\Installer\Dolphin.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ClassDiagram.cd" />
   </ItemGroup>
 </Project>

@@ -183,9 +183,15 @@ std::string GetRAMDisplay();
 // Done this way to avoid mixing of core and gui code
 typedef void(*GCManipFunction)(GCPadStatus*, int);
 typedef void(*WiiManipFunction)(u8*, WiimoteEmu::ReportFeatures, int, int, wiimote_key);
+typedef void(*TAStudioManip)(GCPadStatus*); // TAStudio - Added by THC98
+typedef void(*TAStudioReceiver)(GCPadStatus*); // TAStudio - Added by THC98
 
 void SetGCInputManip(GCManipFunction);
 void SetWiiInputManip(WiiManipFunction);
+void SetTAStudioManip(TAStudioManip); // TAStudio - Added by THC98
+void SetTAStudioReceiver(TAStudioReceiver); // TAStudio - Added by THC98
 void CallGCInputManip(GCPadStatus* PadStatus, int controllerID);
 void CallWiiInputManip(u8* core, WiimoteEmu::ReportFeatures rptf, int controllerID, int ext, const wiimote_key key);
+void CallTAStudioManip(GCPadStatus* PadStatus); // TAStudio - Added by THC98
+void CallTAStudioReceiver(GCPadStatus* PadStatus); // TAStudio - Added by THC98
 }
