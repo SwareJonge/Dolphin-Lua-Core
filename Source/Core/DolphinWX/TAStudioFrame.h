@@ -80,6 +80,8 @@ class TAStudioFrame : public wxDialog
 		//wxTextCtrl* m_saveFrameState;
 		wxTextCtrl* m_inputFrameCount;
 		//wxTextCtrl* m_currentInput;
+		wxCheckBox* m_activateTAStudio;
+		wxCheckBox* m_inputOrVI;
 
 	public:
 		TAStudioFrame(wxWindow* parent,

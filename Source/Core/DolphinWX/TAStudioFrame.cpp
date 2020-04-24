@@ -28,7 +28,14 @@ TAStudioFrame::TAStudioFrame(wxWindow* parent, wxWindowID id, const wxString& ti
 	m_controlWrapper = new wxStaticBoxSizer(wxVERTICAL, this, wxT("Buttons"));
 
 	m_inputFrameCount = new wxTextCtrl(this, wxID_ANY);
+	m_activateTAStudio = new wxCheckBox(this, wxID_ANY, wxT("Activate TAStudio"));
+	m_inputOrVI = new wxCheckBox(this, wxID_ANY, wxT("Display Frames or VIs"));
+
 	m_controlWrapper->Add(m_inputFrameCount);
+	m_controlWrapper->AddSpacer(1);
+	m_controlWrapper->Add(m_activateTAStudio);
+	m_controlWrapper->AddSpacer(1);
+	m_controlWrapper->Add(m_inputOrVI);
 
 	fgSizer->Add(m_inputGrid);
 	fgSizer->Add(m_controlWrapper);
