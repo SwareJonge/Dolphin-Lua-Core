@@ -51,7 +51,7 @@ void TAStudioFrame::GetInput(GCPadStatus* PadStatus)
 {
 	m_inputFrameCount->SetValue(std::to_string(Movie::g_currentInputCount));
 
-	m_inputGrid->AddInputToVector(Movie::g_currentFrame, Movie::g_currentInputCount, PadStatus);
+	m_inputGrid->AddInputToVector(Movie::g_currentFrame, Movie::g_currentInputCount, PadStatus, m_inputOrVI->GetValue());
 
 	//m_inputGrid->UpdateGridValues();
 	
@@ -91,25 +91,40 @@ InputGrid::InputGrid(wxWindow* parent) : wxGrid(parent, wxID_ANY, wxDefaultPosit
 	//Fit();
 }
 
-void InputGrid::UpdateGridValues()
+void InputGrid::UpdateGridValuesInputFrames(u64 inputCount, GCPadStatus* input)
 {
-	for (int i = 0; i < m_gridNumberOfRows; i++)
+	if (inputCount > m_firstInputInGrid + m_gridNumberOfRows - 1)
 	{
-		u64 currInputCount = i + m_firstInputInGrid;
-		const auto p = std::find_if(m_inputVector.begin(), m_inputVector.end(),
-			[currInputCount](const TAStudioInput& inp) {return inp.InputCount == currInputCount; });
-		if (p != m_inputVector.end())
+		m_firstInputInGrid += 15;
+		for (int i = 0; i < m_gridNumberOfRows; i++)
 		{
-			SetInputAtRow(i, &p->Input);
+			SetRowLabelValue(i, std::to_string(i + m_firstInputInGrid));
+			u64 currInputCount = i + m_firstInputInGrid;
+			const auto p = std::find_if(m_inputVector.begin(), m_inputVector.end(),
+				[currInputCount](const TAStudioInput& inp) {return inp.InputCount == currInputCount; });
+			if (p != m_inputVector.end())
+			{
+				SetInputAtRow(i, &p->Input);
+			}
+			else
+			{
+				DeleteInputAtRow(i);
+			}
 		}
-		else
-		{
-			DeleteInputAtRow(i);
-		}
+		
+	}
+	else
+	{
+		SetInputAtRow(inputCount - m_firstInputInGrid, input);
 	}
 }
 
-void InputGrid::AddInputToVector(u64 frameCount, u64 inputCount, GCPadStatus* input)
+void InputGrid::UpdateGridValuesVIFrames(u64 frameCount, GCPadStatus* input)
+{
+	// Logic for using VIs instead of frames
+}
+
+void InputGrid::AddInputToVector(u64 frameCount, u64 inputCount, GCPadStatus* input, bool useInputOrVI)
 {
 	TAStudioInput inp;
 	inp.FrameCount = frameCount;
@@ -117,17 +132,9 @@ void InputGrid::AddInputToVector(u64 frameCount, u64 inputCount, GCPadStatus* in
 	inp.Input = *input;
 	m_inputVector.push_back(inp);
 
-	if (inputCount > m_firstInputInGrid + m_gridNumberOfRows - 1)
-	{
-		m_firstInputInGrid += 15;
-		for (int i = 0; i < m_gridNumberOfRows; i++)
-			SetRowLabelValue(i, std::to_string(i + m_firstInputInGrid));
-		UpdateGridValues();
-	}
-	else
-	{
-		SetInputAtRow(inputCount - m_firstInputInGrid, input);
-	}
+	// If checkbox is not checked, use input count
+	if (useInputOrVI) { return UpdateGridValuesVIFrames(frameCount, input); }
+	else { return UpdateGridValuesInputFrames(inputCount, input); }
 }
 
 void InputGrid::DeleteInputAtRow(int row)
