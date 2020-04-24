@@ -8,6 +8,7 @@
 
 #include <string>
 #include <vector>
+#include <algorithm>
 
 #include <wx/dialog.h>
 #include <wx/listctrl.h>
@@ -22,14 +23,20 @@
 
 #include "InputCommon/GCPadStatus.h"
 
+struct TAStudioInput
+{
+	u64 FrameCount;
+	u64 InputCount;
+	GCPadStatus Input;
+};
 
 class InputGrid : public wxGrid
 {
 private:
 	enum
 	{
-		COLUMN_SAVE = 0,
-		COLUMN_ANA_X,
+		//COLUMN_SAVE = 0,
+		COLUMN_ANA_X = 0,
 		COLUMN_ANA_Y,
 		COLUMN_A,
 		COLUMN_B,
@@ -49,14 +56,20 @@ private:
 		COLUMN_C_Y
 	};
 	const std::vector<wxString> COLUMN_LABEL = {
-		"Save", "aX", "aY", "A", "B", "X", "Y",
+		/*"Save",*/ "aX", "aY", "A", "B", "X", "Y",
 		"S", "Z", "L", "R", "La", "Ra", "dU",
 		"dD", "dL", "dR", "cX", "cY"
 	};
+	std::vector<TAStudioInput> m_inputVector;
+	u64 m_firstInputInGrid;
+	int m_gridNumberOfRows;
 public:
 	InputGrid(wxWindow* parent);
+	void UpdateGridValues();
+	void AddInputToVector(u64 frameCount, u64 inputCount, GCPadStatus* input);
 	//GCPadStatus GetInputAtFrame(u64 inputFrame);
-	void SetInputAtFrame(u64 inputFrame, GCPadStatus* PadStatus);
+	void DeleteInputAtRow(int row);
+	void SetInputAtRow(int row, GCPadStatus* PadStatus);
 };
 
 class TAStudioFrame : public wxDialog

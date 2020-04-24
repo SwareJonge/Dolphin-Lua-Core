@@ -43,8 +43,12 @@ TAStudioFrame::TAStudioFrame(wxWindow* parent, wxWindowID id, const wxString& ti
 void TAStudioFrame::GetInput(GCPadStatus* PadStatus)
 {
 	m_inputFrameCount->SetValue(std::to_string(Movie::g_currentInputCount));
-	//m_currentInput->SetValue(Movie::GetInputDisplay());
-	m_inputGrid->SetInputAtFrame(Movie::g_currentInputCount, PadStatus);
+
+	m_inputGrid->AddInputToVector(Movie::g_currentFrame, Movie::g_currentInputCount, PadStatus);
+
+	//m_inputGrid->UpdateGridValues();
+	
+	//m_inputGrid->SetInputAtRow(Movie::g_currentInputCount, PadStatus);
 }
 
 void TAStudioFrame::SetInput(GCPadStatus* PadStatus)
@@ -54,17 +58,80 @@ void TAStudioFrame::SetInput(GCPadStatus* PadStatus)
 
 InputGrid::InputGrid(wxWindow* parent) : wxGrid(parent, wxID_ANY, wxDefaultPosition, wxSize(600, 800))
 {
+	m_firstInputInGrid = 1;
+	m_gridNumberOfRows = 30;
+
 	int numColumns = COLUMN_LABEL.size();
-	CreateGrid(1000, numColumns, wxGridSelectRows);
+	CreateGrid(m_gridNumberOfRows, numColumns, wxGridSelectRows);
 	for (int i = 0; i < numColumns; i++)
 	{
 		SetColLabelValue(i, COLUMN_LABEL[i]);
-		SetColSize(i, 20);
+		switch (i)
+		{
+			case COLUMN_ANA_X:
+			case COLUMN_ANA_Y:
+			case COLUMN_C_X:
+			case COLUMN_C_Y:
+			case COLUMN_L_ANA:
+			case COLUMN_R_ANA:
+				SetColSize(i, 40);
+				break;
+			default:
+				SetColSize(i, 20);
+				break;
+		}
 	}
 	//Fit();
 }
 
-void InputGrid::SetInputAtFrame(u64 inputCount, GCPadStatus* PadStatus)
+void InputGrid::UpdateGridValues()
+{
+	for (int i = 0; i < m_gridNumberOfRows; i++)
+	{
+		u64 currInputCount = i + m_firstInputInGrid;
+		const auto p = std::find_if(m_inputVector.begin(), m_inputVector.end(),
+			[currInputCount](const TAStudioInput& inp) {return inp.InputCount == currInputCount; });
+		if (p != m_inputVector.end())
+		{
+			SetInputAtRow(i, &p->Input);
+		}
+		else
+		{
+			DeleteInputAtRow(i);
+		}
+	}
+}
+
+void InputGrid::AddInputToVector(u64 frameCount, u64 inputCount, GCPadStatus* input)
+{
+	TAStudioInput inp;
+	inp.FrameCount = frameCount;
+	inp.InputCount = inputCount;
+	inp.Input = *input;
+	m_inputVector.push_back(inp);
+
+	if (inputCount > m_firstInputInGrid + m_gridNumberOfRows - 1)
+	{
+		m_firstInputInGrid += 15;
+		for (int i = 0; i < m_gridNumberOfRows; i++)
+			SetRowLabelValue(i, std::to_string(i + m_firstInputInGrid));
+		UpdateGridValues();
+	}
+	else
+	{
+		SetInputAtRow(inputCount - m_firstInputInGrid, input);
+	}
+}
+
+void InputGrid::DeleteInputAtRow(int row)
+{
+	for (int i = 0; i < COLUMN_LABEL.size(); i++)
+	{
+		SetCellValue(wxGridCellCoords(row, i), "");
+	}
+}
+
+void InputGrid::SetInputAtRow(int row, GCPadStatus* PadStatus)
 {
 	// check if inputCount exists in grid
 
@@ -72,12 +139,10 @@ void InputGrid::SetInputAtFrame(u64 inputCount, GCPadStatus* PadStatus)
 
 	//InsertRows(inputCount);
 
-	int row = inputCount;
-
 	SetCellValue(wxGridCellCoords(row, COLUMN_ANA_X), std::to_string(PadStatus->stickX));
 	SetCellValue(wxGridCellCoords(row, COLUMN_ANA_Y), std::to_string(PadStatus->stickY));
-	SetCellValue(wxGridCellCoords(row, COLUMN_C_X), std::to_string(PadStatus->stickX));
-	SetCellValue(wxGridCellCoords(row, COLUMN_C_Y), std::to_string(PadStatus->stickY));
+	SetCellValue(wxGridCellCoords(row, COLUMN_C_X), std::to_string(PadStatus->substickX));
+	SetCellValue(wxGridCellCoords(row, COLUMN_C_Y), std::to_string(PadStatus->substickY));
 	SetCellValue(wxGridCellCoords(row, COLUMN_L_ANA), std::to_string(PadStatus->triggerLeft));
 	SetCellValue(wxGridCellCoords(row, COLUMN_R_ANA), std::to_string(PadStatus->triggerRight));
 
