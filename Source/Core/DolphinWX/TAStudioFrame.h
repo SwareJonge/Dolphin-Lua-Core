@@ -7,6 +7,7 @@
 // Class written by Tales Carvalho (a.k.a. THC98)
 
 #include <string>
+#include <vector>
 
 #include <wx/dialog.h>
 #include <wx/listctrl.h>
@@ -21,31 +22,50 @@
 
 #include "InputCommon/GCPadStatus.h"
 
+
+class InputGrid : public wxGrid
+{
+private:
+	enum
+	{
+		COLUMN_SAVE = 0,
+		COLUMN_ANA_X,
+		COLUMN_ANA_Y,
+		COLUMN_A,
+		COLUMN_B,
+		COLUMN_X,
+		COLUMN_Y,
+		COLUMN_S,
+		COLUMN_Z,
+		COLUMN_L,
+		COLUMN_R,
+		COLUMN_L_ANA,
+		COLUMN_R_ANA,
+		COLUMN_D_UP,
+		COLUMN_D_DOWN,
+		COLUMN_D_LEFT,
+		COLUMN_D_RIGHT,
+		COLUMN_C_X,
+		COLUMN_C_Y
+	};
+	const std::vector<wxString> COLUMN_LABEL = {
+		"Save", "aX", "aY", "A", "B", "X", "Y",
+		"S", "Z", "L", "R", "La", "Ra", "dU",
+		"dD", "dL", "dR", "cX", "cY"
+	};
+public:
+	InputGrid(wxWindow* parent);
+	//GCPadStatus GetInputAtFrame(u64 inputFrame);
+	void SetInputAtFrame(u64 inputFrame, GCPadStatus* PadStatus);
+};
+
 class TAStudioFrame : public wxDialog
 {
 	protected:
 		wxStaticBoxSizer* m_controlWrapper;
-		wxListCtrl* m_inputList;
-		wxTextCtrl* m_saveFrameState;
+		InputGrid* m_inputGrid;
+		//wxTextCtrl* m_saveFrameState;
 		wxTextCtrl* m_inputFrameCount;
-		wxTextCtrl* m_aX;
-		wxTextCtrl* m_aY;
-		wxTextCtrl* m_A;
-		wxTextCtrl* m_B;
-		wxTextCtrl* m_X;
-		wxTextCtrl* m_Y;
-		wxTextCtrl* m_S;
-		wxTextCtrl* m_Z;
-		wxTextCtrl* m_L;
-		wxTextCtrl* m_R;
-		wxTextCtrl* m_Lanalog;
-		wxTextCtrl* m_Ranalog;
-		wxTextCtrl* m_dUp;
-		wxTextCtrl* m_dDown;
-		wxTextCtrl* m_dLeft;
-		wxTextCtrl* m_dRight;
-		wxTextCtrl* m_cX;
-		wxTextCtrl* m_cY;
 		//wxTextCtrl* m_currentInput;
 
 	public:
@@ -54,9 +74,8 @@ class TAStudioFrame : public wxDialog
 			const wxString& title = _("TAStudio"),
 			const wxPoint& pos = wxDefaultPosition,
 			const wxSize& size = wxDefaultSize,
-			long style = wxDEFAULT_DIALOG_STYLE | wxSTAY_ON_TOP | wxRESIZE_BORDER);
+			long style = wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER);
 		void GetInput(GCPadStatus* PadStatus);
 		void SetInput(GCPadStatus* PadStatus);
 	
 };
-
