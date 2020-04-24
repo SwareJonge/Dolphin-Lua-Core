@@ -67,7 +67,7 @@ public:
 	InputGrid(wxWindow* parent);
 	void UpdateGridValues();
 	void AddInputToVector(u64 frameCount, u64 inputCount, GCPadStatus* input);
-	//GCPadStatus GetInputAtFrame(u64 inputFrame);
+	GCPadStatus GetInputAtFrame(u64 inputFrame);
 	void DeleteInputAtRow(int row);
 	void SetInputAtRow(int row, GCPadStatus* PadStatus);
 };

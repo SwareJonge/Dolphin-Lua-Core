@@ -165,7 +165,30 @@ void InputGrid::SetInputAtRow(int row, GCPadStatus* PadStatus)
 	//SetCellValue(wxGridCellCoords(row, col), value);
 }
 
-/*GCPadStatus InputGrid::GetInputAtFrame(u64 inputCount)
+GCPadStatus InputGrid::GetInputAtFrame(u64 inputCount)
 {
-	// return a GCPadStatus with the content of row inputCount
-}*/
+	GCPadStatus PadStatus;
+
+	// Use wxAtoi to convert wxString to integer
+	PadStatus.stickX = wxAtoi(GetCellValue(wxGridCellCoords(inputCount, COLUMN_ANA_X)));
+	PadStatus.stickY = wxAtoi(GetCellValue(wxGridCellCoords(inputCount, COLUMN_ANA_Y)));
+	PadStatus.substickX = wxAtoi(GetCellValue(wxGridCellCoords(inputCount, COLUMN_C_X)));
+	PadStatus.substickY = wxAtoi(GetCellValue(wxGridCellCoords(inputCount, COLUMN_C_Y)));
+	PadStatus.triggerLeft = wxAtoi(GetCellValue(wxGridCellCoords(inputCount, COLUMN_L_ANA)));
+	PadStatus.triggerRight = wxAtoi(GetCellValue(wxGridCellCoords(inputCount, COLUMN_R_ANA)));
+
+	PadStatus.button |= GetCellValue(wxGridCellCoords(inputCount, COLUMN_A)) == COLUMN_LABEL[COLUMN_A] ? PAD_BUTTON_A : 0;
+	PadStatus.button |= GetCellValue(wxGridCellCoords(inputCount, COLUMN_B)) == COLUMN_LABEL[COLUMN_B] ? PAD_BUTTON_B : 0;
+	PadStatus.button |= GetCellValue(wxGridCellCoords(inputCount, COLUMN_X)) == COLUMN_LABEL[COLUMN_X] ? PAD_BUTTON_X : 0;
+	PadStatus.button |= GetCellValue(wxGridCellCoords(inputCount, COLUMN_Y)) == COLUMN_LABEL[COLUMN_Y] ? PAD_BUTTON_Y : 0;
+	PadStatus.button |= GetCellValue(wxGridCellCoords(inputCount, COLUMN_S)) == COLUMN_LABEL[COLUMN_S] ? PAD_BUTTON_START : 0;
+	PadStatus.button |= GetCellValue(wxGridCellCoords(inputCount, COLUMN_Z)) == COLUMN_LABEL[COLUMN_Z] ? PAD_TRIGGER_Z : 0;
+	PadStatus.button |= GetCellValue(wxGridCellCoords(inputCount, COLUMN_L)) == COLUMN_LABEL[COLUMN_L] ? PAD_TRIGGER_L : 0;
+	PadStatus.button |= GetCellValue(wxGridCellCoords(inputCount, COLUMN_R)) == COLUMN_LABEL[COLUMN_R] ? PAD_TRIGGER_R : 0;
+	PadStatus.button |= GetCellValue(wxGridCellCoords(inputCount, COLUMN_D_UP)) == COLUMN_LABEL[COLUMN_D_UP] ? PAD_BUTTON_UP : 0;
+	PadStatus.button |= GetCellValue(wxGridCellCoords(inputCount, COLUMN_D_DOWN)) == COLUMN_LABEL[COLUMN_D_DOWN] ? PAD_BUTTON_DOWN : 0;
+	PadStatus.button |= GetCellValue(wxGridCellCoords(inputCount, COLUMN_D_LEFT)) == COLUMN_LABEL[COLUMN_D_LEFT] ? PAD_BUTTON_LEFT : 0;
+	PadStatus.button |= GetCellValue(wxGridCellCoords(inputCount, COLUMN_D_RIGHT)) == COLUMN_LABEL[COLUMN_D_RIGHT] ? PAD_BUTTON_RIGHT : 0;
+
+	return PadStatus;
+}
