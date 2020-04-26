@@ -29,6 +29,11 @@ TAStudioFrame::TAStudioFrame(wxWindow* parent, wxWindowID id, const wxString& ti
 	fgSizer->SetNonFlexibleGrowMode(wxFLEX_GROWMODE_SPECIFIED);
 
 	m_inputGrid = new InputGrid(this);
+	wxGridCellAttr *ReadOnlyAttr = new wxGridCellAttr;
+	ReadOnlyAttr->SetReadOnly();
+
+	m_inputGrid->SetColAttr(0, ReadOnlyAttr);
+	m_inputGrid->SetColAttr(1, ReadOnlyAttr);
 
 	m_controlWrapper = new wxStaticBoxSizer(wxVERTICAL, this, wxT("Buttons"));
 
@@ -121,7 +126,21 @@ void InputGrid::OnSelectCell(wxGridEvent& evt)
 {
 	int row = evt.GetRow();
 	int col = evt.GetCol();
-	wxMessageBox("OnSelectCell: " + std::to_string(row) + ", " + std::to_string(col));
+	std::string cell = this->GetCellValue(row, col);
+
+	if (cell == COLUMN_LABEL[4]) { this->GetCellValue(row, col) == "A" ? this->SetCellValue(row, col, "") : this->SetCellValue(row, col, "A"); }
+	else if (cell == COLUMN_LABEL[5]) { this->GetCellValue(row, col) == "B" ? this->SetCellValue(row, col, "") : this->SetCellValue(row, col, "B"); }
+	else if (cell == COLUMN_LABEL[6]) { this->GetCellValue(row, col) == "X" ? this->SetCellValue(row, col, "") : this->SetCellValue(row, col, "X"); }
+	else if (cell == COLUMN_LABEL[7]) { this->GetCellValue(row, col) == "Y" ? this->SetCellValue(row, col, "") : this->SetCellValue(row, col, "Y"); }
+	else if (cell == COLUMN_LABEL[8]) { this->GetCellValue(row, col) == "S" ? this->SetCellValue(row, col, "") : this->SetCellValue(row, col, "S"); }
+	else if (cell == COLUMN_LABEL[9]) { this->GetCellValue(row, col) == "Z" ? this->SetCellValue(row, col, "") : this->SetCellValue(row, col, "Z"); }
+	else if (cell == COLUMN_LABEL[10]) { this->GetCellValue(row, col) == "L" ? this->SetCellValue(row, col, "") : this->SetCellValue(row, col, "L"); }
+	else if (cell == COLUMN_LABEL[11]) { this->GetCellValue(row, col) == "R" ? this->SetCellValue(row, col, "") : this->SetCellValue(row, col, "R"); }
+	else if (cell == COLUMN_LABEL[14]) { this->GetCellValue(row, col) == "dU" ? this->SetCellValue(row, col, "") : this->SetCellValue(row, col, "dU"); }
+	else if (cell == COLUMN_LABEL[15]) { this->GetCellValue(row, col) == "dD" ? this->SetCellValue(row, col, "") : this->SetCellValue(row, col, "dD"); }
+	else if (cell == COLUMN_LABEL[16]) { this->GetCellValue(row, col) == "dL" ? this->SetCellValue(row, col, "") : this->SetCellValue(row, col, "dL"); }
+	else if (cell == COLUMN_LABEL[17]) { this->GetCellValue(row, col) == "dR" ? this->SetCellValue(row, col, "") : this->SetCellValue(row, col, "dR"); }
+
 }
 
 void InputGrid::UpdateGridValues(bool groupByVI)
