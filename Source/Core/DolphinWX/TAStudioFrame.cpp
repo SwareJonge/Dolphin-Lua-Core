@@ -128,6 +128,8 @@ void InputGrid::OnSelectCell(wxGridEvent& evt)
 	int col = evt.GetCol();
 	std::string cell = this->GetCellValue(row, col);
 
+	wxMessageBox("OnSelectCell: " + std::to_string(row) + ", " + std::to_string(col));
+
 	if (cell == COLUMN_LABEL[4]) { this->GetCellValue(row, col) == "A" ? this->SetCellValue(row, col, "") : this->SetCellValue(row, col, "A"); }
 	else if (cell == COLUMN_LABEL[5]) { this->GetCellValue(row, col) == "B" ? this->SetCellValue(row, col, "") : this->SetCellValue(row, col, "B"); }
 	else if (cell == COLUMN_LABEL[6]) { this->GetCellValue(row, col) == "X" ? this->SetCellValue(row, col, "") : this->SetCellValue(row, col, "X"); }
@@ -141,6 +143,11 @@ void InputGrid::OnSelectCell(wxGridEvent& evt)
 	else if (cell == COLUMN_LABEL[16]) { this->GetCellValue(row, col) == "dL" ? this->SetCellValue(row, col, "") : this->SetCellValue(row, col, "dL"); }
 	else if (cell == COLUMN_LABEL[17]) { this->GetCellValue(row, col) == "dR" ? this->SetCellValue(row, col, "") : this->SetCellValue(row, col, "dR"); }
 
+	// First update the value in the vector
+	m_inputVector[row].Input = GetInputAtRow(row);
+
+	// Next, refresh the table
+	SetInputAtRow(row, m_inputVector[row]);
 }
 
 void InputGrid::UpdateGridValues(bool groupByVI)
