@@ -35,8 +35,9 @@ class InputGrid : public wxGrid
 private:
 	enum
 	{
-		//COLUMN_SAVE = 0,
-		COLUMN_ANA_X = 0,
+		COLUMN_INPUT_COUNT = 0,
+		COLUMN_VI_COUNT,
+		COLUMN_ANA_X,
 		COLUMN_ANA_Y,
 		COLUMN_A,
 		COLUMN_B,
@@ -56,8 +57,8 @@ private:
 		COLUMN_C_Y
 	};
 	const std::vector<wxString> COLUMN_LABEL = {
-		/*"Save",*/ "aX", "aY", "A", "B", "X", "Y",
-		"S", "Z", "L", "R", "La", "Ra", "dU",
+		"Input", "VI", "aX", "aY", "A", "B", "X",
+		"Y", "S", "Z", "L", "R", "La", "Ra", "dU",
 		"dD", "dL", "dR", "cX", "cY"
 	};
 	std::vector<TAStudioInput> m_inputVector;
@@ -65,12 +66,11 @@ private:
 	int m_gridNumberOfRows;
 public:
 	InputGrid(wxWindow* parent);
-	void UpdateGridValuesInputFrames(u64 inputCount, GCPadStatus* input);
-	void UpdateGridValuesVIFrames(u64 frameCount, GCPadStatus* input);
-	void AddInputToVector(u64 frameCount, u64 inputCount, GCPadStatus* input, bool useInputOrVI);
-	GCPadStatus GetInputAtFrame(u64 inputFrame);
+	void UpdateGridValues(bool groupByVI);
+	void AddInputToVector(u64 frameCount, u64 inputCount, GCPadStatus* input, bool groupByVI);
+	GCPadStatus GetInputAtRow(u64 inputFrame);
 	void DeleteInputAtRow(int row);
-	void SetInputAtRow(int row, GCPadStatus* PadStatus);
+	void SetInputAtRow(int row, TAStudioInput tastudioInput);
 };
 
 class TAStudioFrame : public wxDialog
@@ -82,7 +82,7 @@ class TAStudioFrame : public wxDialog
 		wxTextCtrl* m_inputFrameCount;
 		//wxTextCtrl* m_currentInput;
 		wxCheckBox* m_activateTAStudio;
-		wxCheckBox* m_inputOrVI;
+		wxCheckBox* m_groupByVI;
 
 	public:
 		TAStudioFrame(wxWindow* parent,
