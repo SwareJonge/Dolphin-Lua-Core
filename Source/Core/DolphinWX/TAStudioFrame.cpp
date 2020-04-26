@@ -67,6 +67,8 @@ void TAStudioFrame::SetInput(GCPadStatus* PadStatus)
 	int inputFrame = Movie::g_currentInputCount;
 
 	// Get input for corresponding inputCount
+	if (m_inputGrid->GetTAStudioInputVectorSize() >= inputFrame) { return; } // Handle case where we've reached the end of the InputGrid table
+																			 // Currently, this will start registering inputs by TASInput/Controller
 	*PadStatus = m_inputGrid->GetInputAtInputFrame(inputFrame);
 
 }
@@ -105,10 +107,13 @@ InputGrid::InputGrid(wxWindow* parent) : wxGrid(parent, wxID_ANY)
 	//Fit();
 }
 
+int InputGrid::GetTAStudioInputVectorSize()
+{
+	return m_inputVector.size();
+}
+
 GCPadStatus InputGrid::GetInputAtInputFrame(int inputFrame)
 {
-	if (m_inputVector.size() >= inputFrame) { return; } // Handle case where we've reached the end of the InputGrid table
-														// Currently, this will start registering inputs by TASInput/Controller
 	return m_inputVector[inputFrame - 1].Input;
 }
 

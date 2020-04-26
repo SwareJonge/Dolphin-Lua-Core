@@ -74,6 +74,7 @@ public:
 	void DeleteInputAtRow(int row);
 	void SetInputAtRow(int row, TAStudioInput tastudioInput);
 	GCPadStatus GetInputAtInputFrame(int inputFrame);
+	int GetTAStudioInputVectorSize();
 };
 
 class TAStudioFrame : public wxDialog
