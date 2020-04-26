@@ -6,6 +6,10 @@
 
 #include "TAStudioFrame.h"
 
+wxBEGIN_EVENT_TABLE(InputGrid, wxGrid)
+	EVT_GRID_CELL_LEFT_CLICK(InputGrid::OnSelectCell)
+wxEND_EVENT_TABLE()
+
 /*
 	TODO:
 	- SetInput was implemented with the assumption that we can index the TAStudioInput vector based on input count. Thus, we need to make sure that on savestate load,
@@ -104,6 +108,13 @@ InputGrid::InputGrid(wxWindow* parent) : wxGrid(parent, wxID_ANY)
 GCPadStatus InputGrid::GetInputAtInputFrame(int inputFrame)
 {
 	return m_inputVector[inputFrame - 1].Input;
+}
+
+void InputGrid::OnSelectCell(wxGridEvent& evt)
+{
+	int row = evt.GetRow();
+	int col = evt.GetCol();
+	wxMessageBox("OnSelectCell: " + std::to_string(row) + ", " + std::to_string(col));
 }
 
 void InputGrid::UpdateGridValues(bool groupByVI)

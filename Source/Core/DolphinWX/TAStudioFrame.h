@@ -64,8 +64,10 @@ private:
 	std::vector<TAStudioInput> m_inputVector;
 	u64 m_firstInputInGrid;
 	int m_gridNumberOfRows;
+	wxDECLARE_EVENT_TABLE();
 public:
 	InputGrid(wxWindow* parent);
+	void OnSelectCell(wxGridEvent& evt);
 	void UpdateGridValues(bool groupByVI);
 	void AddInputToVector(u64 frameCount, u64 inputCount, GCPadStatus* input, bool groupByVI);
 	GCPadStatus GetInputAtRow(u64 inputFrame);
