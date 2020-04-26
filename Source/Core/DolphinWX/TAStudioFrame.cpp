@@ -4,12 +4,13 @@
 
 // Class written by Tales Carvalho (a.k.a. THC98)
 
-/*TODO:
-- Add framecount text above row label
-*/
-
 #include "TAStudioFrame.h"
 
+/*
+	TODO:
+	- SetInput was implemented with the assumption that we can index the TAStudioInput vector based on input count. Thus, we need to make sure that on savestate load,
+		the vector is updated with all of the savestate's previous inputs up to the frame of the savestate
+*/
 
 TAStudioFrame::TAStudioFrame(wxWindow* parent, wxWindowID id, const wxString& title,
 	const wxPoint& position, const wxSize& size, long style)
@@ -28,12 +29,12 @@ TAStudioFrame::TAStudioFrame(wxWindow* parent, wxWindowID id, const wxString& ti
 	m_controlWrapper = new wxStaticBoxSizer(wxVERTICAL, this, wxT("Buttons"));
 
 	m_inputFrameCount = new wxTextCtrl(this, wxID_ANY);
-	m_activateTAStudio = new wxCheckBox(this, wxID_ANY, wxT("Activate TAStudio"));
+	m_sendInputsToDolphin = new wxCheckBox(this, wxID_ANY, wxT("Activate TAStudio"));
 	m_groupByVI = new wxCheckBox(this, wxID_ANY, wxT("Group by VI counter"));
 
 	m_controlWrapper->Add(m_inputFrameCount);
 	m_controlWrapper->AddSpacer(1);
-	m_controlWrapper->Add(m_activateTAStudio);
+	m_controlWrapper->Add(m_sendInputsToDolphin);
 	m_controlWrapper->AddSpacer(1);
 	m_controlWrapper->Add(m_groupByVI);
 
@@ -49,6 +50,7 @@ TAStudioFrame::TAStudioFrame(wxWindow* parent, wxWindowID id, const wxString& ti
 
 void TAStudioFrame::GetInput(GCPadStatus* PadStatus)
 {
+	if (m_sendInputsToDolphin->IsChecked()) { return; }
 	m_inputFrameCount->SetValue(std::to_string(Movie::g_currentInputCount));
 
 	m_inputGrid->AddInputToVector(Movie::g_currentFrame, Movie::g_currentInputCount, PadStatus, m_groupByVI->GetValue());
@@ -56,6 +58,12 @@ void TAStudioFrame::GetInput(GCPadStatus* PadStatus)
 
 void TAStudioFrame::SetInput(GCPadStatus* PadStatus)
 {
+	if (!m_sendInputsToDolphin->IsChecked()) { return; }
+
+	int inputFrame = Movie::g_currentInputCount;
+
+	// Get input for corresponding inputCount
+	*PadStatus = m_inputGrid->GetInputAtInputFrame(inputFrame);
 
 }
 
@@ -91,6 +99,11 @@ InputGrid::InputGrid(wxWindow* parent) : wxGrid(parent, wxID_ANY)
 		}
 	}
 	//Fit();
+}
+
+GCPadStatus InputGrid::GetInputAtInputFrame(int inputFrame)
+{
+	return m_inputVector[inputFrame - 1].Input;
 }
 
 void InputGrid::UpdateGridValues(bool groupByVI)

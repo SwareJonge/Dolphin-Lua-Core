@@ -71,6 +71,7 @@ public:
 	GCPadStatus GetInputAtRow(u64 inputFrame);
 	void DeleteInputAtRow(int row);
 	void SetInputAtRow(int row, TAStudioInput tastudioInput);
+	GCPadStatus GetInputAtInputFrame(int inputFrame);
 };
 
 class TAStudioFrame : public wxDialog
@@ -81,7 +82,7 @@ class TAStudioFrame : public wxDialog
 		//wxTextCtrl* m_saveFrameState;
 		wxTextCtrl* m_inputFrameCount;
 		//wxTextCtrl* m_currentInput;
-		wxCheckBox* m_activateTAStudio;
+		wxCheckBox* m_sendInputsToDolphin;
 		wxCheckBox* m_groupByVI;
 
 	public:
