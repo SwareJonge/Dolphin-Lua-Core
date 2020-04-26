@@ -107,6 +107,8 @@ InputGrid::InputGrid(wxWindow* parent) : wxGrid(parent, wxID_ANY)
 
 GCPadStatus InputGrid::GetInputAtInputFrame(int inputFrame)
 {
+	if (m_inputVector.size() >= inputFrame) { return; } // Handle case where we've reached the end of the InputGrid table
+														// Currently, this will start registering inputs by TASInput/Controller
 	return m_inputVector[inputFrame - 1].Input;
 }
 
