@@ -8,12 +8,28 @@
 
 wxBEGIN_EVENT_TABLE(InputGrid, wxGrid)
 	EVT_GRID_CELL_LEFT_CLICK(InputGrid::OnSelectCell)
+	EVT_GRID_CELL_CHANGED(InputGrid::OnCellChanged)
+	EVT_MOUSEWHEEL(InputGrid::OnMouseWheel)
 wxEND_EVENT_TABLE()
 
 /*
 	TODO:
-	- SetInput was implemented with the assumption that we can index the TAStudioInput vector based on input count. Thus, we need to make sure that on savestate load,
-		the vector is updated with all of the savestate's previous inputs up to the frame of the savestate
+	- Implement a function that updates InputGrid::m_inputVector when a state is loaded.
+	- Optimize the functions handling groupByVI access by creating a table that indexes every frameCount to the
+		inputCount they're related to, so we don't need to execute searches everytime.
+	- Update InputGrid::m_groupByVI when the checkbox TAStudioFrame::m_groupByVI is changed (using event).
+	- Dolphin throws an error when the emulator is closed, probably because something should be done at the destructor.
+		Find out what that is.
+	- Dolphin sometimes crashes when there's too much input being processed (usually when groupByVI isn't checked).
+		One possible solution to that is disable the grid's auto update in GetInput (in case the crashes happen because
+		of too many GUI updates) and creating a button to do that manually.
+	- User functions we should look into:
+		- Copy/paste inputs;
+		- Make current frame in grid selected (SelectRow isn't a good idea because calling it too many times quickly
+			causes performance issues);
+		- Go to specific frame;
+		- User friendly way to edit analog inputs (something like TAS Input maybe?).
+
 */
 
 TAStudioFrame::TAStudioFrame(wxWindow* parent, wxWindowID id, const wxString& title,
@@ -24,7 +40,7 @@ TAStudioFrame::TAStudioFrame(wxWindow* parent, wxWindowID id, const wxString& ti
 
 	// build GUI here
 	wxFlexGridSizer* fgSizer;
-	fgSizer = new wxFlexGridSizer(0, 2, 0, 0);
+	fgSizer = new wxFlexGridSizer(1, 2, 0, 0);
 	fgSizer->SetFlexibleDirection(wxBOTH);
 	fgSizer->SetNonFlexibleGrowMode(wxFLEX_GROWMODE_SPECIFIED);
 
@@ -38,7 +54,7 @@ TAStudioFrame::TAStudioFrame(wxWindow* parent, wxWindowID id, const wxString& ti
 	m_controlWrapper = new wxStaticBoxSizer(wxVERTICAL, this, wxT("Buttons"));
 
 	m_inputFrameCount = new wxTextCtrl(this, wxID_ANY);
-	m_sendInputsToDolphin = new wxCheckBox(this, wxID_ANY, wxT("Activate TAStudio"));
+	m_sendInputsToDolphin = new wxCheckBox(this, wxID_ANY, wxT("Send inputs to Dolphin"));
 	m_groupByVI = new wxCheckBox(this, wxID_ANY, wxT("Group by VI counter"));
 
 	m_controlWrapper->Add(m_inputFrameCount);
@@ -49,7 +65,7 @@ TAStudioFrame::TAStudioFrame(wxWindow* parent, wxWindowID id, const wxString& ti
 
 	fgSizer->Add(m_inputGrid);
 	fgSizer->Add(m_controlWrapper);
-	this->SetClientSize(900, 800);
+	//this->SetClientSize(900, 800);
 
 	SetSizer(fgSizer);
 	Layout();
@@ -59,30 +75,36 @@ TAStudioFrame::TAStudioFrame(wxWindow* parent, wxWindowID id, const wxString& ti
 
 void TAStudioFrame::GetInput(GCPadStatus* PadStatus)
 {
-	if (m_sendInputsToDolphin->IsChecked()) { return; }
-	m_inputFrameCount->SetValue(std::to_string(Movie::g_currentInputCount));
-
 	m_inputGrid->AddInputToVector(Movie::g_currentFrame, Movie::g_currentInputCount, PadStatus, m_groupByVI->GetValue());
 }
 
 void TAStudioFrame::SetInput(GCPadStatus* PadStatus)
 {
-	if (!m_sendInputsToDolphin->IsChecked()) { return; }
+	if (!m_sendInputsToDolphin->GetValue()) 
+	{ 
+		return; 
+	}
 
-	int inputFrame = Movie::g_currentInputCount;
+	// Get input for corresponding inputCount (next in-game input)
+	int inputFrame = Movie::g_currentInputCount + 1;
 
-	// Get input for corresponding inputCount
-	if (m_inputGrid->GetTAStudioInputVectorSize() >= inputFrame) { return; } // Handle case where we've reached the end of the InputGrid table
-																			 // Currently, this will start registering inputs by TASInput/Controller
+	if (m_inputGrid->GetTAStudioInputVectorSize() <= inputFrame) 
+	{
+		// Handle case where we've reached the end of the InputGrid table
+		// Currently, this will start registering inputs by TASInput/Controller
+		return; 
+	} 
+																			 
 	*PadStatus = m_inputGrid->GetInputAtInputFrame(inputFrame);
-
 }
 
-//InputGrid::InputGrid(wxWindow* parent) : wxGrid(parent, wxID_ANY, wxDefaultPosition, wxSize(700, 800))
 InputGrid::InputGrid(wxWindow* parent) : wxGrid(parent, wxID_ANY)
 {
 	m_firstInputInGrid = 1;
+	m_firstFrameInGrid = 1;
 	m_gridNumberOfRows = 30;
+
+	
 
 	int numColumns = COLUMN_LABEL.size();
 	CreateGrid(m_gridNumberOfRows, numColumns, wxGridSelectRows);
@@ -104,12 +126,17 @@ InputGrid::InputGrid(wxWindow* parent) : wxGrid(parent, wxID_ANY)
 			case COLUMN_R_ANA:
 				SetColSize(i, 40);
 				break;
+			case COLUMN_D_UP:
+			case COLUMN_D_DOWN:
+			case COLUMN_D_LEFT:
+			case COLUMN_D_RIGHT:
+				SetColSize(i, 30);
+				break;
 			default:
 				SetColSize(i, 20);
 				break;
 		}
 	}
-	//Fit();
 }
 
 int InputGrid::GetTAStudioInputVectorSize()
@@ -119,7 +146,7 @@ int InputGrid::GetTAStudioInputVectorSize()
 
 GCPadStatus InputGrid::GetInputAtInputFrame(int inputFrame)
 {
-	return m_inputVector[inputFrame - 1].Input;
+	return m_inputVector[inputFrame].Input;
 }
 
 void InputGrid::OnSelectCell(wxGridEvent& evt)
@@ -128,53 +155,154 @@ void InputGrid::OnSelectCell(wxGridEvent& evt)
 	int col = evt.GetCol();
 	std::string cell = this->GetCellValue(row, col);
 
-	wxMessageBox("OnSelectCell: " + std::to_string(row) + ", " + std::to_string(col));
+	// If input doesn't exist in vector, return
+	if (m_groupByVI)
+	{
+		int currFrameCount = row + m_firstFrameInGrid;
+		const auto p = std::find_if(m_inputVector.begin(), m_inputVector.end(),
+			[currFrameCount](const TAStudioInput& inp) {return inp.FrameCount == currFrameCount; });
+		if (p == m_inputVector.end()) 
+		{
+			return;
+		}
+	}
+	else
+	{
+		if (row + m_firstInputInGrid >= m_inputVector.size())
+		{
+			return;
+		}
+	}
 
-	if (cell == COLUMN_LABEL[4]) { this->GetCellValue(row, col) == "A" ? this->SetCellValue(row, col, "") : this->SetCellValue(row, col, "A"); }
-	else if (cell == COLUMN_LABEL[5]) { this->GetCellValue(row, col) == "B" ? this->SetCellValue(row, col, "") : this->SetCellValue(row, col, "B"); }
-	else if (cell == COLUMN_LABEL[6]) { this->GetCellValue(row, col) == "X" ? this->SetCellValue(row, col, "") : this->SetCellValue(row, col, "X"); }
-	else if (cell == COLUMN_LABEL[7]) { this->GetCellValue(row, col) == "Y" ? this->SetCellValue(row, col, "") : this->SetCellValue(row, col, "Y"); }
-	else if (cell == COLUMN_LABEL[8]) { this->GetCellValue(row, col) == "S" ? this->SetCellValue(row, col, "") : this->SetCellValue(row, col, "S"); }
-	else if (cell == COLUMN_LABEL[9]) { this->GetCellValue(row, col) == "Z" ? this->SetCellValue(row, col, "") : this->SetCellValue(row, col, "Z"); }
-	else if (cell == COLUMN_LABEL[10]) { this->GetCellValue(row, col) == "L" ? this->SetCellValue(row, col, "") : this->SetCellValue(row, col, "L"); }
-	else if (cell == COLUMN_LABEL[11]) { this->GetCellValue(row, col) == "R" ? this->SetCellValue(row, col, "") : this->SetCellValue(row, col, "R"); }
-	else if (cell == COLUMN_LABEL[14]) { this->GetCellValue(row, col) == "dU" ? this->SetCellValue(row, col, "") : this->SetCellValue(row, col, "dU"); }
-	else if (cell == COLUMN_LABEL[15]) { this->GetCellValue(row, col) == "dD" ? this->SetCellValue(row, col, "") : this->SetCellValue(row, col, "dD"); }
-	else if (cell == COLUMN_LABEL[16]) { this->GetCellValue(row, col) == "dL" ? this->SetCellValue(row, col, "") : this->SetCellValue(row, col, "dL"); }
-	else if (cell == COLUMN_LABEL[17]) { this->GetCellValue(row, col) == "dR" ? this->SetCellValue(row, col, "") : this->SetCellValue(row, col, "dR"); }
+	switch (col)
+	{
+		case COLUMN_INPUT_COUNT:
+		case COLUMN_VI_COUNT:
+			return;
+			break;
+		case COLUMN_ANA_X:
+		case COLUMN_ANA_Y:
+		case COLUMN_C_X:
+		case COLUMN_C_Y:
+		case COLUMN_L_ANA:
+		case COLUMN_R_ANA:
+			evt.Skip(); // Allow the user to edit the cell
+			return;
+			break;
+		default:
+			break;
+	}
 
-	// First update the value in the vector
-	m_inputVector[row].Input = GetInputAtRow(row);
+	if (cell == COLUMN_LABEL[col])
+	{
+		this->SetCellValue(row, col, "");
+	}
+	else
+	{
+		this->SetCellValue(row, col, COLUMN_LABEL[col]);
+	}
 
-	// Next, refresh the table
-	SetInputAtRow(row, m_inputVector[row]);
+	// Update the value(s) in the vector
+	if (m_groupByVI)
+	{
+		int currFrameCount = row + m_firstFrameInGrid;
+		// Repeat for every input in m_inputVector whose FrameCount == currFrameCount
+		std::vector<TAStudioInput>::iterator it = m_inputVector.begin();
+		while ((it = std::find_if(it, m_inputVector.end(), [currFrameCount](const TAStudioInput& inp) {
+				return inp.FrameCount == currFrameCount; })) != m_inputVector.end()) {
+			it->Input = GetInputAtRow(row);
+			it++;
+		}
+	}
+	else
+	{
+		m_inputVector[row + m_firstInputInGrid].Input = GetInputAtRow(row);
+	}
+
+	UpdateGridValues(); // This can probably be removed once the program is working properly.
+						// This is being executed to make sure that the input written to the
+						// current row was correctly stored to the vector.
 }
 
-void InputGrid::UpdateGridValues(bool groupByVI)
+void InputGrid::OnCellChanged(wxGridEvent& evt)
+{
+	int row = evt.GetRow();
+
+	// Update the value(s) in the vector
+	if (m_groupByVI)
+	{
+		int currFrameCount = row + m_firstFrameInGrid;
+		// Repeat for every input in m_inputVector whose FrameCount == currFrameCount
+		std::vector<TAStudioInput>::iterator it = m_inputVector.begin();
+		while ((it = std::find_if(it, m_inputVector.end(), [currFrameCount](const TAStudioInput& inp) {
+			return inp.FrameCount == currFrameCount; })) != m_inputVector.end()) {
+			it->Input = GetInputAtRow(row);
+			it++;
+		}
+	}
+	else
+	{
+		m_inputVector[row + m_firstInputInGrid].Input = GetInputAtRow(row);
+	}
+
+	UpdateGridValues();
+}
+
+void InputGrid::OnMouseWheel(wxMouseEvent& evt)
+{
+	if (evt.GetWheelRotation() > 0)
+	{
+		if (m_groupByVI)
+		{
+			m_firstFrameInGrid -= m_gridNumberOfRows / 4;
+			UpdateGridValues();
+		}
+		else
+		{
+			m_firstInputInGrid -= m_gridNumberOfRows / 4;
+			UpdateGridValues();
+		}
+	}
+	else
+	{
+		if (m_groupByVI)
+		{
+			m_firstFrameInGrid += m_gridNumberOfRows / 4;
+			UpdateGridValues();
+		}
+		else
+		{
+			m_firstInputInGrid += m_gridNumberOfRows / 4;
+			UpdateGridValues();
+		}
+	}
+}
+
+void InputGrid::UpdateGridValues()
 {
 	for (int i = 0; i < m_gridNumberOfRows; i++)
 	{
-		u64 currCount = i + m_firstInputInGrid;
-		if (groupByVI)
+		if (m_groupByVI) // currCount = current frameCount
 		{
+			u64 currFrameCount = i + m_firstFrameInGrid;
+			// Find if given frameCount exists in m_inputVector
 			const auto p = std::find_if(m_inputVector.begin(), m_inputVector.end(),
-				[currCount](const TAStudioInput& inp) {return inp.FrameCount == currCount; });
+				[currFrameCount](const TAStudioInput& inp) {return inp.FrameCount == currFrameCount; });
 			if (p != m_inputVector.end())
 			{
-				SetInputAtRow(i, *p);
+				SetInputAtRow(i, *p, p - m_inputVector.begin());
 			}
 			else
 			{
 				DeleteInputAtRow(i);
 			}
 		}
-		else
+		else // currCount = current inputCount
 		{
-			const auto p = std::find_if(m_inputVector.begin(), m_inputVector.end(),
-				[currCount](const TAStudioInput& inp) {return inp.InputCount == currCount; });
-			if (p != m_inputVector.end())
+			u64 currInputCount = i + m_firstInputInGrid;
+			if (currInputCount < m_inputVector.size())
 			{
-				SetInputAtRow(i, *p);
+				SetInputAtRow(i, m_inputVector[currInputCount], currInputCount);
 			}
 			else
 			{
@@ -186,43 +314,45 @@ void InputGrid::UpdateGridValues(bool groupByVI)
 
 void InputGrid::AddInputToVector(u64 frameCount, u64 inputCount, GCPadStatus* input, bool groupByVI)
 {
-	// remove element in vector if input already exists
-	//m_inputVector.erase(std::remove_if(m_inputVector.begin(), m_inputVector.end(),
-	//	[inputCount](const TAStudioInput& inp) {return inp.InputCount == inputCount; }));
+	m_groupByVI = groupByVI;
 
-	TAStudioInput inp;
-	inp.FrameCount = frameCount;
-	inp.InputCount = inputCount;
-	inp.Input = *input;
-	m_inputVector.push_back(inp);
-
-	// insert input in visual grid
-	if (groupByVI)
+	// This should NEVER repeat more than once after the load state functions are implemented
+	// But I left it here to make sure nothing breaks.
+	while (m_inputVector.size() < (inputCount + 1))
 	{
-		// if row already exists, just insert the input in that row
-		if (frameCount >= m_firstInputInGrid && frameCount < m_firstInputInGrid + m_gridNumberOfRows)
+		m_inputVector.push_back(TAStudioInput());
+	}
+
+	m_inputVector[inputCount].FrameCount = frameCount;
+	m_inputVector[inputCount].Input = *input;
+
+	// Insert input in visual grid
+	if (m_groupByVI)
+	{
+		// If a row with current frameCount already exists, just insert the input in that row
+		if (frameCount >= m_firstFrameInGrid && frameCount < m_firstFrameInGrid + m_gridNumberOfRows)
 		{
-			SetInputAtRow(frameCount - m_firstInputInGrid, inp);
+			SetInputAtRow(frameCount - m_firstFrameInGrid, m_inputVector[inputCount], inputCount);
 		}
-		// else, update the visual grid so the new input is visible
+		// Else, update the visual grid so the new input is visible
 		else
 		{
-			m_firstInputInGrid = frameCount - m_gridNumberOfRows / 2;
-			if (m_firstInputInGrid < 1)
+			m_firstFrameInGrid = frameCount - m_gridNumberOfRows / 2;
+			if (m_firstFrameInGrid < 1)
 			{
-				m_firstInputInGrid = 1;
+				m_firstFrameInGrid = 1;
 			}
-			UpdateGridValues(groupByVI);
+			UpdateGridValues();
 		}
 	}
 	else
 	{
-		// if row already exists, just insert the input in that row
+		// If a row with current inputCount already exists, just insert the input in that row
 		if (inputCount >= m_firstInputInGrid && inputCount < m_firstInputInGrid + m_gridNumberOfRows)
 		{
-			SetInputAtRow(inputCount - m_firstInputInGrid, inp);
+			SetInputAtRow(inputCount - m_firstInputInGrid, m_inputVector[inputCount], inputCount);
 		}
-		// else, update the visual grid so the new input is visible
+		// Else, update the visual grid so the new input is visible
 		else
 		{
 			m_firstInputInGrid = inputCount - m_gridNumberOfRows / 2;
@@ -230,7 +360,7 @@ void InputGrid::AddInputToVector(u64 frameCount, u64 inputCount, GCPadStatus* in
 			{
 				m_firstInputInGrid = 1;
 			}
-			UpdateGridValues(groupByVI);
+			UpdateGridValues();
 		}
 	}
 }
@@ -243,11 +373,11 @@ void InputGrid::DeleteInputAtRow(int row)
 	}
 }
 
-void InputGrid::SetInputAtRow(int row, TAStudioInput tastudioInput)
+void InputGrid::SetInputAtRow(int row, TAStudioInput tastudioInput, u64 inputCount)
 {
 	GCPadStatus padStatus = tastudioInput.Input;
 
-	SetCellValue(wxGridCellCoords(row, COLUMN_INPUT_COUNT), std::to_string(tastudioInput.InputCount));
+	SetCellValue(wxGridCellCoords(row, COLUMN_INPUT_COUNT), std::to_string(inputCount));
 	SetCellValue(wxGridCellCoords(row, COLUMN_VI_COUNT), std::to_string(tastudioInput.FrameCount));
 
 	SetCellValue(wxGridCellCoords(row, COLUMN_ANA_X), std::to_string(padStatus.stickX));
@@ -284,6 +414,7 @@ GCPadStatus InputGrid::GetInputAtRow(u64 row)
 	PadStatus.triggerLeft = wxAtoi(GetCellValue(wxGridCellCoords(row, COLUMN_L_ANA)));
 	PadStatus.triggerRight = wxAtoi(GetCellValue(wxGridCellCoords(row, COLUMN_R_ANA)));
 
+	PadStatus.button = 0;
 	PadStatus.button |= GetCellValue(wxGridCellCoords(row, COLUMN_A)) == COLUMN_LABEL[COLUMN_A] ? PAD_BUTTON_A : 0;
 	PadStatus.button |= GetCellValue(wxGridCellCoords(row, COLUMN_B)) == COLUMN_LABEL[COLUMN_B] ? PAD_BUTTON_B : 0;
 	PadStatus.button |= GetCellValue(wxGridCellCoords(row, COLUMN_X)) == COLUMN_LABEL[COLUMN_X] ? PAD_BUTTON_X : 0;
