@@ -76,7 +76,10 @@ TAStudioFrame::TAStudioFrame(wxWindow* parent, wxWindowID id, const wxString& ti
 void TAStudioFrame::GetInput(GCPadStatus* PadStatus)
 {
 	m_inputGrid->AddInputToVector(Movie::g_currentFrame, Movie::g_currentInputCount, PadStatus, m_groupByVI->GetValue());
-	m_inputGrid->HighlightActiveFrame(Movie::g_currentInputCount);
+	if (m_groupByVI)
+		m_inputGrid->HighlightActiveFrame(Movie::g_currentFrame);
+	else
+		m_inputGrid->HighlightActiveFrame(Movie::g_currentInputCount);
 }
 
 void TAStudioFrame::SetInput(GCPadStatus* PadStatus)
@@ -434,14 +437,14 @@ GCPadStatus InputGrid::GetInputAtRow(u64 row)
 	return PadStatus;
 }
 
-void InputGrid::HighlightActiveFrame(u64 inputCount)
+void InputGrid::HighlightActiveFrame(u64 frameCount)
 {
 	if (m_groupByVI)
 	{
-		this->SelectRow(inputCount - m_firstFrameInGrid);
+		this->SelectRow(frameCount - m_firstFrameInGrid);
 	}
 	else
 	{
-		this->SelectRow(inputCount - m_firstInputInGrid);
+		this->SelectRow(frameCount - m_firstInputInGrid);
 	}
 }
