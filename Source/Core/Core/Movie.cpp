@@ -64,6 +64,9 @@ namespace Movie {
 	u64 g_currentLagCount = 0;
 	static u64 s_totalLagCount = 0; // just stats
 	u64 g_currentInputCount = 0, g_totalInputCount = 0; // just stats
+	u8* g_savestateInputs = nullptr;
+	u8* g_movInputs = nullptr;
+	u32 g_movInputsLen = 0;
 	static u64 s_totalTickCount = 0, s_tickCountAtLastInput = 0; // just stats
 	static u64 s_recordingStartTime; // seconds since 1970 that recording started
 	static bool s_bSaveConfig = false, s_bSkipIdle = false, s_bDualCore = false;
@@ -94,6 +97,7 @@ namespace Movie {
 
 	static TAStudioManip tasmfunc = nullptr; // TAStudio - Added by THC98
 	static TAStudioReceiver tasrfunc = nullptr; // TAStudio - Added by THC98
+	static TAStudioSavestateInputReceiver tassfunc = nullptr; // TAStudio - Added by Malleo
 	static GCManipFunction gcmfunc = nullptr;
 	static WiiManipFunction wiimfunc = nullptr;
 
@@ -1290,12 +1294,12 @@ namespace Movie {
 			else if (s_currentByte > 0 && s_totalBytes > 0)
 			{
 				// verify identical from movie start to the save's current frame
-				u32 len = (u32)s_currentByte;
-				u8* movInput = new u8[len];
-				t_record.ReadArray(movInput, (size_t)len);
-				for (u32 i = 0; i < len; ++i)
+				g_movInputsLen = (u32)s_currentByte;
+				g_movInputs = new u8[g_movInputsLen];
+				t_record.ReadArray(g_movInputs, (size_t)g_movInputsLen);
+				for (u32 i = 0; i < g_movInputsLen; ++i)
 				{
-					if (movInput[i] != tmpInput[i])
+					if (g_movInputs[i] != tmpInput[i])
 					{
 						// this is a "you did something wrong" alert for the user's benefit.
 						// we'll try to say what's going on in excruciating detail, otherwise the user might not believe us.
@@ -1303,7 +1307,7 @@ namespace Movie {
 						{
 							// TODO: more detail
 							PanicAlertT("Warning: You loaded a save whose movie mismatches on byte %d (0x%X). You should load another save before continuing, or load this state with read-only mode off. Otherwise you'll probably get a desync.", i + 256, i + 256);
-							memcpy(tmpInput, movInput, s_currentByte);
+							memcpy(tmpInput, g_movInputs, s_currentByte);
 						}
 						else
 						{
@@ -1311,7 +1315,7 @@ namespace Movie {
 							ControllerState curPadState;
 							memcpy(&curPadState, &(tmpInput[frame * 8]), 8);
 							ControllerState movPadState;
-							memcpy(&movPadState, &(movInput[frame * 8]), 8);
+							memcpy(&movPadState, &(g_movInputs[frame * 8]), 8);
 							PanicAlertT("Warning: You loaded a save whose movie mismatches on frame %d. You should load another save before continuing, or load this state with read-only mode off. Otherwise you'll probably get a desync.\n\n"
 								"More information: The current movie is %d frames long and the savestate's movie is %d frames long.\n\n"
 								"On frame %d, the current movie presses:\n"
@@ -1330,7 +1334,7 @@ namespace Movie {
 						break;
 					}
 				}
-				delete[] movInput;
+				// Set global values without getting a nullptr error due to movInput being freed
 			}
 		}
 		t_record.Close();
@@ -1636,6 +1640,11 @@ namespace Movie {
 		tasrfunc = func;
 	}
 
+	void SetTAStudioSavestateInputReceiver(TAStudioSavestateInputReceiver func) // TAStudio - Added by Malleo
+	{
+		tassfunc = func;
+	}
+
 	void SetGCInputManip(GCManipFunction func)
 	{
 		gcmfunc = func;
@@ -1655,6 +1664,12 @@ namespace Movie {
 	{
 		if (tasrfunc)
 			(*tasrfunc)(PadStatus);
+	}
+
+	void CallTAStudioSavestateInputReceiver(u8* movInput) // TAStudio - Added by Malleo
+	{
+		if (tassfunc)
+			(*tassfunc)(movInput);
 	}
 
 	// NOTE: CPU Thread

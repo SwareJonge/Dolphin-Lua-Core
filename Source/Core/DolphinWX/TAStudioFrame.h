@@ -75,10 +75,11 @@ class InputGrid : public wxGrid
 		void OnMouseWheel(wxMouseEvent& evt);
 		void UpdateGridValues();
 		void AddInputToVector(u64 frameCount, u64 inputCount, GCPadStatus* input, bool groupByVI);
-		GCPadStatus GetInputAtRow(u64 inputFrame);
+		GCPadStatus GetInputAtRow(u64 inputCount);
 		void DeleteInputAtRow(int row);
 		void SetInputAtRow(int row, TAStudioInput tastudioInput, u64 inputCount);
-		GCPadStatus GetInputAtInputFrame(int inputFrame);
+		GCPadStatus GetInputAtInputFrame(int inputCount);
+		void SetInputAtInputFrame(GCPadStatus* PadStatus, int inputCount);
 		void HighlightActiveFrame(u64 frameCount);
 		int GetTAStudioInputVectorSize();
 };
@@ -101,5 +102,6 @@ class TAStudioFrame : public wxDialog
 			long style = wxDEFAULT_DIALOG_STYLE);
 		void GetInput(GCPadStatus* PadStatus);
 		void SetInput(GCPadStatus* PadStatus);
+		void ParseSavestateInputs(u8* movInput);
 	
 };
