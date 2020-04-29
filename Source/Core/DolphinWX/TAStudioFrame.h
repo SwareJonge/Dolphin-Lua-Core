@@ -79,6 +79,7 @@ class InputGrid : public wxGrid
 		void DeleteInputAtRow(int row);
 		void SetInputAtRow(int row, TAStudioInput tastudioInput, u64 inputCount);
 		GCPadStatus GetInputAtInputFrame(int inputFrame);
+		void HighlightActiveFrame(u64 inputCount);
 		int GetTAStudioInputVectorSize();
 };
 
