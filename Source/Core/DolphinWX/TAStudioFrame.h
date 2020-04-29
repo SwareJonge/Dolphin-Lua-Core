@@ -18,6 +18,7 @@
 #include <wx/wx.h>
 #include <wx/frame.h>
 #include <wx/grid.h>
+#include <wx/slider.h>
 
 #include "Core/Movie.h"
 
@@ -87,11 +88,15 @@ class InputGrid : public wxGrid
 class TAStudioFrame : public wxDialog
 {
 	protected:
+		wxBoxSizer* m_sideWrapper;
 		wxStaticBoxSizer* m_controlWrapper;
+		wxStaticBoxSizer* m_analogWrapper;
 		InputGrid* m_inputGrid;
 		wxTextCtrl* m_inputFrameCount;
 		wxCheckBox* m_sendInputsToDolphin;
 		wxCheckBox* m_groupByVI;
+		wxSlider* m_stickXSlider;
+		wxSlider* m_stickYSlider;
 
 	public:
 		TAStudioFrame(wxWindow* parent,

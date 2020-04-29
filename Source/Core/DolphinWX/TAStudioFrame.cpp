@@ -29,6 +29,7 @@ wxEND_EVENT_TABLE()
 			causes performance issues);
 		- Go to specific frame;
 		- User friendly way to edit analog inputs (something like TAS Input maybe?).
+		- Activate/Deactivate certain buttons in TAStudio (e.g. edit button presses but leave analog stick up to a lua script)
 
 */
 
@@ -51,20 +52,34 @@ TAStudioFrame::TAStudioFrame(wxWindow* parent, wxWindowID id, const wxString& ti
 	m_inputGrid->SetColAttr(0, ReadOnlyAttr);
 	m_inputGrid->SetColAttr(1, ReadOnlyAttr);
 
+	m_sideWrapper = new  wxBoxSizer(wxVERTICAL);
 	m_controlWrapper = new wxStaticBoxSizer(wxVERTICAL, this, wxT("Buttons"));
 
 	m_inputFrameCount = new wxTextCtrl(this, wxID_ANY);
 	m_sendInputsToDolphin = new wxCheckBox(this, wxID_ANY, wxT("Send inputs to Dolphin"));
 	m_groupByVI = new wxCheckBox(this, wxID_ANY, wxT("Group by VI counter"));
 
+	m_analogWrapper = new wxStaticBoxSizer(wxHORIZONTAL, this, wxT("Analog Sliders"));
+
+	m_stickXSlider = new wxSlider(this, wxID_ANY, 128, 0, 255, wxDefaultPosition, wxSize(20, 100), wxSL_VERTICAL);
+	m_stickYSlider = new wxSlider(this, wxID_ANY, 128, 0, 255, wxDefaultPosition, wxSize(20, 100), wxSL_VERTICAL);
+
+
 	m_controlWrapper->Add(m_inputFrameCount);
 	m_controlWrapper->AddSpacer(1);
 	m_controlWrapper->Add(m_sendInputsToDolphin);
 	m_controlWrapper->AddSpacer(1);
 	m_controlWrapper->Add(m_groupByVI);
+	m_analogWrapper->Add(m_stickXSlider);
+	m_analogWrapper->AddSpacer(10);
+	m_analogWrapper->Add(m_stickYSlider);
+
+	m_sideWrapper->Add(m_controlWrapper);
+	m_sideWrapper->AddSpacer(1);
+	m_sideWrapper->Add(m_analogWrapper);
 
 	fgSizer->Add(m_inputGrid);
-	fgSizer->Add(m_controlWrapper);
+	fgSizer->Add(m_sideWrapper);
 	//this->SetClientSize(900, 800);
 
 	SetSizer(fgSizer);
