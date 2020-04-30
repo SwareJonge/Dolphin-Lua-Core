@@ -1068,12 +1068,6 @@ void TAStudioReceiver(GCPadStatus* PadStatus) // TAStudio - Added by THC98
 		main_frame->g_TAStudioFrame->GetInput(PadStatus);
 }
 
-void TAStudioSavestateInputReceiver(u8* movInput) // TAStudio - Added by Malleo
-{
-	if (main_frame)
-		main_frame->g_TAStudioFrame->OnLoadstateCallback();
-}
-
 void GCTASManipFunction(GCPadStatus* PadStatus, int controllerID)
 {
 	if (main_frame)
