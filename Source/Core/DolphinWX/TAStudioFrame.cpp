@@ -14,7 +14,7 @@ wxEND_EVENT_TABLE()
 
 /*
 	TODO:
-	- Implement a function that updates InputGrid::m_inputVector when a state is loaded.
+	- Implement a function that updates InputGrid::m_inputVector when a state is loaded. DONE
 	- Optimize the functions handling groupByVI access by creating a table that indexes every frameCount to the
 		inputCount they're related to, so we don't need to execute searches everytime.
 	- Update InputGrid::m_groupByVI when the checkbox TAStudioFrame::m_groupByVI is changed (using event).
@@ -28,7 +28,7 @@ wxEND_EVENT_TABLE()
 		- Make current frame in grid selected (SelectRow isn't a good idea because calling it too many times quickly
 			causes performance issues);
 		- Go to specific frame;
-		- User friendly way to edit analog inputs (something like TAS Input maybe?).
+		- User friendly way to edit analog inputs (something like TAS Input maybe?). IN PROGRESS
 		- Activate/Deactivate certain buttons in TAStudio (e.g. edit button presses but leave analog stick up to a lua script)
 
 */
@@ -105,7 +105,8 @@ void TAStudioFrame::SetInput(GCPadStatus* PadStatus)
 	}
 
 	// Get input for corresponding inputCount (next in-game input)
-	int inputFrame = Movie::g_currentInputCount + 1;
+	//int inputFrame = Movie::g_currentInputCount + 1;
+	int inputFrame = Movie::g_currentInputCount;
 
 	if (m_inputGrid->GetTAStudioInputVectorSize() <= inputFrame) 
 	{
@@ -114,44 +115,14 @@ void TAStudioFrame::SetInput(GCPadStatus* PadStatus)
 		return; 
 	}
 
-	m_inputGrid->HighlightActiveFrame(inputFrame);
+	//m_inputGrid->HighlightActiveFrame(inputFrame);
 																			 
 	*PadStatus = m_inputGrid->GetInputAtInputFrame(inputFrame);
 }
 
-void TAStudioFrame::ParseSavestateInputs(u8* movInput)
+void TAStudioFrame::OnLoadstateCallback()
 {
-	Movie::ControllerState tempState;
-	GCPadStatus temp;
-
-	for (u32 i = 0; i < Movie::g_movInputsLen/8; i++)
-	{
-		memcpy(&tempState, &movInput[i*8], 8);
-		temp.button = 0;
-		temp.button |= tempState.A ? PAD_BUTTON_A : 0;
-		temp.button |= tempState.B ? PAD_BUTTON_B : 0;
-		temp.button |= tempState.X ? PAD_BUTTON_X : 0;
-		temp.button |= tempState.Y ? PAD_BUTTON_Y : 0;
-		temp.button |= tempState.Z ? PAD_TRIGGER_Z : 0;
-		temp.button |= tempState.Start ? PAD_BUTTON_START : 0;
-		temp.button |= tempState.L ? PAD_TRIGGER_L : 0;
-		temp.button |= tempState.R ? PAD_TRIGGER_R : 0;
-		temp.button |= tempState.DPadUp ? PAD_BUTTON_UP : 0;
-		temp.button |= tempState.DPadDown ? PAD_BUTTON_DOWN : 0;
-		temp.button |= tempState.DPadLeft ? PAD_BUTTON_LEFT : 0;
-		temp.button |= tempState.DPadRight ? PAD_BUTTON_RIGHT : 0;
-		temp.stickX = tempState.AnalogStickX;
-		temp.stickY = tempState.AnalogStickY;
-		temp.substickX = tempState.CStickX;
-		temp.substickY = tempState.CStickY;
-		temp.triggerLeft = tempState.TriggerL;
-		temp.triggerRight = tempState.TriggerR;
-
-		// Add input to the vector without referencing the frameCount
-		m_inputGrid->SetInputAtInputFrame(&temp, i);
-	}
-
-	m_inputGrid->UpdateGridValues();
+	m_inputGrid->ParseStateInputs();
 }
 
 InputGrid::InputGrid(wxWindow* parent) : wxGrid(parent, wxID_ANY)
@@ -159,8 +130,6 @@ InputGrid::InputGrid(wxWindow* parent) : wxGrid(parent, wxID_ANY)
 	m_firstInputInGrid = 1;
 	m_firstFrameInGrid = 1;
 	m_gridNumberOfRows = 30;
-
-	
 
 	int numColumns = COLUMN_LABEL.size();
 	CreateGrid(m_gridNumberOfRows, numColumns, wxGridSelectRows);
@@ -193,6 +162,47 @@ InputGrid::InputGrid(wxWindow* parent) : wxGrid(parent, wxID_ANY)
 				break;
 		}
 	}
+}
+
+void InputGrid::ParseStateInputs()
+{
+	Movie::ControllerState tempState;
+	GCPadStatus temp;
+
+	// Fill possibly empty inputs
+	while (m_inputVector.size() < (Movie::g_movInputsLen / 8))
+	{
+		m_inputVector.push_back(TAStudioInput());
+	}
+
+	for (u32 i = 0; i < Movie::g_movInputsLen / 8; i++)
+	{
+		memcpy(&tempState, &Movie::g_movInputs[i * 8], 8);
+		temp.button = 0;
+		temp.button |= tempState.A ? PAD_BUTTON_A : 0;
+		temp.button |= tempState.B ? PAD_BUTTON_B : 0;
+		temp.button |= tempState.X ? PAD_BUTTON_X : 0;
+		temp.button |= tempState.Y ? PAD_BUTTON_Y : 0;
+		temp.button |= tempState.Z ? PAD_TRIGGER_Z : 0;
+		temp.button |= tempState.Start ? PAD_BUTTON_START : 0;
+		temp.button |= tempState.L ? PAD_TRIGGER_L : 0;
+		temp.button |= tempState.R ? PAD_TRIGGER_R : 0;
+		temp.button |= tempState.DPadUp ? PAD_BUTTON_UP : 0;
+		temp.button |= tempState.DPadDown ? PAD_BUTTON_DOWN : 0;
+		temp.button |= tempState.DPadLeft ? PAD_BUTTON_LEFT : 0;
+		temp.button |= tempState.DPadRight ? PAD_BUTTON_RIGHT : 0;
+		temp.stickX = tempState.AnalogStickX;
+		temp.stickY = tempState.AnalogStickY;
+		temp.substickX = tempState.CStickX;
+		temp.substickY = tempState.CStickY;
+		temp.triggerLeft = tempState.TriggerL;
+		temp.triggerRight = tempState.TriggerR;
+
+		// Add input to the vector without referencing the frameCount
+		m_inputVector[i].Input = temp;
+	}
+
+	UpdateGridValues();
 }
 
 int InputGrid::GetTAStudioInputVectorSize()

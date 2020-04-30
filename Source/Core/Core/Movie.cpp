@@ -64,9 +64,8 @@ namespace Movie {
 	u64 g_currentLagCount = 0;
 	static u64 s_totalLagCount = 0; // just stats
 	u64 g_currentInputCount = 0, g_totalInputCount = 0; // just stats
-	u8* g_savestateInputs = nullptr;
-	u8* g_movInputs = nullptr;
-	u32 g_movInputsLen = 0;
+	u8* g_movInputs = nullptr;	// TAStudio - Added by Malleo
+	u32 g_movInputsLen = 0;		// TAStudio - Added by Malleo
 	static u64 s_totalTickCount = 0, s_tickCountAtLastInput = 0; // just stats
 	static u64 s_recordingStartTime; // seconds since 1970 that recording started
 	static bool s_bSaveConfig = false, s_bSkipIdle = false, s_bDualCore = false;
@@ -97,7 +96,6 @@ namespace Movie {
 
 	static TAStudioManip tasmfunc = nullptr; // TAStudio - Added by THC98
 	static TAStudioReceiver tasrfunc = nullptr; // TAStudio - Added by THC98
-	static TAStudioSavestateInputReceiver tassfunc = nullptr; // TAStudio - Added by Malleo
 	static GCManipFunction gcmfunc = nullptr;
 	static WiiManipFunction wiimfunc = nullptr;
 
@@ -1241,6 +1239,11 @@ namespace Movie {
 
 		t_record.ReadArray(&tmpHeader, 1);
 
+		// TAStudio - Edited by THC98: g_movInputs have to be set regardless of ReadOnly state
+		g_movInputsLen = (u32)s_currentByte;
+		g_movInputs = new u8[g_movInputsLen];
+		t_record.ReadArray(g_movInputs, (size_t)g_movInputsLen);
+
 		if (!IsMovieHeader(tmpHeader.filetype))
 		{
 			PanicAlertT("Savestate movie %s is corrupted, movie recording stopping...", filename.c_str());
@@ -1294,9 +1297,6 @@ namespace Movie {
 			else if (s_currentByte > 0 && s_totalBytes > 0)
 			{
 				// verify identical from movie start to the save's current frame
-				g_movInputsLen = (u32)s_currentByte;
-				g_movInputs = new u8[g_movInputsLen];
-				t_record.ReadArray(g_movInputs, (size_t)g_movInputsLen);
 				for (u32 i = 0; i < g_movInputsLen; ++i)
 				{
 					if (g_movInputs[i] != tmpInput[i])
@@ -1640,11 +1640,6 @@ namespace Movie {
 		tasrfunc = func;
 	}
 
-	void SetTAStudioSavestateInputReceiver(TAStudioSavestateInputReceiver func) // TAStudio - Added by Malleo
-	{
-		tassfunc = func;
-	}
-
 	void SetGCInputManip(GCManipFunction func)
 	{
 		gcmfunc = func;
@@ -1664,12 +1659,6 @@ namespace Movie {
 	{
 		if (tasrfunc)
 			(*tasrfunc)(PadStatus);
-	}
-
-	void CallTAStudioSavestateInputReceiver(u8* movInput) // TAStudio - Added by Malleo
-	{
-		if (tassfunc)
-			(*tassfunc)(movInput);
 	}
 
 	// NOTE: CPU Thread

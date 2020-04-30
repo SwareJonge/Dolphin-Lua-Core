@@ -455,7 +455,6 @@ CFrame::CFrame(wxFrame* parent,
 
 	Movie::SetTAStudioManip(TAStudioManip); // TAStudio - Added by THC98
 	Movie::SetTAStudioReceiver(TAStudioReceiver); // TAStudio - Added by THC98
-	Movie::SetTAStudioSavestateInputReceiver(TAStudioSavestateInputReceiver); // TAStudio - Added by Malleo
 	Movie::SetGCInputManip(GCTASManipFunction);
 	Movie::SetWiiInputManip(WiiTASManipFunction);
 
@@ -1043,8 +1042,7 @@ void OnAfterLoadCallback()
 	{
 		wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATE_GUI);
 		main_frame->GetEventHandler()->AddPendingEvent(event);
-		TAStudioSavestateInputReceiver(Movie::g_movInputs);
-		delete[] Movie::g_movInputs;
+		main_frame->g_TAStudioFrame->OnLoadstateCallback(); // TAStudio - Added by Malleo
 	}
 }
 
@@ -1073,7 +1071,7 @@ void TAStudioReceiver(GCPadStatus* PadStatus) // TAStudio - Added by THC98
 void TAStudioSavestateInputReceiver(u8* movInput) // TAStudio - Added by Malleo
 {
 	if (main_frame)
-		main_frame->g_TAStudioFrame->ParseSavestateInputs(movInput);
+		main_frame->g_TAStudioFrame->OnLoadstateCallback();
 }
 
 void GCTASManipFunction(GCPadStatus* PadStatus, int controllerID)

@@ -363,7 +363,6 @@ void OnStoppedCallback();
 
 void TAStudioManip(GCPadStatus* PadStatus); // TAStudio - Added by THC98
 void TAStudioReceiver(GCPadStatus* PadStatus); // TAStudio - Added by THC98
-void TAStudioSavestateInputReceiver(u8* movInput); // TAStudio - Added by Malleo
 
 // For TASInputDlg
 void GCTASManipFunction(GCPadStatus* PadStatus, int controllerID);

@@ -4,7 +4,7 @@
 
 #pragma once
 
-// Class written by Tales Carvalho (a.k.a. THC98)
+// Class written by Tales Carvalho (a.k.a. THC98) and Sean Owens (a.k.a. Malleo)
 
 #include <string>
 #include <vector>
@@ -74,6 +74,7 @@ class InputGrid : public wxGrid
 		void OnSelectCell(wxGridEvent& evt);
 		void OnCellChanged(wxGridEvent& evt);
 		void OnMouseWheel(wxMouseEvent& evt);
+		void ParseStateInputs();
 		void UpdateGridValues();
 		void AddInputToVector(u64 frameCount, u64 inputCount, GCPadStatus* input, bool groupByVI);
 		GCPadStatus GetInputAtRow(u64 inputCount);
@@ -107,6 +108,6 @@ class TAStudioFrame : public wxDialog
 			long style = wxDEFAULT_DIALOG_STYLE);
 		void GetInput(GCPadStatus* PadStatus);
 		void SetInput(GCPadStatus* PadStatus);
-		void ParseSavestateInputs(u8* movInput);
+		void OnLoadstateCallback();
 	
 };

@@ -132,11 +132,13 @@ void CSIDevice_GCController::HandleMoviePadStatus(GCPadStatus* PadStatus)
 	else if (Movie::IsPlayingInput())
 	{
 		Movie::PlayController(PadStatus, ISIDevice::m_iDeviceNumber);
+		Movie::CallTAStudioReceiver(PadStatus); // TAStudio - Added by THC98
 		Movie::InputUpdate();
 	}
 	else if (Movie::IsRecordingInput())
 	{
 		Movie::RecordInput(PadStatus, ISIDevice::m_iDeviceNumber);
+		Movie::CallTAStudioReceiver(PadStatus); // TAStudio - Added by THC98
 		Movie::InputUpdate();
 	}
 	else
@@ -144,7 +146,7 @@ void CSIDevice_GCController::HandleMoviePadStatus(GCPadStatus* PadStatus)
 		Movie::CheckPadStatus(PadStatus, ISIDevice::m_iDeviceNumber);
 	}
 
-	Movie::CallTAStudioReceiver(PadStatus); // TAStudio - Added by THC98
+	
 }
 
 GCPadStatus CSIDevice_GCController::GetPadStatus()
