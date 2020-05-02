@@ -63,6 +63,7 @@ class InputGrid : public wxGrid
 			"dD", "dL", "dR", "cX", "cY"
 		};
 		std::vector<TAStudioInput> m_inputVector;
+		std::vector< std::vector<u64> > m_viToInputCount;
 		u64 m_firstInputInGrid;
 		u64 m_firstFrameInGrid;
 		int m_gridNumberOfRows;
@@ -80,6 +81,7 @@ class InputGrid : public wxGrid
 		GCPadStatus GetInputAtRow(u64 inputCount);
 		void DeleteInputAtRow(int row);
 		void SetInputAtRow(int row, TAStudioInput tastudioInput, u64 inputCount);
+		void SetCellValueIfChanged(int row, int col, const wxString str);
 		GCPadStatus GetInputAtInputFrame(int inputCount);
 		void SetInputAtInputFrame(GCPadStatus* PadStatus, int inputCount);
 		void HighlightActiveFrame(u64 frameCount);
