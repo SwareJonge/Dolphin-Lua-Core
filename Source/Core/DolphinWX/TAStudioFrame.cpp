@@ -24,13 +24,21 @@ wxEND_EVENT_TABLE()
 		One possible solution to that is disable the grid's auto update in GetInput (in case the crashes happen because
 		of too many GUI updates) and creating a button to do that manually.
 	- User functions we should look into:
-		- Copy/paste inputs;
+		- Insert blank inputs;  =|
+		- Copy/paste inputs;    =|--> These 3 functions should only interact with the m_inputVector
+		- Delete inputs;        =|    vector and NOT directly with the grid!
 		- Make current frame in grid selected (SelectRow isn't a good idea because calling it too many times quickly
 			causes performance issues);
 		- Go to specific frame;
 		- User friendly way to edit analog inputs (something like TAS Input maybe?). IN PROGRESS
 		- Activate/Deactivate certain buttons in TAStudio (e.g. edit button presses but leave analog stick up to a lua script)
 
+	TODO-but-not-for-now:
+	- Rewind-kind of feature
+		- Store a buffer of savestates in RAM of the recent 60-ish frames
+			- The buffer size could be a custom option to allow the user to use more/less RAM for Dolphin
+		- When the rewind function is executed, Dolphin checks in the buffer if given frame exists. If it does,
+			that state is loaded and the buffer is updated
 */
 
 TAStudioFrame::TAStudioFrame(wxWindow* parent, wxWindowID id, const wxString& title,
