@@ -19,6 +19,7 @@
 #include <wx/frame.h>
 #include <wx/grid.h>
 #include <wx/slider.h>
+#include <wx/button.h>
 
 #include "Core/Movie.h"
 
@@ -68,16 +69,20 @@ class InputGrid : public wxGrid
 		u64 m_firstFrameInGrid;
 		int m_gridNumberOfRows;
 		bool m_groupByVI;
+		bool m_autoUpdateGrid;
 		wxDECLARE_EVENT_TABLE();
 
 	public:
 		InputGrid(wxWindow* parent);
+		void SetGroupByVI(bool value);
+		void SetAutoUpdateGrid(bool value);
 		void OnSelectCell(wxGridEvent& evt);
 		void OnCellChanged(wxGridEvent& evt);
 		void OnMouseWheel(wxMouseEvent& evt);
+		void GoToCurrentFrame();
 		void ParseStateInputs();
 		void UpdateGridValues();
-		void AddInputToVector(u64 frameCount, u64 inputCount, GCPadStatus* input, bool groupByVI);
+		void AddInputToVector(u64 frameCount, u64 inputCount, GCPadStatus* input);
 		GCPadStatus GetInputAtRow(u64 inputCount);
 		void DeleteInputAtRow(int row);
 		void SetInputAtRow(int row, TAStudioInput tastudioInput, u64 inputCount);
@@ -98,8 +103,16 @@ class TAStudioFrame : public wxDialog
 		wxTextCtrl* m_inputFrameCount;
 		wxCheckBox* m_sendInputsToDolphin;
 		wxCheckBox* m_groupByVI;
+		wxCheckBox* m_autoUpdateGrid;
+		wxButton* m_updateGrid;
+		wxButton* m_goToCurrentFrame;
 		wxSlider* m_stickXSlider;
 		wxSlider* m_stickYSlider;
+
+		void OnGroupByVIChanged(wxCommandEvent&);
+		void OnAutoUpdateGridChanged(wxCommandEvent&);
+		void OnUpdateGridClick(wxCommandEvent&);
+		void OnGoToCurrentFrameClick(wxCommandEvent&);
 
 	public:
 		TAStudioFrame(wxWindow* parent,

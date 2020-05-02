@@ -17,12 +17,13 @@ wxEND_EVENT_TABLE()
 	- Implement a function that updates InputGrid::m_inputVector when a state is loaded. DONE
 	- Optimize the functions handling groupByVI access by creating a table that indexes every frameCount to the
 		inputCount they're related to, so we don't need to execute searches everytime. DONE
-	- Update InputGrid::m_groupByVI when the checkbox TAStudioFrame::m_groupByVI is changed (using event).
+	- Update InputGrid::m_groupByVI when the checkbox TAStudioFrame::m_groupByVI is changed (using event). DONE
 	- Dolphin throws an error when the emulator is closed, probably because something should be done at the destructor.
 		Find out what that is.
 	- Dolphin sometimes crashes when there's too much input being processed (usually when groupByVI isn't checked).
 		One possible solution to that is disable the grid's auto update in GetInput (in case the crashes happen because
 		of too many GUI updates) and creating a button to do that manually.
+		DONE-ish: still getting random crashes, but less often
 	- User functions we should look into:
 		- Insert blank inputs;  =|
 		- Copy/paste inputs;    =|--> These 3 functions should only interact with the m_inputVector
@@ -61,23 +62,38 @@ TAStudioFrame::TAStudioFrame(wxWindow* parent, wxWindowID id, const wxString& ti
 	m_inputGrid->SetColAttr(1, ReadOnlyAttr);
 
 	m_sideWrapper = new  wxBoxSizer(wxVERTICAL);
-	m_controlWrapper = new wxStaticBoxSizer(wxVERTICAL, this, wxT("Buttons"));
+	m_controlWrapper = new wxStaticBoxSizer(wxVERTICAL, this, wxT("Controls"));
 
 	m_inputFrameCount = new wxTextCtrl(this, wxID_ANY);
 	m_sendInputsToDolphin = new wxCheckBox(this, wxID_ANY, wxT("Send inputs to Dolphin"));
 	m_groupByVI = new wxCheckBox(this, wxID_ANY, wxT("Group by VI counter"));
+	m_autoUpdateGrid = new wxCheckBox(this, wxID_ANY, wxT("Auto update grid"));
+
+	m_updateGrid = new wxButton(this, wxID_ANY, wxT("Update grid"));
+	m_goToCurrentFrame = new wxButton(this, wxID_ANY, wxT("Go to current frame"));
 
 	m_analogWrapper = new wxStaticBoxSizer(wxHORIZONTAL, this, wxT("Analog Sliders"));
 
 	m_stickXSlider = new wxSlider(this, wxID_ANY, 128, 0, 255, wxDefaultPosition, wxSize(20, 100), wxSL_VERTICAL);
 	m_stickYSlider = new wxSlider(this, wxID_ANY, 128, 0, 255, wxDefaultPosition, wxSize(20, 100), wxSL_VERTICAL);
 
+	m_groupByVI->Bind(wxEVT_CHECKBOX, &TAStudioFrame::OnGroupByVIChanged, this);
+	m_autoUpdateGrid->Bind(wxEVT_CHECKBOX, &TAStudioFrame::OnAutoUpdateGridChanged, this);
+	m_updateGrid->Bind(wxEVT_BUTTON, &TAStudioFrame::OnUpdateGridClick, this);
+	m_goToCurrentFrame->Bind(wxEVT_BUTTON, &TAStudioFrame::OnGoToCurrentFrameClick, this);
 
 	m_controlWrapper->Add(m_inputFrameCount);
 	m_controlWrapper->AddSpacer(1);
 	m_controlWrapper->Add(m_sendInputsToDolphin);
 	m_controlWrapper->AddSpacer(1);
 	m_controlWrapper->Add(m_groupByVI);
+	m_controlWrapper->AddSpacer(1);
+	m_controlWrapper->Add(m_autoUpdateGrid);
+	m_controlWrapper->AddSpacer(1);
+	m_controlWrapper->Add(m_updateGrid);
+	m_controlWrapper->AddSpacer(1);
+	m_controlWrapper->Add(m_goToCurrentFrame);
+
 	m_analogWrapper->Add(m_stickXSlider);
 	m_analogWrapper->AddSpacer(10);
 	m_analogWrapper->Add(m_stickYSlider);
@@ -98,7 +114,7 @@ TAStudioFrame::TAStudioFrame(wxWindow* parent, wxWindowID id, const wxString& ti
 
 void TAStudioFrame::GetInput(GCPadStatus* PadStatus)
 {
-	m_inputGrid->AddInputToVector(Movie::g_currentFrame, Movie::g_currentInputCount, PadStatus, m_groupByVI->GetValue());
+	m_inputGrid->AddInputToVector(Movie::g_currentFrame, Movie::g_currentInputCount, PadStatus);
 }
 
 void TAStudioFrame::SetInput(GCPadStatus* PadStatus)
@@ -126,11 +142,34 @@ void TAStudioFrame::OnLoadstateCallback()
 	m_inputGrid->ParseStateInputs();
 }
 
+void TAStudioFrame::OnGroupByVIChanged(wxCommandEvent& evt)
+{
+	m_inputGrid->SetGroupByVI(m_groupByVI->GetValue());
+}
+
+void TAStudioFrame::OnAutoUpdateGridChanged(wxCommandEvent& evt)
+{
+	m_inputGrid->SetAutoUpdateGrid(m_autoUpdateGrid->GetValue());
+}
+
+void TAStudioFrame::OnUpdateGridClick(wxCommandEvent& evt)
+{
+	m_inputGrid->UpdateGridValues();
+}
+
+void TAStudioFrame::OnGoToCurrentFrameClick(wxCommandEvent& evt)
+{
+	m_inputGrid->GoToCurrentFrame();
+}
+
 InputGrid::InputGrid(wxWindow* parent) : wxGrid(parent, wxID_ANY)
 {
 	m_firstInputInGrid = 1;
 	m_firstFrameInGrid = 1;
 	m_gridNumberOfRows = 30;
+
+	m_groupByVI = false;
+	m_autoUpdateGrid = false;
 
 	int numColumns = COLUMN_LABEL.size();
 	CreateGrid(m_gridNumberOfRows, numColumns, wxGridSelectRows);
@@ -163,6 +202,17 @@ InputGrid::InputGrid(wxWindow* parent) : wxGrid(parent, wxID_ANY)
 				break;
 		}
 	}
+}
+
+void InputGrid::SetGroupByVI(bool value)
+{
+	m_groupByVI = value;
+	UpdateGridValues();
+}
+
+void InputGrid::SetAutoUpdateGrid(bool value)
+{
+	m_autoUpdateGrid = value;
 }
 
 void InputGrid::ParseStateInputs()
@@ -219,6 +269,20 @@ GCPadStatus InputGrid::GetInputAtInputFrame(int inputCount)
 void InputGrid::SetInputAtInputFrame(GCPadStatus* PadStatus, int inputCount)
 {
 	m_inputVector[inputCount].Input = *PadStatus;
+}
+
+void InputGrid::GoToCurrentFrame()
+{
+	if (m_groupByVI)
+	{
+		m_firstFrameInGrid = Movie::g_currentFrame - m_gridNumberOfRows / 2;
+		UpdateGridValues();
+	}
+	else
+	{
+		m_firstInputInGrid = Movie::g_currentInputCount - m_gridNumberOfRows / 2;
+		UpdateGridValues();
+	}
 }
 
 void InputGrid::OnSelectCell(wxGridEvent& evt)
@@ -384,10 +448,8 @@ void InputGrid::UpdateGridValues()
 	}
 }
 
-void InputGrid::AddInputToVector(u64 frameCount, u64 inputCount, GCPadStatus* input, bool groupByVI)
+void InputGrid::AddInputToVector(u64 frameCount, u64 inputCount, GCPadStatus* input)
 {
-	m_groupByVI = groupByVI;
-
 	// This should NEVER repeat more than once after the load state functions are implemented
 	// But I left it here to make sure nothing breaks.
 	while (m_inputVector.size() < (inputCount + 1))
@@ -411,41 +473,32 @@ void InputGrid::AddInputToVector(u64 frameCount, u64 inputCount, GCPadStatus* in
 		m_viToInputCount[frameCount].push_back(inputCount);
 	}
 
+	if (!m_autoUpdateGrid)
+	{
+		return;
+	}
+
 	// Insert input in visual grid
 	if (m_groupByVI)
 	{
-		// If a row with current frameCount already exists, just insert the input in that row
-		if (frameCount >= m_firstFrameInGrid && frameCount < m_firstFrameInGrid + m_gridNumberOfRows)
+		if (frameCount == m_firstFrameInGrid + m_gridNumberOfRows - 1)
 		{
-			SetInputAtRow(frameCount - m_firstFrameInGrid, m_inputVector[inputCount], inputCount);
-		}
-		// Else, update the visual grid so the new input is visible
-		else
-		{
-			m_firstFrameInGrid = frameCount - m_gridNumberOfRows / 2;
-			if (m_firstFrameInGrid < 1)
-			{
-				m_firstFrameInGrid = 1;
-			}
 			UpdateGridValues();
+		}
+		if (frameCount < m_firstFrameInGrid || frameCount > m_firstFrameInGrid + m_gridNumberOfRows - 1)
+		{
+			m_firstFrameInGrid = frameCount;
 		}
 	}
 	else
 	{
-		// If a row with current inputCount already exists, just insert the input in that row
-		if (inputCount >= m_firstInputInGrid && inputCount < m_firstInputInGrid + m_gridNumberOfRows)
+		if (inputCount == m_firstInputInGrid + m_gridNumberOfRows - 1)
 		{
-			SetInputAtRow(inputCount - m_firstInputInGrid, m_inputVector[inputCount], inputCount);
-		}
-		// Else, update the visual grid so the new input is visible
-		else
-		{
-			m_firstInputInGrid = inputCount - m_gridNumberOfRows / 2;
-			if (m_firstInputInGrid < 1)
-			{
-				m_firstInputInGrid = 1;
-			}
 			UpdateGridValues();
+		}
+		if (inputCount < m_firstInputInGrid || inputCount > m_firstInputInGrid + m_gridNumberOfRows - 1)
+		{
+			m_firstInputInGrid = inputCount;
 		}
 	}
 }
@@ -454,7 +507,7 @@ void InputGrid::DeleteInputAtRow(int row)
 {
 	for (int i = 0; i < COLUMN_LABEL.size(); i++)
 	{
-		SetCellValue(wxGridCellCoords(row, i), "");
+		SetCellValueIfChanged(row, i, "");
 	}
 }
 
@@ -489,9 +542,9 @@ void InputGrid::SetInputAtRow(int row, TAStudioInput tastudioInput, u64 inputCou
 
 void InputGrid::SetCellValueIfChanged(int row, int col, const wxString str)
 {
-	if (GetCellValue(wxGridCellCoords(row, col)) != str)
+	if (GetCellValue(row, col) != str)
 	{
-		SetCellValue(wxGridCellCoords(row, col), str);
+		SetCellValue(row, col, str);
 	}
 }
 
@@ -500,26 +553,26 @@ GCPadStatus InputGrid::GetInputAtRow(u64 row)
 	GCPadStatus PadStatus;
 
 	// Use wxAtoi to convert wxString to integer
-	PadStatus.stickX = wxAtoi(GetCellValue(wxGridCellCoords(row, COLUMN_ANA_X)));
-	PadStatus.stickY = wxAtoi(GetCellValue(wxGridCellCoords(row, COLUMN_ANA_Y)));
-	PadStatus.substickX = wxAtoi(GetCellValue(wxGridCellCoords(row, COLUMN_C_X)));
-	PadStatus.substickY = wxAtoi(GetCellValue(wxGridCellCoords(row, COLUMN_C_Y)));
-	PadStatus.triggerLeft = wxAtoi(GetCellValue(wxGridCellCoords(row, COLUMN_L_ANA)));
-	PadStatus.triggerRight = wxAtoi(GetCellValue(wxGridCellCoords(row, COLUMN_R_ANA)));
+	PadStatus.stickX = wxAtoi(GetCellValue(row, COLUMN_ANA_X));
+	PadStatus.stickY = wxAtoi(GetCellValue(row, COLUMN_ANA_Y));
+	PadStatus.substickX = wxAtoi(GetCellValue(row, COLUMN_C_X));
+	PadStatus.substickY = wxAtoi(GetCellValue(row, COLUMN_C_Y));
+	PadStatus.triggerLeft = wxAtoi(GetCellValue(row, COLUMN_L_ANA));
+	PadStatus.triggerRight = wxAtoi(GetCellValue(row, COLUMN_R_ANA));
 
 	PadStatus.button = 0;
-	PadStatus.button |= GetCellValue(wxGridCellCoords(row, COLUMN_A)) == COLUMN_LABEL[COLUMN_A] ? PAD_BUTTON_A : 0;
-	PadStatus.button |= GetCellValue(wxGridCellCoords(row, COLUMN_B)) == COLUMN_LABEL[COLUMN_B] ? PAD_BUTTON_B : 0;
-	PadStatus.button |= GetCellValue(wxGridCellCoords(row, COLUMN_X)) == COLUMN_LABEL[COLUMN_X] ? PAD_BUTTON_X : 0;
-	PadStatus.button |= GetCellValue(wxGridCellCoords(row, COLUMN_Y)) == COLUMN_LABEL[COLUMN_Y] ? PAD_BUTTON_Y : 0;
-	PadStatus.button |= GetCellValue(wxGridCellCoords(row, COLUMN_S)) == COLUMN_LABEL[COLUMN_S] ? PAD_BUTTON_START : 0;
-	PadStatus.button |= GetCellValue(wxGridCellCoords(row, COLUMN_Z)) == COLUMN_LABEL[COLUMN_Z] ? PAD_TRIGGER_Z : 0;
-	PadStatus.button |= GetCellValue(wxGridCellCoords(row, COLUMN_L)) == COLUMN_LABEL[COLUMN_L] ? PAD_TRIGGER_L : 0;
-	PadStatus.button |= GetCellValue(wxGridCellCoords(row, COLUMN_R)) == COLUMN_LABEL[COLUMN_R] ? PAD_TRIGGER_R : 0;
-	PadStatus.button |= GetCellValue(wxGridCellCoords(row, COLUMN_D_UP)) == COLUMN_LABEL[COLUMN_D_UP] ? PAD_BUTTON_UP : 0;
-	PadStatus.button |= GetCellValue(wxGridCellCoords(row, COLUMN_D_DOWN)) == COLUMN_LABEL[COLUMN_D_DOWN] ? PAD_BUTTON_DOWN : 0;
-	PadStatus.button |= GetCellValue(wxGridCellCoords(row, COLUMN_D_LEFT)) == COLUMN_LABEL[COLUMN_D_LEFT] ? PAD_BUTTON_LEFT : 0;
-	PadStatus.button |= GetCellValue(wxGridCellCoords(row, COLUMN_D_RIGHT)) == COLUMN_LABEL[COLUMN_D_RIGHT] ? PAD_BUTTON_RIGHT : 0;
+	PadStatus.button |= GetCellValue(row, COLUMN_A) == COLUMN_LABEL[COLUMN_A] ? PAD_BUTTON_A : 0;
+	PadStatus.button |= GetCellValue(row, COLUMN_B) == COLUMN_LABEL[COLUMN_B] ? PAD_BUTTON_B : 0;
+	PadStatus.button |= GetCellValue(row, COLUMN_X) == COLUMN_LABEL[COLUMN_X] ? PAD_BUTTON_X : 0;
+	PadStatus.button |= GetCellValue(row, COLUMN_Y) == COLUMN_LABEL[COLUMN_Y] ? PAD_BUTTON_Y : 0;
+	PadStatus.button |= GetCellValue(row, COLUMN_S) == COLUMN_LABEL[COLUMN_S] ? PAD_BUTTON_START : 0;
+	PadStatus.button |= GetCellValue(row, COLUMN_Z) == COLUMN_LABEL[COLUMN_Z] ? PAD_TRIGGER_Z : 0;
+	PadStatus.button |= GetCellValue(row, COLUMN_L) == COLUMN_LABEL[COLUMN_L] ? PAD_TRIGGER_L : 0;
+	PadStatus.button |= GetCellValue(row, COLUMN_R) == COLUMN_LABEL[COLUMN_R] ? PAD_TRIGGER_R : 0;
+	PadStatus.button |= GetCellValue(row, COLUMN_D_UP) == COLUMN_LABEL[COLUMN_D_UP] ? PAD_BUTTON_UP : 0;
+	PadStatus.button |= GetCellValue(row, COLUMN_D_DOWN) == COLUMN_LABEL[COLUMN_D_DOWN] ? PAD_BUTTON_DOWN : 0;
+	PadStatus.button |= GetCellValue(row, COLUMN_D_LEFT) == COLUMN_LABEL[COLUMN_D_LEFT] ? PAD_BUTTON_LEFT : 0;
+	PadStatus.button |= GetCellValue(row, COLUMN_D_RIGHT) == COLUMN_LABEL[COLUMN_D_RIGHT] ? PAD_BUTTON_RIGHT : 0;
 
 	return PadStatus;
 }
