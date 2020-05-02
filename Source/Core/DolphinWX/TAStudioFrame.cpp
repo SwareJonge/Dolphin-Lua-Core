@@ -410,6 +410,7 @@ void InputGrid::OnMouseWheel(wxMouseEvent& evt)
 
 void InputGrid::UpdateGridValues()
 {
+	BeginBatch();
 	for (int i = 0; i < m_gridNumberOfRows; i++)
 	{
 		if (m_groupByVI) // currCount = current frameCount
@@ -446,6 +447,7 @@ void InputGrid::UpdateGridValues()
 			}
 		}
 	}
+	EndBatch();
 }
 
 void InputGrid::AddInputToVector(u64 frameCount, u64 inputCount, GCPadStatus* input)
