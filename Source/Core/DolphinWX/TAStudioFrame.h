@@ -39,6 +39,7 @@ class InputGrid : public wxGrid
 		{
 			COLUMN_INPUT_COUNT = 0,
 			COLUMN_VI_COUNT,
+			COLUMN_ACTIVE,
 			COLUMN_ANA_X,
 			COLUMN_ANA_Y,
 			COLUMN_A,
@@ -59,9 +60,9 @@ class InputGrid : public wxGrid
 			COLUMN_C_Y
 		};
 		const std::vector<wxString> COLUMN_LABEL = {
-			"Input", "VI", "aX", "aY", "A", "B", "X",
-			"Y", "S", "Z", "L", "R", "La", "Ra", "dU",
-			"dD", "dL", "dR", "cX", "cY"
+			"Input", "VI", "Active", "aX", "aY", "A", 
+			"B", "X", "Y", "S", "Z", "L", "R", "La",
+			"Ra", "dU", "dD", "dL", "dR", "cX", "cY"
 		};
 		std::vector<TAStudioInput> m_inputVector;
 		std::vector< std::vector<u64> > m_viToInputCount;
@@ -76,6 +77,7 @@ class InputGrid : public wxGrid
 		InputGrid(wxWindow* parent);
 		void SetGroupByVI(bool value);
 		void SetAutoUpdateGrid(bool value);
+		void SetMainStickInSelectedRows(int x, int y);
 		void OnSelectCell(wxGridEvent& evt);
 		void OnCellChanged(wxGridEvent& evt);
 		void OnMouseWheel(wxMouseEvent& evt);
@@ -108,11 +110,24 @@ class TAStudioFrame : public wxDialog
 		wxButton* m_goToCurrentFrame;
 		wxSlider* m_stickXSlider;
 		wxSlider* m_stickYSlider;
+		wxTextCtrl* m_stickXText;
+		wxTextCtrl* m_stickYText;
+		wxButton* m_setMainStick;
+
+		int m_stickXValue;
+		int m_stickYValue;
+
+		void OnStickXTextChange(wxCommandEvent&);
+		void OnStickYTextChange(wxCommandEvent&);
+
+		void OnStickXSliderChange(wxCommandEvent&);
+		void OnStickYSliderChange(wxCommandEvent&);
 
 		void OnGroupByVIChanged(wxCommandEvent&);
 		void OnAutoUpdateGridChanged(wxCommandEvent&);
 		void OnUpdateGridClick(wxCommandEvent&);
 		void OnGoToCurrentFrameClick(wxCommandEvent&);
+		void OnSetMainStickClick(wxCommandEvent&);
 
 	public:
 		TAStudioFrame(wxWindow* parent,
@@ -123,6 +138,7 @@ class TAStudioFrame : public wxDialog
 			long style = wxDEFAULT_DIALOG_STYLE);
 		void GetInput(GCPadStatus* PadStatus);
 		void SetInput(GCPadStatus* PadStatus);
+		void UpdateGrid();
 		void OnLoadstateCallback();
 	
 };

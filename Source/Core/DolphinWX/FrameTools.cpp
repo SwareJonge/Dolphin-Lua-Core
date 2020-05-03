@@ -794,6 +794,8 @@ void CFrame::OnFrameStep(wxCommandEvent& event)
 
 	Movie::DoFrameStep();
 
+	g_TAStudioFrame->UpdateGrid(); // TAStudio - Added by THC98
+
 	bool isPaused = (Core::GetState() == Core::CORE_PAUSE);
 	if (isPaused && !wasPaused) // don't update on unpause, otherwise the status would be wrong when pausing next frame
 		UpdateGUI();
