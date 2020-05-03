@@ -60,7 +60,7 @@ class InputGrid : public wxGrid
 			COLUMN_C_Y
 		};
 		const std::vector<wxString> COLUMN_LABEL = {
-			"Input", "VI", "Active", "aX", "aY", "A", 
+			"Input", "VI", "Diff", "aX", "aY", "A", 
 			"B", "X", "Y", "S", "Z", "L", "R", "La",
 			"Ra", "dU", "dD", "dL", "dR", "cX", "cY"
 		};
@@ -77,7 +77,7 @@ class InputGrid : public wxGrid
 		InputGrid(wxWindow* parent);
 		void SetGroupByVI(bool value);
 		void SetAutoUpdateGrid(bool value);
-		void SetMainStickInSelectedRows(int x, int y);
+		void SetMainStickInSelectedRows(u8 x, u8 y);
 		void OnSelectCell(wxGridEvent& evt);
 		void OnCellChanged(wxGridEvent& evt);
 		void OnMouseWheel(wxMouseEvent& evt);

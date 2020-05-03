@@ -23,7 +23,7 @@ wxEND_EVENT_TABLE()
 	- Dolphin sometimes crashes when there's too much input being processed (usually when groupByVI isn't checked).
 		One possible solution to that is disable the grid's auto update in GetInput (in case the crashes happen because
 		of too many GUI updates) and creating a button to do that manually.
-		DONE-ish: still getting random crashes, but less often
+		DONE-ish: still getting random crashes, but less often (better after including Batch functions - maybe solved?)
 	- User functions we should look into:
 		- Insert blank inputs;  =|
 		- Copy/paste inputs;    =|--> These 3 functions should only interact with the m_inputVector
@@ -287,7 +287,7 @@ void InputGrid::SetAutoUpdateGrid(bool value)
 	m_autoUpdateGrid = value;
 }
 
-void InputGrid::SetMainStickInSelectedRows(int x, int y)
+void InputGrid::SetMainStickInSelectedRows(u8 x, u8 y)
 {
 	const wxArrayInt rows = GetSelectedRows();
 	if (rows.GetCount() == 0)
@@ -298,7 +298,12 @@ void InputGrid::SetMainStickInSelectedRows(int x, int y)
 	{
 		if (m_groupByVI)
 		{
-			// TODO
+			const int frameCount = m_firstFrameInGrid + i;
+			for (int j = 0; j < m_viToInputCount[frameCount].size(); j++)
+			{
+				m_inputVector[m_viToInputCount[frameCount][j]].Input.stickX = x;
+				m_inputVector[m_viToInputCount[frameCount][j]].Input.stickY = y;
+			}
 		}
 		else
 		{
