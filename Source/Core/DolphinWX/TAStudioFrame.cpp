@@ -33,6 +33,12 @@ wxEND_EVENT_TABLE()
 		- Go to specific frame;
 		- User friendly way to edit analog inputs (something like TAS Input maybe?). IN PROGRESS
 		- Activate/Deactivate certain buttons in TAStudio (e.g. edit button presses but leave analog stick up to a lua script)
+	- Variable watch in grid:
+		- Allow the user to choose variables to include in the grid, which will be updated every frame
+		- Use pre-existing Lua functions as templates
+		- To select variables, we can:
+			- Either let the user input address (+ pointer if dynamic) and data type
+			- Or define game specific variables in .ini files, that this class accesses
 
 	TODO-but-not-for-now:
 	- Rewind-kind of feature
