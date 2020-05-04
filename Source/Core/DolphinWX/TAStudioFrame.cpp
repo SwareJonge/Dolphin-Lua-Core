@@ -256,9 +256,7 @@ InputGrid::InputGrid(wxWindow* parent) : wxGrid(parent, wxID_ANY)
 		switch (i)
 		{
 			case COLUMN_INPUT_COUNT:
-				SetColAttr(i, readOnlyAttr);
 			case COLUMN_VI_COUNT:
-				SetColAttr(i, readOnlyAttr);
 			case COLUMN_ACTIVE:
 				SetColAttr(i, readOnlyAttr);
 				SetColSize(i, 60);
@@ -272,11 +270,8 @@ InputGrid::InputGrid(wxWindow* parent) : wxGrid(parent, wxID_ANY)
 				SetColSize(i, 40);
 				break;
 			case COLUMN_D_UP:
-				SetColAttr(i, readOnlyAttr);
 			case COLUMN_D_DOWN:
-				SetColAttr(i, readOnlyAttr);
 			case COLUMN_D_LEFT:
-				SetColAttr(i, readOnlyAttr);
 			case COLUMN_D_RIGHT:
 				SetColAttr(i, readOnlyAttr);
 				SetColSize(i, 30);
