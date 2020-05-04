@@ -253,12 +253,14 @@ InputGrid::InputGrid(wxWindow* parent) : wxGrid(parent, wxID_ANY)
 	for (int i = 0; i < numColumns; i++)
 	{
 		SetColLabelValue(i, COLUMN_LABEL[i]);
-		SetColAttr(i, readOnlyAttr);
 		switch (i)
 		{
 			case COLUMN_INPUT_COUNT:
+				SetColAttr(i, readOnlyAttr);
 			case COLUMN_VI_COUNT:
+				SetColAttr(i, readOnlyAttr);
 			case COLUMN_ACTIVE:
+				SetColAttr(i, readOnlyAttr);
 				SetColSize(i, 60);
 				break;
 			case COLUMN_ANA_X:
@@ -270,12 +272,17 @@ InputGrid::InputGrid(wxWindow* parent) : wxGrid(parent, wxID_ANY)
 				SetColSize(i, 40);
 				break;
 			case COLUMN_D_UP:
+				SetColAttr(i, readOnlyAttr);
 			case COLUMN_D_DOWN:
+				SetColAttr(i, readOnlyAttr);
 			case COLUMN_D_LEFT:
+				SetColAttr(i, readOnlyAttr);
 			case COLUMN_D_RIGHT:
+				SetColAttr(i, readOnlyAttr);
 				SetColSize(i, 30);
 				break;
 			default:
+				SetColAttr(i, readOnlyAttr);
 				SetColSize(i, 20);
 				break;
 		}
