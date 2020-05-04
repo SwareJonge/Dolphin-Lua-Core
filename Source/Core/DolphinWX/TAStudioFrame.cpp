@@ -7,7 +7,7 @@
 #include "TAStudioFrame.h"
 
 wxBEGIN_EVENT_TABLE(InputGrid, wxGrid)
-	EVT_GRID_CELL_LEFT_CLICK(InputGrid::OnSelectCell)
+	EVT_GRID_SELECT_CELL(InputGrid::OnSelectCell)
 	EVT_GRID_CELL_CHANGED(InputGrid::OnCellChanged)
 	EVT_MOUSEWHEEL(InputGrid::OnMouseWheel)
 wxEND_EVENT_TABLE()
@@ -81,8 +81,8 @@ TAStudioFrame::TAStudioFrame(wxWindow* parent, wxWindowID id, const wxString& ti
 	m_stickXSlider = new wxSlider(this, wxID_ANY, 128, 0, 255, wxDefaultPosition, wxSize(40, 100), wxSL_VERTICAL);
 	m_stickYSlider = new wxSlider(this, wxID_ANY, 128, 0, 255, wxDefaultPosition, wxSize(40, 100), wxSL_VERTICAL);
 
-	m_stickXText = new wxTextCtrl(this, wxID_ANY, wxT("128"), wxDefaultPosition, wxSize(40, 30));
-	m_stickYText = new wxTextCtrl(this, wxID_ANY, wxT("128"), wxDefaultPosition, wxSize(40, 30));
+	m_stickXText = new wxTextCtrl(this, wxID_ANY, wxT("128"), wxDefaultPosition, wxSize(40, 20));
+	m_stickYText = new wxTextCtrl(this, wxID_ANY, wxT("128"), wxDefaultPosition, wxSize(40, 20));
 
 	m_setMainStick = new wxButton(this, wxID_ANY, wxT("Set Main Stick"));
 
@@ -245,7 +245,7 @@ InputGrid::InputGrid(wxWindow* parent) : wxGrid(parent, wxID_ANY)
 	m_autoUpdateGrid = false;
 
 	int numColumns = COLUMN_LABEL.size();
-	CreateGrid(m_gridNumberOfRows, numColumns, wxGridSelectRows);
+	CreateGrid(m_gridNumberOfRows, numColumns, wxGridSelectCells);
 	HideRowLabels();
 	DisableDragGridSize();
 	wxGridCellAttr *readOnlyAttr = new wxGridCellAttr;
@@ -253,12 +253,12 @@ InputGrid::InputGrid(wxWindow* parent) : wxGrid(parent, wxID_ANY)
 	for (int i = 0; i < numColumns; i++)
 	{
 		SetColLabelValue(i, COLUMN_LABEL[i]);
+		SetColAttr(i, readOnlyAttr);
 		switch (i)
 		{
 			case COLUMN_INPUT_COUNT:
 			case COLUMN_VI_COUNT:
 			case COLUMN_ACTIVE:
-				SetColAttr(i, readOnlyAttr);
 				SetColSize(i, 60);
 				break;
 			case COLUMN_ANA_X:
