@@ -78,9 +78,11 @@ class InputGrid : public wxGrid
 		void SetGroupByVI(bool value);
 		void SetAutoUpdateGrid(bool value);
 		void SetMainStickInSelectedRows(u8 x, u8 y);
+		void ToggleCellValue(int row, int col);
 		void OnSelectCell(wxGridEvent& evt);
 		void OnCellChanged(wxGridEvent& evt);
 		void OnMouseWheel(wxMouseEvent& evt);
+		void OnRangeSelect(wxGridRangeSelectEvent& evt);
 		void GoToCurrentFrame();
 		void ParseStateInputs();
 		void UpdateGridValues();

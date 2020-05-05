@@ -7,9 +7,11 @@
 #include "TAStudioFrame.h"
 
 wxBEGIN_EVENT_TABLE(InputGrid, wxGrid)
-	EVT_GRID_SELECT_CELL(InputGrid::OnSelectCell)
+	//EVT_GRID_SELECT_CELL(InputGrid::OnSelectCell)
+	EVT_GRID_CELL_LEFT_CLICK(InputGrid::OnSelectCell)
 	EVT_GRID_CELL_CHANGED(InputGrid::OnCellChanged)
 	EVT_MOUSEWHEEL(InputGrid::OnMouseWheel)
+	EVT_GRID_RANGE_SELECT(InputGrid::OnRangeSelect)
 wxEND_EVENT_TABLE()
 
 /*
@@ -33,6 +35,7 @@ wxEND_EVENT_TABLE()
 		- Go to specific frame;
 		- User friendly way to edit analog inputs (something like TAS Input maybe?). IN PROGRESS
 		- Activate/Deactivate certain buttons in TAStudio (e.g. edit button presses but leave analog stick up to a lua script)
+		- Shift-click to set multiple cell values DONE-ish: Expanding a selection causes the cell values to alternate, if you select from top to bottom the topmost cell will not be set
 	- Variable watch in grid:
 		- Allow the user to choose variables to include in the grid, which will be updated every frame
 		- Use pre-existing Lua functions as templates
@@ -393,48 +396,9 @@ void InputGrid::GoToCurrentFrame()
 	}
 }
 
-void InputGrid::OnSelectCell(wxGridEvent& evt)
+void InputGrid::ToggleCellValue(int row, int col)
 {
-	int row = evt.GetRow();
-	int col = evt.GetCol();
 	std::string cell = this->GetCellValue(row, col);
-
-	// If input doesn't exist in vector, return
-	if (m_groupByVI)
-	{
-		int currFrameCount = row + m_firstFrameInGrid;
-		if (m_viToInputCount[currFrameCount].size() == 0)
-		{
-			return;
-		}
-	}
-	else
-	{
-		if (row + m_firstInputInGrid >= m_inputVector.size())
-		{
-			return;
-		}
-	}
-
-	switch (col)
-	{
-		case COLUMN_INPUT_COUNT:
-		case COLUMN_VI_COUNT:
-		case COLUMN_ACTIVE:
-			return;
-			break;
-		case COLUMN_ANA_X:
-		case COLUMN_ANA_Y:
-		case COLUMN_C_X:
-		case COLUMN_C_Y:
-		case COLUMN_L_ANA:
-		case COLUMN_R_ANA:
-			evt.Skip(); // Allow the user to edit the cell
-			return;
-			break;
-		default:
-			break;
-	}
 
 	if (cell == COLUMN_LABEL[col])
 	{
@@ -459,10 +423,120 @@ void InputGrid::OnSelectCell(wxGridEvent& evt)
 	{
 		m_inputVector[row + m_firstInputInGrid].Input = GetInputAtRow(row);
 	}
+}
+
+void InputGrid::OnSelectCell(wxGridEvent& evt)
+{
+	int row = evt.GetRow();
+	int col = evt.GetCol();
+
+	// If input doesn't exist in vector, return
+	if (m_groupByVI)
+	{
+		int currFrameCount = row + m_firstFrameInGrid;
+		if (m_viToInputCount[currFrameCount].size() == 0)
+		{
+			return;
+		}
+	}
+	else
+	{
+		if (row + m_firstInputInGrid >= m_inputVector.size())
+		{
+			return;
+		}
+	}
+
+	switch (col)
+	{
+	case COLUMN_INPUT_COUNT:
+	case COLUMN_VI_COUNT:
+	case COLUMN_ACTIVE:
+		return;
+		break;
+	case COLUMN_ANA_X:
+	case COLUMN_ANA_Y:
+	case COLUMN_C_X:
+	case COLUMN_C_Y:
+	case COLUMN_L_ANA:
+	case COLUMN_R_ANA:
+		evt.Skip(); // Allow the user to edit the cell
+		return;
+		break;
+	default:
+		break;
+	}
+
+	ToggleCellValue(row, col);
 
 	UpdateGridValues(); // This can probably be removed once the program is working properly.
 						// This is being executed to make sure that the input written to the
 						// current row was correctly stored to the vector.
+	evt.Skip();
+}
+
+void InputGrid::OnRangeSelect(wxGridRangeSelectEvent& evt)
+{
+	wxGridCellCoords topLeft = evt.GetTopLeftCoords();
+	wxGridCellCoords botRight = evt.GetBottomRightCoords();
+
+	// If user selected multiple columns, then just return
+	if (topLeft.GetCol() != botRight.GetCol())
+	{
+		evt.Skip();
+		return;
+	}
+
+	int startRow = topLeft.GetRow();
+	int endRow = botRight.GetRow();
+	int col = topLeft.GetCol();
+
+	switch (col)
+	{
+	case COLUMN_INPUT_COUNT:
+	case COLUMN_VI_COUNT:
+	case COLUMN_ACTIVE:
+		return;
+		break;
+	case COLUMN_ANA_X:
+	case COLUMN_ANA_Y:
+	case COLUMN_C_X:
+	case COLUMN_C_Y:
+	case COLUMN_L_ANA:
+	case COLUMN_R_ANA:
+		evt.Skip(); // Allow the user to edit the cell
+		return;
+		break;
+	default:
+		break;
+	}
+
+	for (int i = startRow + 1; i <= endRow; i++)
+	{
+		// If input doesn't exist in vector, return
+		if (m_groupByVI)
+		{
+			int currFrameCount = i + m_firstFrameInGrid;
+			if (m_viToInputCount[currFrameCount].size() == 0)
+			{
+				return;
+			}
+		}
+		else
+		{
+			if (i + m_firstInputInGrid >= m_inputVector.size())
+			{
+				return;
+			}
+		}
+		
+		ToggleCellValue(i, col);
+	}
+
+	UpdateGridValues(); // This can probably be removed once the program is working properly.
+						// This is being executed to make sure that the input written to the
+						// current row was correctly stored to the vector.
+	evt.Skip();
 }
 
 void InputGrid::OnCellChanged(wxGridEvent& evt)
