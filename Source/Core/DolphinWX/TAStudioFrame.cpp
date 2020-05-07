@@ -12,6 +12,7 @@ wxBEGIN_EVENT_TABLE(InputGrid, wxGrid)
 	EVT_GRID_CELL_CHANGED(InputGrid::OnCellChanged)
 	EVT_MOUSEWHEEL(InputGrid::OnMouseWheel)
 	EVT_GRID_RANGE_SELECT(InputGrid::OnRangeSelect)
+	EVT_GRID_CELL_RIGHT_CLICK(InputGrid::OnCellRightClick)
 wxEND_EVENT_TABLE()
 
 /*
@@ -35,7 +36,7 @@ wxEND_EVENT_TABLE()
 		- Go to specific frame;
 		- User friendly way to edit analog inputs (something like TAS Input maybe?). IN PROGRESS
 		- Activate/Deactivate certain buttons in TAStudio (e.g. edit button presses but leave analog stick up to a lua script)
-		- Shift-click to set multiple cell values DONE-ish: Expanding a selection causes the cell values to alternate, if you select from top to bottom the topmost cell will not be set
+		- Shift-click to set multiple cell values DONE-ish: Currently reselecting a range will first unset the clicked cell, then causing the range function to set all inputs, thus preventing the user from being able to un-set a range of cell values
 	- Variable watch in grid:
 		- Allow the user to choose variables to include in the grid, which will be updated every frame
 		- Use pre-existing Lua functions as templates
@@ -240,6 +241,11 @@ void TAStudioFrame::OnSetMainStickClick(wxCommandEvent& evt)
 
 InputGrid::InputGrid(wxWindow* parent) : wxGrid(parent, wxID_ANY)
 {
+	Bind(wxEVT_MENU, &InputGrid::OnInsertFrameAbove, this, IDM_INSERT_FRAME_ABOVE);
+	Bind(wxEVT_MENU, &InputGrid::OnInsertFrameBelow, this, IDM_INSERT_FRAME_BELOW);
+	Bind(wxEVT_MENU, &InputGrid::OnCopyFrame, this, IDM_COPY_FRAME);
+	Bind(wxEVT_MENU, &InputGrid::OnPasteFrame, this, IDM_PASTE_FRAME);
+	
 	m_firstInputInGrid = 1;
 	m_firstFrameInGrid = 1;
 	m_gridNumberOfRows = 30;
@@ -511,7 +517,9 @@ void InputGrid::OnRangeSelect(wxGridRangeSelectEvent& evt)
 		break;
 	}
 
-	for (int i = startRow + 1; i <= endRow; i++)
+	bool set = false;
+
+	for (int i = startRow; i <= endRow; i++)
 	{
 		// If input doesn't exist in vector, return
 		if (m_groupByVI)
@@ -530,13 +538,74 @@ void InputGrid::OnRangeSelect(wxGridRangeSelectEvent& evt)
 			}
 		}
 		
-		ToggleCellValue(i, col);
+		//ToggleCellValue(i, col);
+
+		// If at least one cell is blank, then set all to active button presses
+		if (GetCellValue(wxGridCellCoords(i, col)) != COLUMN_LABEL[col]) { set = true; }
 	}
+
+	for (int i = startRow; i <= endRow; i++)
+	{
+		if (set) { SetCellValue(i, col, COLUMN_LABEL[col]); }
+		else { SetCellValue(i, col, ""); }
+
+		// Update the value(s) in the vector
+		if (m_groupByVI)
+		{
+			int currFrameCount = i + m_firstFrameInGrid;
+			// Repeat for every input in m_inputVector whose FrameCount == currFrameCount
+			for (int i = 0; i < m_viToInputCount[currFrameCount].size(); i++)
+			{
+				m_inputVector[m_viToInputCount[currFrameCount][i]].Input = GetInputAtRow(i);
+			}
+		}
+		else
+		{
+			m_inputVector[i + m_firstInputInGrid].Input = GetInputAtRow(i);
+		}
+	}
+
 
 	UpdateGridValues(); // This can probably be removed once the program is working properly.
 						// This is being executed to make sure that the input written to the
 						// current row was correctly stored to the vector.
 	evt.Skip();
+}
+
+void InputGrid::OnCellRightClick(wxGridEvent& evt)
+{
+	this->SelectRow(evt.GetRow());
+	
+	wxMenu popupMenu;
+	popupMenu.Append(IDM_INSERT_FRAME_ABOVE, wxT("Insert Frame Above"));
+	popupMenu.Append(IDM_INSERT_FRAME_BELOW, wxT("Insert Frame Below"));
+	popupMenu.Append(IDM_COPY_FRAME, wxT("Copy Frame"));
+	if (m_vectorClipboard.size() == 0)
+		popupMenu.Append(IDM_PASTE_FRAME, wxT("Paste Frame"))->Enable(false);
+	else
+		popupMenu.Append(IDM_PASTE_FRAME, wxT("Paste Frame"));
+
+	PopupMenu(&popupMenu);
+}
+
+void InputGrid::OnInsertFrameAbove(wxCommandEvent& WXUNUSED(event))
+{
+	
+}
+
+void InputGrid::OnInsertFrameBelow(wxCommandEvent& WXUNUSED(event))
+{
+
+}
+
+void InputGrid::OnCopyFrame(wxCommandEvent& WXUNUSED(event))
+{
+
+}
+
+void InputGrid::OnPasteFrame(wxCommandEvent& WXUNUSED(event))
+{
+
 }
 
 void InputGrid::OnCellChanged(wxGridEvent& evt)

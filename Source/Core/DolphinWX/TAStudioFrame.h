@@ -25,6 +25,14 @@
 
 #include "InputCommon/GCPadStatus.h"
 
+enum
+{
+	IDM_INSERT_FRAME_ABOVE = 100,
+	IDM_INSERT_FRAME_BELOW,
+	IDM_COPY_FRAME,
+	IDM_PASTE_FRAME
+};
+
 struct TAStudioInput
 {
 	u64 FrameCount;
@@ -65,6 +73,7 @@ class InputGrid : public wxGrid
 			"Ra", "dU", "dD", "dL", "dR", "cX", "cY"
 		};
 		std::vector<TAStudioInput> m_inputVector;
+		std::vector<TAStudioInput> m_vectorClipboard;
 		std::vector< std::vector<u64> > m_viToInputCount;
 		u64 m_firstInputInGrid;
 		u64 m_firstFrameInGrid;
@@ -83,6 +92,7 @@ class InputGrid : public wxGrid
 		void OnCellChanged(wxGridEvent& evt);
 		void OnMouseWheel(wxMouseEvent& evt);
 		void OnRangeSelect(wxGridRangeSelectEvent& evt);
+		void OnCellRightClick(wxGridEvent& evt);
 		void GoToCurrentFrame();
 		void ParseStateInputs();
 		void UpdateGridValues();
@@ -91,6 +101,10 @@ class InputGrid : public wxGrid
 		void DeleteInputAtRow(int row);
 		void SetInputAtRow(int row, TAStudioInput tastudioInput, u64 inputCount);
 		void SetCellValueIfChanged(int row, int col, const wxString str);
+		void OnInsertFrameAbove(wxCommandEvent& WXUNUSED(event));
+		void OnInsertFrameBelow(wxCommandEvent& WXUNUSED(event));
+		void OnCopyFrame(wxCommandEvent& WXUNUSED(event));
+		void OnPasteFrame(wxCommandEvent& WXUNUSED(event));
 		GCPadStatus GetInputAtInputFrame(int inputCount);
 		void SetInputAtInputFrame(GCPadStatus* PadStatus, int inputCount);
 		void HighlightActiveFrame(u64 frameCount);
