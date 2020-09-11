@@ -49,7 +49,7 @@ protected:
 
 public:
 
-	LuaWindow(wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("Launch Script by DB"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style  = wxDEFAULT_DIALOG_STYLE | wxSTAY_ON_TOP);
+	LuaWindow(wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("Launch Script"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style  = wxDEFAULT_DIALOG_STYLE | wxSTAY_ON_TOP);
 	void OnSelectionChanged(wxCommandEvent& event);
 	void OnButtonPressed(wxCommandEvent& event);
 	void OnCloseWindow(wxCloseEvent& event);

@@ -53,7 +53,6 @@ namespace Movie {
 	static PlayMode s_playMode = MODE_NONE;
 
 	static u32 s_framesToSkip = 0, s_frameSkipCounter = 0;
-
 	static u8 s_numPads = 0;
 	static ControllerState s_padState;
 	static DTMHeader tmpHeader;
@@ -617,6 +616,13 @@ namespace Movie {
 	{
 		return s_recordingStartTime;
 	}
+
+	u64 GetCurrentFrame()
+    {
+	    return g_currentFrame;
+    }
+
+
 	
 	std::string GetRerecordCount()
         {
@@ -1632,13 +1638,13 @@ namespace Movie {
 	{
 		wiimfunc = func;
 	}
-
 	// NOTE: CPU Thread
 	void CallGCInputManip(GCPadStatus* PadStatus, int controllerID)
 	{
 		if (gcmfunc)
 			(*gcmfunc)(PadStatus, controllerID);
 	}
+
 	// NOTE: CPU Thread
 	void CallWiiInputManip(u8* data, WiimoteEmu::ReportFeatures rptf, int controllerID, int ext, const wiimote_key key)
 	{

@@ -139,6 +139,9 @@
     <Filter Include="PowerPC\Jit64Common">
       <UniqueIdentifier>{81956f71-d9fe-454f-96a6-855195d611c4}</UniqueIdentifier>
     </Filter>
+    <Filter Include="LUA">
+      <UniqueIdentifier>{d7fc674b-5190-4e96-9fed-515508d71463}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BootManager.cpp" />
@@ -730,7 +733,9 @@
       <Filter>PowerPC\Jit64Common</Filter>
     </ClCompile>
     <ClCompile Include="Analytics.cpp" />
-    <ClCompile Include="LUA\Lua.cpp" />
+    <ClCompile Include="LUA\Lua.cpp">
+      <Filter>LUA</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BootManager.h" />
@@ -1250,7 +1255,9 @@
       <Filter>PowerPC\Jit64Common</Filter>
     </ClInclude>
     <ClInclude Include="Analytics.h" />
-    <ClInclude Include="LUA\Lua.h" />
+    <ClInclude Include="LUA\Lua.h">
+      <Filter>LUA</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />

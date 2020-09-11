@@ -60,6 +60,8 @@ xcopy /y /d "$(DolphinRootDir)Data\*.lua" "$(BinaryOutputDir)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="LuaScriptFrame.cpp" />
+    <ClCompile Include="LuaThread.cpp" />
     <ClCompile Include="AboutDolphin.cpp" />
     <ClCompile Include="ARCodeAddEdit.cpp" />
     <ClCompile Include="Cheats\CheatSearchTab.cpp" />
@@ -124,6 +126,7 @@ xcopy /y /d "$(DolphinRootDir)Data\*.lua" "$(BinaryOutputDir)"</Command>
     <ClCompile Include="WxUtils.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="LuaScripting.h" />
     <ClInclude Include="Config\AdvancedConfigPane.h" />
     <ClInclude Include="Config\AudioConfigPane.h" />
     <ClInclude Include="Config\GameCubeConfigPane.h" />

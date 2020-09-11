@@ -46,13 +46,29 @@ int ReadValue8(lua_State* L)
 	int argc = lua_gettop(L);
 
 	if (argc < 1)
+	{
 		return 0;
+	}
+	u8 result = 0;
+	// if there's one argument read address from the first argument
+	if (argc < 2)
+	{
+		u32 address = lua_tointeger(L, 1);
 
-	u32 address = lua_tointeger(L, 1);
+		result = Memory::Read_U8(address);
 
-	u8 result = Memory::Read_U8(address);
+		lua_pushinteger(L, result); // return value
+		return 1;                   // number of return values
+	}
+	// if more than 1 argument, read multilelve pointer
+	
+	if (Lua::ExecuteMultilevelLoop(L) != 0)
+	{
+		result = Memory::Read_U8(Lua::ExecuteMultilevelLoop(L));
+	}
+	lua_pushinteger(L, result);
 
-	lua_pushinteger(L, result); // return value
+
 	return 1; // number of return values
 }
 
@@ -63,11 +79,24 @@ int ReadValue16(lua_State* L)
 	if (argc < 1)
 		return 0;
 
-	u32 address = lua_tointeger(L, 1);
+	u16 result = 0;
+	// if there's one argument read address from the first argument
+	if (argc < 2)
+	{
+		u32 address = lua_tointeger(L, 1);
 
-	u16 result = Memory::Read_U16(address);
+		result = Memory::Read_U16(address);
 
-	lua_pushinteger(L, result); // return value
+		lua_pushinteger(L, result); // return value
+		return 1;
+	}
+	// if more than 1 argument, read multilelve pointer
+	if (Lua::ExecuteMultilevelLoop(L) != 0)
+	{
+		result = Memory::Read_U16(Lua::ExecuteMultilevelLoop(L));
+	}
+	lua_pushinteger(L, result);
+
 	return 1; // number of return values
 }
 
@@ -78,10 +107,23 @@ int ReadValue32(lua_State* L)
 	if (argc < 1)
 		return 0;
 
-	u32 address = lua_tointeger(L, 1);
+	u32 result = 0;
+	// if there's one argument read address from the first argument
+	if (argc < 2)
+	{
+		u32 address = lua_tointeger(L, 1);
 
-	u32 result = Memory::Read_U32(address);
+		result = Memory::Read_U32(address);
 
+		lua_pushinteger(L, result); // return value
+		return 1;
+	}
+	// if more than 1 argument, read multilelve pointer
+	if (Lua::ExecuteMultilevelLoop(L) != 0)
+	{
+		result = Memory::Read_U32(Lua::ExecuteMultilevelLoop(L));
+		// result = Memory::Read_U8(LastOffset);
+	}
 	lua_pushinteger(L, result); // return value
 	return 1; // number of return values
 }
@@ -93,12 +135,25 @@ int ReadValueFloat(lua_State* L)
 	if (argc < 1)
 		return 0;
 
-	u32 address = lua_tointeger(L, 1);
+	float result = 0;
+	// if there's one argument read address from the first argument
+	if (argc < 2)
+	{
+		u32 address = lua_tointeger(L, 1);
 
-	float result = PowerPC::Read_F32(address);
+		result = PowerPC::Read_F32(address);
+
+		lua_pushnumber(L, result); // return value
+		return 1;
+	}
+	// if more than 1 argument, read multilelve pointer
+	if (Lua::ExecuteMultilevelLoop(L) != 0)
+	{
+		result = PowerPC::Read_F32(Lua::ExecuteMultilevelLoop(L));
+	}
 
 	lua_pushnumber(L, result); // return value
-	return 1; // number of return values
+	return 1;                   // number of return values
 }
 int ReadValueString(lua_State* L)
 {
@@ -106,7 +161,7 @@ int ReadValueString(lua_State* L)
 
 	if (argc < 2)
 		return 0;
-
+	// can't do the multilevel loop properly unless i'm not lazy
 	u32 address = lua_tointeger(L, 1);
 	int count = lua_tointeger(L, 2);
 
@@ -211,23 +266,22 @@ int WriteValueString(lua_State* L)
 int GetPointerNormal(lua_State* L)
 {
 	int argc = lua_gettop(L);
-
+	// if there are no arguments, don't execute further
 	if (argc < 1)
-		return 0;
-
-	u32 address = lua_tointeger(L, 1);
-
-	u32 pointer = Memory::Read_U32(address);
-
-	if (pointer > 0x80000000)
+		return 0; // don't pass any return values
+	// if there is 1 argument, use the old method
+	if (argc < 2)
 	{
-		pointer -= 0x80000000;
-	}
-	else
-	{
-		return 0;
-	}
-
+		u32 address = lua_tointeger(L, 1);
+		// Since we don't need to read any offsets we can just do this
+		u32 pointer = Lua::readPointer(address, 0x0);
+		// return so the function doesn't execute further
+		lua_pushinteger(L, pointer); // return value
+		return 1;
+	}		
+	// new method, supports multilevel pointers
+	// we need to read the main pointer once, so we can use this one in the for loop
+	u32 pointer = Lua::ExecuteMultilevelLoop(L);
 	lua_pushinteger(L, pointer); // return value
 	return 1; // number of return values
 }
@@ -623,6 +677,46 @@ namespace Lua
 		}
 	}
 
+	u32 readPointer(u32 startAddress, u32 offset)
+	{
+	    u32 pointer = Memory::Read_U32(startAddress) + offset;
+	    bool isInMEM = false;
+	    Lua::IsInMEMArea(pointer, &isInMEM);
+	    // check if pointer is not in the mem1 or mem2
+	    if (!isInMEM)
+	    {
+		    // break and return 0
+		    pointer = 0;
+	    }
+	    else
+	    {
+		    pointer -= 0x80000000;	    
+		}
+	    return pointer;
+	}
+
+	u32 ExecuteMultilevelLoop(lua_State *L)
+    {
+	    int argc = lua_gettop(L);
+	    u32 mainPointer = lua_tointeger(L, 1);
+	    // we need to read the main pointer once, so we can use this one in the for loop
+	    u32 pointer = mainPointer;
+
+	    for (int i = 2; i <= argc; ++i)
+	    {
+		    // read offsets
+		    u32 offset = lua_tointeger(L, i);
+		    // dedicated function to read the offsets and pointer
+		    pointer = readPointer(pointer, offset);
+		    if (pointer == 0)
+		    {
+			    pointer = 0;
+			    break;			    
+		    }
+	    }
+		return pointer;	    
+    }
+
 	void iSetMainStickX(int xVal)
 	{
 		PadLocal.stickX = xVal;
@@ -789,6 +883,26 @@ namespace Lua
 		}
 
 		scriptList.clear();
+	}
+
+	void IsInMEMArea(u32 pointer, bool *b)
+	{
+	    if (pointer > 0x80000000 && pointer < 0x81800000 || pointer > 0x90000000 && pointer < 0x94000000)
+	    {
+		    *b = true;
+		    return;
+	    }
+	    else if (pointer > 0x0 && pointer < 0x1800000 || pointer > 0x10000000 && pointer < 0x14000000)
+	    {
+		    *b = true;
+		    return ;
+	    }
+		else
+		{		   
+		    *b = false;
+		    return;
+		}
+		    
 	}
 
 	void LoadScript(std::string fileName)

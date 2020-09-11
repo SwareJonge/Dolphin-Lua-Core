@@ -205,6 +205,12 @@
     <ClCompile Include="NetPlay\NetPlaySetupFrame.cpp">
       <Filter>GUI\NetPlay</Filter>
     </ClCompile>
+    <ClCompile Include="LuaScriptFrame.cpp">
+      <Filter>GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="LuaThread.cpp">
+      <Filter>GUI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Main.h" />
@@ -371,6 +377,9 @@
     </ClInclude>
     <ClInclude Include="NetPlay\PadMapDialog.h">
       <Filter>GUI\NetPlay</Filter>
+    </ClInclude>
+    <ClInclude Include="LuaScripting.h">
+      <Filter>GUI</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -119,8 +119,7 @@ int CSIDevice_GCController::RunBuffer(u8* _pBuffer, int _iLength)
 
 void CSIDevice_GCController::HandleMoviePadStatus(GCPadStatus* PadStatus)
 {
-	Movie::CallGCInputManip(PadStatus, ISIDevice::m_iDeviceNumber);
-	
+	Movie::CallGCInputManip(PadStatus, ISIDevice::m_iDeviceNumber);	
 	Lua::UpdateScripts(PadStatus);
 
 	Movie::SetPolledDevice();

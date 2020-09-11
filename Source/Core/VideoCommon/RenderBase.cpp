@@ -27,15 +27,15 @@
 
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
-#include "Core/Host.h"
-#include "Core/Movie.h"
 #include "Core/FifoPlayer/FifoRecorder.h"
 #include "Core/HW/VideoInterface.h"
+#include "Core/Host.h"
+#include "Core/Movie.h"
 
 #include "VideoCommon/AVIDump.h"
 #include "VideoCommon/BPMemory.h"
-#include "VideoCommon/CommandProcessor.h"
 #include "VideoCommon/CPMemory.h"
+#include "VideoCommon/CommandProcessor.h"
 #include "VideoCommon/Debugger.h"
 #include "VideoCommon/FPSCounter.h"
 #include "VideoCommon/FramebufferManagerBase.h"
@@ -61,7 +61,7 @@ Common::Event Renderer::s_screenshotCompleted;
 volatile bool Renderer::s_bScreenshot;
 
 // Final surface changing
-Common::Flag  Renderer::s_SurfaceNeedsChanged;
+Common::Flag Renderer::s_SurfaceNeedsChanged;
 Common::Event Renderer::s_ChangedSurface;
 
 // The framebuffer size
@@ -86,11 +86,14 @@ unsigned int Renderer::efb_scale_numeratorY = 1;
 unsigned int Renderer::efb_scale_denominatorX = 1;
 unsigned int Renderer::efb_scale_denominatorY = 1;
 
-static float AspectToWidescreen(float aspect) { return aspect * ((16.0f / 9.0f) / (4.0f / 3.0f)); }
+static float AspectToWidescreen(float aspect)
+{
+	return aspect * ((16.0f / 9.0f) / (4.0f / 3.0f));
+}
 
 Renderer::Renderer()
-	: frame_data()
-	, bLastFrameDumped(false)
+    : frame_data()
+    , bLastFrameDumped(false)
 {
 	UpdateActiveConfig();
 	TextureCacheBase::OnConfigChanged(g_ActiveConfig);
@@ -115,7 +118,7 @@ Renderer::~Renderer()
 #endif
 }
 
-void Renderer::RenderToXFB(u32 xfbAddr, const EFBRectangle& sourceRc, u32 fbStride, u32 fbHeight, float Gamma)
+void Renderer::RenderToXFB(u32 xfbAddr, const EFBRectangle &sourceRc, u32 fbStride, u32 fbHeight, float Gamma)
 {
 	CheckFifoRecording();
 
@@ -131,7 +134,7 @@ void Renderer::RenderToXFB(u32 xfbAddr, const EFBRectangle& sourceRc, u32 fbStri
 	else
 	{
 		// below div two to convert from bytes to pixels - it expects width, not stride
-		Swap(xfbAddr, fbStride/2, fbStride/2, fbHeight, sourceRc, Gamma);
+		Swap(xfbAddr, fbStride / 2, fbStride / 2, fbHeight, sourceRc, Gamma);
 	}
 }
 
@@ -139,11 +142,11 @@ int Renderer::EFBToScaledX(int x)
 {
 	switch (g_ActiveConfig.iEFBScale)
 	{
-		case SCALE_AUTO: // fractional
-			return FramebufferManagerBase::ScaleToVirtualXfbWidth(x);
+	case SCALE_AUTO: // fractional
+		return FramebufferManagerBase::ScaleToVirtualXfbWidth(x);
 
-		default:
-			return x * (int)efb_scale_numeratorX / (int)efb_scale_denominatorX;
+	default:
+		return x * (int)efb_scale_numeratorX / (int)efb_scale_denominatorX;
 	};
 }
 
@@ -151,15 +154,15 @@ int Renderer::EFBToScaledY(int y)
 {
 	switch (g_ActiveConfig.iEFBScale)
 	{
-		case SCALE_AUTO: // fractional
-			return FramebufferManagerBase::ScaleToVirtualXfbHeight(y);
+	case SCALE_AUTO: // fractional
+		return FramebufferManagerBase::ScaleToVirtualXfbHeight(y);
 
-		default:
-			return y * (int)efb_scale_numeratorY / (int)efb_scale_denominatorY;
+	default:
+		return y * (int)efb_scale_numeratorY / (int)efb_scale_denominatorY;
 	};
 }
 
-void Renderer::CalculateTargetScale(int x, int y, int* scaledX, int* scaledY)
+void Renderer::CalculateTargetScale(int x, int y, int *scaledX, int *scaledY)
 {
 	if (g_ActiveConfig.iEFBScale == SCALE_AUTO || g_ActiveConfig.iEFBScale == SCALE_AUTO_INTEGRAL)
 	{
@@ -182,75 +185,75 @@ bool Renderer::CalculateTargetSize(unsigned int framebuffer_width, unsigned int 
 	// TODO: Ugly. Clean up
 	switch (s_last_efb_scale)
 	{
-		case SCALE_AUTO:
-		case SCALE_AUTO_INTEGRAL:
-			newEFBWidth = FramebufferManagerBase::ScaleToVirtualXfbWidth(EFB_WIDTH);
-			newEFBHeight = FramebufferManagerBase::ScaleToVirtualXfbHeight(EFB_HEIGHT);
+	case SCALE_AUTO:
+	case SCALE_AUTO_INTEGRAL:
+		newEFBWidth = FramebufferManagerBase::ScaleToVirtualXfbWidth(EFB_WIDTH);
+		newEFBHeight = FramebufferManagerBase::ScaleToVirtualXfbHeight(EFB_HEIGHT);
 
-			if (s_last_efb_scale == SCALE_AUTO_INTEGRAL)
-			{
-				efb_scale_numeratorX = efb_scale_numeratorY = std::max((newEFBWidth - 1) / EFB_WIDTH + 1, (newEFBHeight - 1) / EFB_HEIGHT + 1);
-				efb_scale_denominatorX = efb_scale_denominatorY = 1;
-				newEFBWidth = EFBToScaledX(EFB_WIDTH);
-				newEFBHeight = EFBToScaledY(EFB_HEIGHT);
-			}
-			else
-			{
-				efb_scale_numeratorX = newEFBWidth;
-				efb_scale_denominatorX = EFB_WIDTH;
-				efb_scale_numeratorY = newEFBHeight;
-				efb_scale_denominatorY = EFB_HEIGHT;
-			}
-			break;
-
-		case SCALE_1X:
-			efb_scale_numeratorX = efb_scale_numeratorY = 1;
+		if (s_last_efb_scale == SCALE_AUTO_INTEGRAL)
+		{
+			efb_scale_numeratorX = efb_scale_numeratorY =
+			    std::max((newEFBWidth - 1) / EFB_WIDTH + 1, (newEFBHeight - 1) / EFB_HEIGHT + 1);
 			efb_scale_denominatorX = efb_scale_denominatorY = 1;
-			break;
+			newEFBWidth = EFBToScaledX(EFB_WIDTH);
+			newEFBHeight = EFBToScaledY(EFB_HEIGHT);
+		}
+		else
+		{
+			efb_scale_numeratorX = newEFBWidth;
+			efb_scale_denominatorX = EFB_WIDTH;
+			efb_scale_numeratorY = newEFBHeight;
+			efb_scale_denominatorY = EFB_HEIGHT;
+		}
+		break;
 
-		case SCALE_1_5X:
-			efb_scale_numeratorX = efb_scale_numeratorY = 3;
-			efb_scale_denominatorX = efb_scale_denominatorY = 2;
-			break;
+	case SCALE_1X:
+		efb_scale_numeratorX = efb_scale_numeratorY = 1;
+		efb_scale_denominatorX = efb_scale_denominatorY = 1;
+		break;
 
-		case SCALE_2X:
-			efb_scale_numeratorX = efb_scale_numeratorY = 2;
+	case SCALE_1_5X:
+		efb_scale_numeratorX = efb_scale_numeratorY = 3;
+		efb_scale_denominatorX = efb_scale_denominatorY = 2;
+		break;
+
+	case SCALE_2X:
+		efb_scale_numeratorX = efb_scale_numeratorY = 2;
+		efb_scale_denominatorX = efb_scale_denominatorY = 1;
+		break;
+
+	case SCALE_2_5X:
+		efb_scale_numeratorX = efb_scale_numeratorY = 5;
+		efb_scale_denominatorX = efb_scale_denominatorY = 2;
+		break;
+
+	default:
+		efb_scale_numeratorX = efb_scale_numeratorY = s_last_efb_scale - 3;
+		efb_scale_denominatorX = efb_scale_denominatorY = 1;
+
+		int maxSize;
+		maxSize = GetMaxTextureSize();
+		if ((unsigned)maxSize < EFB_WIDTH * efb_scale_numeratorX / efb_scale_denominatorX)
+		{
+			efb_scale_numeratorX = efb_scale_numeratorY = (maxSize / EFB_WIDTH);
 			efb_scale_denominatorX = efb_scale_denominatorY = 1;
-			break;
+		}
 
-		case SCALE_2_5X:
-			efb_scale_numeratorX = efb_scale_numeratorY = 5;
-			efb_scale_denominatorX = efb_scale_denominatorY = 2;
-			break;
-
-		default:
-			efb_scale_numeratorX = efb_scale_numeratorY = s_last_efb_scale - 3;
-			efb_scale_denominatorX = efb_scale_denominatorY = 1;
-
-
-			int maxSize;
-			maxSize = GetMaxTextureSize();
-			if ((unsigned)maxSize < EFB_WIDTH * efb_scale_numeratorX / efb_scale_denominatorX)
-			{
-				efb_scale_numeratorX = efb_scale_numeratorY = (maxSize / EFB_WIDTH);
-				efb_scale_denominatorX = efb_scale_denominatorY = 1;
-			}
-
-			break;
+		break;
 	}
 	if (s_last_efb_scale > SCALE_AUTO_INTEGRAL)
 		CalculateTargetScale(EFB_WIDTH, EFB_HEIGHT, &newEFBWidth, &newEFBHeight);
 
 	if (newEFBWidth != s_target_width || newEFBHeight != s_target_height)
 	{
-		s_target_width  = newEFBWidth;
+		s_target_width = newEFBWidth;
 		s_target_height = newEFBHeight;
 		return true;
 	}
 	return false;
 }
 
-void Renderer::ConvertStereoRectangle(const TargetRectangle& rc, TargetRectangle& leftRc, TargetRectangle& rightRc)
+void Renderer::ConvertStereoRectangle(const TargetRectangle &rc, TargetRectangle &leftRc, TargetRectangle &rightRc)
 {
 	// Resize target to half its original size
 	TargetRectangle drawRc = rc;
@@ -286,7 +289,7 @@ void Renderer::ConvertStereoRectangle(const TargetRectangle& rc, TargetRectangle
 	}
 }
 
-void Renderer::SetScreenshot(const std::string& filename)
+void Renderer::SetScreenshot(const std::string &filename)
 {
 	std::lock_guard<std::mutex> lk(s_criticalScreenshot);
 	s_sScreenshotName = filename;
@@ -307,9 +310,9 @@ void Renderer::DrawDebugText()
 			final_cyan += " - ";
 		if (SConfig::GetInstance().m_ShowFrameCount)
 		{
-			final_cyan += StringFromFormat("Frame: %llu", (unsigned long long) Movie::g_currentFrame);
+			final_cyan += StringFromFormat("Frame: %llu", (unsigned long long)Movie::g_currentFrame);
 			if (Movie::IsPlayingInput())
-				final_cyan += StringFromFormat(" / %llu", (unsigned long long) Movie::g_totalFrames);
+				final_cyan += StringFromFormat(" / %llu", (unsigned long long)Movie::g_totalFrames);
 		}
 
 		final_cyan += "\n";
@@ -321,17 +324,16 @@ void Renderer::DrawDebugText()
 		final_cyan += StringFromFormat("Lag: %" PRIu64 "\n", Movie::g_currentLagCount);
 		final_yellow += "\n";
 	}
-	
+
 	if (SConfig::GetInstance().m_ShowRerecordCount)
 	{
 		if (Movie::IsPlayingInput())
 			final_cyan += Movie::GetRerecordCount();
-		    final_yellow += "\n";
+		final_yellow += "\n";
 		if (Movie::IsRecordingInput())
 			final_cyan += Movie::GetRerecordCount();
-		    final_yellow += "\n";
+		final_yellow += "\n";
 	}
-	
 
 	if (SConfig::GetInstance().m_ShowInputDisplay)
 	{
@@ -373,7 +375,7 @@ void Renderer::DrawDebugText()
 			res_text = StringFromFormat("%dx", g_ActiveConfig.iEFBScale - 3);
 			break;
 		}
-		const char* ar_text = "";
+		const char *ar_text = "";
 		switch (g_ActiveConfig.iAspectRatio)
 		{
 		case ASPECT_AUTO:
@@ -389,20 +391,23 @@ void Renderer::DrawDebugText()
 			ar_text = "Force 16:9";
 		}
 
-		const char* const efbcopy_text = g_ActiveConfig.bSkipEFBCopyToRam ? "to Texture" : "to RAM";
+		const char *const efbcopy_text = g_ActiveConfig.bSkipEFBCopyToRam ? "to Texture" : "to RAM";
 
 		// The rows
-		const std::string lines[] =
-		{
-			std::string("Internal Resolution: ") + res_text,
-			std::string("Aspect Ratio: ") + ar_text + (g_ActiveConfig.bCrop ? " (crop)" : ""),
-			std::string("Copy EFB: ") + efbcopy_text,
-			std::string("Fog: ") + (g_ActiveConfig.bDisableFog ? "Disabled" : "Enabled"),
-			SConfig::GetInstance().m_EmulationSpeed <= 0 ? "Speed Limit: Unlimited" :
-			StringFromFormat("Speed Limit: %li%%", std::lround(SConfig::GetInstance().m_EmulationSpeed * 100.f)),
+		const std::string lines[] = {
+		    std::string("Internal Resolution: ") + res_text,
+		    std::string("Aspect Ratio: ") + ar_text + (g_ActiveConfig.bCrop ? " (crop)" : ""),
+		    std::string("Copy EFB: ") + efbcopy_text,
+		    std::string("Fog: ") + (g_ActiveConfig.bDisableFog ? "Disabled" : "Enabled"),
+		    SConfig::GetInstance().m_EmulationSpeed <= 0
+		        ? "Speed Limit: Unlimited"
+		        : StringFromFormat("Speed Limit: %li%%", std::lround(SConfig::GetInstance().m_EmulationSpeed * 100.f)),
 		};
 
-		enum { lines_count = sizeof(lines) / sizeof(*lines) };
+		enum
+		{
+			lines_count = sizeof(lines) / sizeof(*lines)
+		};
 
 		// The latest changed setting in yellow
 		for (int i = 0; i != lines_count; ++i)
@@ -430,14 +435,14 @@ void Renderer::DrawDebugText()
 	}
 
 	final_cyan += Common::Profiler::ToString();
-	
+
 	if (g_ActiveConfig.bOverlayStats)
 		final_cyan += Statistics::ToString();
 
 	if (g_ActiveConfig.bOverlayProjStats)
 		final_cyan += Statistics::ToStringProj();
 
-	//and then the text
+	// and then the text
 	g_renderer->RenderText(final_cyan, 20, 30, 0xFF00FFFF);
 	g_renderer->RenderText(final_yellow, 20, 30, 0xFFFFFF00);
 
@@ -450,6 +455,11 @@ void Renderer::DrawDebugText()
 	{
 		g_renderer->RenderText("PLAYBACK", 20, 14, 0xFF00FF00);
 	}
+}
+
+void Renderer::DrawLuaText(std::string text, int left, int top, u32 color)
+{
+	g_renderer->RenderText(text, left, top, color);
 }
 
 void Renderer::UpdateDrawRectangle(int backbuffer_width, int backbuffer_height)
@@ -515,7 +525,8 @@ void Renderer::UpdateDrawRectangle(int backbuffer_width, int backbuffer_height)
 
 	// The rendering window aspect ratio as a proportion of the 4:3 or 16:9 ratio
 	float Ratio;
-	if (g_ActiveConfig.iAspectRatio == ASPECT_ANALOG_WIDE || (g_ActiveConfig.iAspectRatio != ASPECT_ANALOG && Core::g_aspect_wide))
+	if (g_ActiveConfig.iAspectRatio == ASPECT_ANALOG_WIDE ||
+	    (g_ActiveConfig.iAspectRatio != ASPECT_ANALOG && Core::g_aspect_wide))
 	{
 		Ratio = (WinWidth / WinHeight) / AspectToWidescreen(VideoInterface::GetAspectRatio());
 	}
@@ -607,12 +618,12 @@ void Renderer::CheckFifoRecording()
 
 void Renderer::RecordVideoMemory()
 {
-	u32 *bpmem_ptr = (u32*)&bpmem;
+	u32 *bpmem_ptr = (u32 *)&bpmem;
 	u32 cpmem[256];
 	// The FIFO recording format splits XF memory into xfmem and xfregs; follow
 	// that split here.
-	u32 *xfmem_ptr = (u32*)&xfmem;
-	u32 *xfregs_ptr = (u32*)&xfmem + FifoDataFile::XF_MEM_SIZE;
+	u32 *xfmem_ptr = (u32 *)&xfmem;
+	u32 *xfregs_ptr = (u32 *)&xfmem + FifoDataFile::XF_MEM_SIZE;
 	u32 xfregs_size = sizeof(XFMemory) / 4 - FifoDataFile::XF_MEM_SIZE;
 
 	memset(cpmem, 0, 256 * 4);
@@ -621,7 +632,7 @@ void Renderer::RecordVideoMemory()
 	FifoRecorder::GetInstance().SetVideoMemory(bpmem_ptr, cpmem, xfmem_ptr, xfregs_ptr, xfregs_size);
 }
 
-void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const EFBRectangle& rc, float Gamma)
+void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const EFBRectangle &rc, float Gamma)
 {
 	// TODO: merge more generic parts into VideoCommon
 	g_renderer->SwapImpl(xfbAddr, fbWidth, fbStride, fbHeight, rc, Gamma);
@@ -641,7 +652,7 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const 
 	XFBWrited = false;
 }
 
-void Renderer::FlipImageData(u8* data, int w, int h, int pixel_width)
+void Renderer::FlipImageData(u8 *data, int w, int h, int pixel_width)
 {
 	for (int y = 0; y < h / 2; ++y)
 	{
@@ -652,4 +663,3 @@ void Renderer::FlipImageData(u8* data, int w, int h, int pixel_width)
 		}
 	}
 }
-

@@ -128,7 +128,8 @@ bool IsJustStartingPlayingInputFromSaveState();
 bool IsPlayingInput();
 bool IsMovieActive();
 bool IsReadOnly();
-u64  GetRecordingStartTime();
+u64 GetRecordingStartTime();
+u64 GetCurrentFrame();
 std::string GetRerecordCount();
 
 bool IsConfigSaved();
