@@ -22,12 +22,20 @@ LuaThread::LuaThread(LuaScriptFrame* p, const wxString& file)
   m_pad_status.triggerLeft = 0;
   m_pad_status.triggerRight = 0;
   m_pad_status.substickX = GCPadStatus::C_STICK_CENTER_X;
-  m_pad_status.substickY = GCPadStatus::C_STICK_CENTER_Y;  
+  m_pad_status.substickY = GCPadStatus::C_STICK_CENTER_Y;
+
+  // Register GetValues()
+  Movie::SetGCInputManip([this](GCPadStatus* status, int number)
+  {
+    GetValues(status);
+  }, Movie::GCManipIndex::LuaGCManip);
 }
 
 LuaThread::~LuaThread()
 {
-  m_parent->NullifyLuaThread();
+	// Nullify GC manipulator function to prevent crash when lua console is closed
+	Movie::SetGCInputManip(nullptr, Movie::GCManipIndex::LuaGCManip);
+	m_parent->NullifyLuaThread();
 }
 
 wxThread::ExitCode LuaThread::Entry()

@@ -20,35 +20,35 @@ ReadValue16(memoryAddress as Number) //Reads 2 Byte from the address
 ReadValue32(memoryAddress as Number) //Reads 4 Byte from the address
 ReadValueFloat(memoryAddress as Number)  //Reads 4 Bytes as a Float from the address
 ReadValueString(memoryAddress as Number, length as Number) //Reads "length" amount of characters from the address as a String
- 
+
 WriteValue8(memoryAddress as Number, value as Number) //Writes 1 Byte to the address
 WriteValue16(memoryAddress as Number, value as Number) //Writes 2 Byte to the address
 WriteValue32(memoryAddress as Number, value as Number) //Writes 4 Byte to the address
 WriteValueFloat(memoryAddress as Number, value as Number)  //Writes 4 Bytes as a Float to the address
 WriteValueString(memoryAddress as Number, text as String) //Writes the string to the address
- 
+
 GetPointerNormal(memoryAddress as Number) //Reads the pointer address from the memory, checks if its valid and if so returns the normal address. You can use this function for example to get Links Pointer from the address 0x3ad860. To the return value you simply need to add the offset 0x34E4 and then do a ReadValueFloat with the resulting address to get Links speed (in TWW)
- 
+
 PressButton(Button as String) //Presses the indicated button down, can call this with "Start" for example to press the Start button down. This is a bit buggy still and Buttons need to be pressed every frame or they are automatically released
- 
+
 ReleaseButton(Button as String) //Releases the indicated button. Not really needed atm cause buttons are pressed for only 1 frame
- 
+
 SetMainStickX(pos as Number) //Sets the main control stick X Pos
 SetMainStickY(pos as Number) //Sets the main control stick Y Pos
- 
+
 SetCStickX(pos as Number) //Sets the C-Stick X Pos
 SetCStickY(pos as Number)  //Sets the C-Stick Y Pos
- 
+
 SaveState(useSlot as Boolean, slotID/stateName as Number/String) //Saves the current state in the indicated slot number or fileName
 LoadState(useSlot as Boolean, slotID/stateName as Number/String) //Loads the state from the indicated slot number or fileName
- 
+
 GetFrameCount() //Returns the current visual frame count. Can use this and a global variable for example to check for frame advancements and how long the script is running in frames
- 
+
 GetInputFrameCount() //Returns the current input frame count
- 
+
 MsgBox(message as String, delayMS as Number) //Dolphin will show the indicated message in the upper-left corner for the indicated length (in milliseconds). Default length is 5 seconds
 SetScreenText(message as String) //Displays Text on Screen
- 
+
 CancelScript() //Cancels the script
 ```
 
@@ -79,5 +79,3 @@ end
 TODO: Make Wiimotes working with Lua Scripts.
 
 NOTE: If you want to build this version: Use Microsoft Visual Studio 2017 without any upgrades or use Microsoft Visual Studio 2015 Update 2 and Windows 10 SDK 10.0.10586.0
-MAKE SURE YOU'VE SELECTED "Release" IN VISUAL STUDIO, OTHERWISE THE BUILD WILL FAIL
-http://prntscr.com/mkjgvw

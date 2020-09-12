@@ -71,7 +71,7 @@ static int loadState(lua_State* L);
 // playback speed
 static int setEmulatorSpeed(lua_State* L);
 
-/*static int getAnalog(lua_State* L);
+static int getAnalog(lua_State* L);
 static int setAnalog(lua_State* L);
 static int setAnalogPolar(lua_State* L);
 static int getCStick(lua_State* L);
@@ -81,7 +81,7 @@ static int getButtons(lua_State* L);
 static int setButtons(lua_State* L);
 static int setDPad(lua_State* L);
 static int getTriggers(lua_State* L);
-static int setTriggers(lua_State* L);*/
+static int setTriggers(lua_State* L);
 LuaScriptFrame *LuaScriptFrame::m_current_instance;
 
 LuaScriptFrame::LuaScriptFrame(wxWindow* parent)
@@ -653,7 +653,7 @@ static int loadState(lua_State* L)
   return 0;
 }
 
-/*static int getAnalog(lua_State* L)
+static int getAnalog(lua_State* L)
 {
   lua_pushinteger(L, LuaScriptFrame::GetCurrentInstance()->GetLastPadStatus().stickX);
   lua_pushinteger(L, LuaScriptFrame::GetCurrentInstance()->GetLastPadStatus().stickY);
@@ -803,7 +803,7 @@ static int setDPad(lua_State* L)
   }
 
   return 0;
-}*/
+}
 
 static int setEmulatorSpeed(lua_State* L)
 {
@@ -879,8 +879,7 @@ int luaopen_libs(lua_State* L)
     {nullptr, nullptr}
   };
 
-  // Not safe to use so i'll leave them out for now
-  /*static const luaL_Reg joypad[] =
+  static const luaL_Reg joypad[] =
   {
     {"getAnalog", getAnalog },
     {"setAnalog", setAnalog },
@@ -894,7 +893,9 @@ int luaopen_libs(lua_State* L)
     {"getTriggers", getTriggers },
     {"setTriggers", setTriggers },
     {nullptr, nullptr}
-  };*/
+  };
+
+
 
   luaL_newlib(L, bit);
   lua_setglobal(L, "bit");
@@ -906,8 +907,8 @@ int luaopen_libs(lua_State* L)
   lua_setglobal(L, "client");
   luaL_newlib(L, emu);
   lua_setglobal(L, "emu");
-  //luaL_newlib(L, joypad);
-  //lua_setglobal(L, "joypad");
+  luaL_newlib(L, joypad);
+  lua_setglobal(L, "joypad");
   return 1;
 }
 #pragma endregion

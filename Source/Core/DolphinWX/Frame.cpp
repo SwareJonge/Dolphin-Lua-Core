@@ -451,7 +451,9 @@ CFrame::CFrame(wxFrame* parent,
 	for (int i = 0; i < 8; ++i)
 		g_TASInputDlg[i] = new TASInputDlg(this);
 
-	Movie::SetGCInputManip(GCTASManipFunction);
+		  Movie::SetGCInputManip([this](GCPadStatus* pad, int controller_id) { 
+		  main_frame->g_TASInputDlg[controller_id]->GetValues(pad);
+      }, Movie::GCManipIndex::TASInputGCManip);
 	Movie::SetWiiInputManip(WiiTASManipFunction);
 
 	State::SetOnAfterLoadCallback(OnAfterLoadCallback);
@@ -1049,12 +1051,6 @@ void OnStoppedCallback()
 		wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_STOPPED);
 		main_frame->GetEventHandler()->AddPendingEvent(event);
 	}
-}
-
-void GCTASManipFunction(GCPadStatus* PadStatus, int controllerID)
-{
-	if (main_frame)
-		main_frame->g_TASInputDlg[controllerID]->GetValues(PadStatus);
 }
 
 void WiiTASManipFunction(u8* data, WiimoteEmu::ReportFeatures rptf, int controllerID, int ext, const wiimote_key key)

@@ -58,6 +58,17 @@
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">xcopy /y /d "$(DolphinRootDir)Data\lua5.3.dll" "$(BinaryOutputDir)"
 xcopy /y /d "$(DolphinRootDir)Data\*.lua" "$(BinaryOutputDir)"</Command>
     </PostBuildEvent>
+    <ClCompile>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ExternalsDir)lua-5.3.1\src;$(ExternalsDir)zlib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <PreBuildEvent>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">xcopy /y /d "$(DolphinRootDir)Data\lua5.3.dll" $(OutDir)
+xcopy /y /d "$(DolphinRootDir)Data\*.lua" $(OutDir)</Command>
+    </PreBuildEvent>
+    <PreBuildEvent>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="LuaScriptFrame.cpp" />

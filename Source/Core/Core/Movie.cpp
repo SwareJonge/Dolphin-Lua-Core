@@ -91,7 +91,7 @@ namespace Movie {
 	static std::mutex  s_input_display_lock;
 	static std::string s_InputDisplay[8];
 
-	static GCManipFunction gcmfunc = nullptr;
+	static GCManipFunction gcmfunc[gc_manip_index_size];
 	static WiiManipFunction wiimfunc = nullptr;
 
 	// NOTE: Host / CPU Thread
@@ -1630,20 +1630,24 @@ namespace Movie {
 			Core::DisplayMessage(StringFromFormat("Failed to save %s", filename.c_str()), 2000);
 	}
 
-	void SetGCInputManip(GCManipFunction func)
-	{
-		gcmfunc = func;
-	}
-	void SetWiiInputManip(WiiManipFunction func)
-	{
-		wiimfunc = func;
-	}
-	// NOTE: CPU Thread
-	void CallGCInputManip(GCPadStatus* PadStatus, int controllerID)
-	{
-		if (gcmfunc)
-			(*gcmfunc)(PadStatus, controllerID);
-	}
+    void SetGCInputManip(GCManipFunction func, GCManipIndex manipfunctionsindex)
+    {
+	    gcmfunc[static_cast<size_t>(manipfunctionsindex)] = std::move(func);
+    }
+    void SetWiiInputManip(WiiManipFunction func)
+    {
+	    wiimfunc = func;
+    }
+    // NOTE: CPU Thread
+    void CallGCInputManip(GCPadStatus *PadStatus, int controllerID)
+    {
+	    if (gcmfunc[static_cast<size_t>(GCManipIndex::TASInputGCManip)])
+		    gcmfunc[static_cast<size_t>(GCManipIndex::TASInputGCManip)](PadStatus, controllerID);
+
+	    // With this ordering, the Lua script will have priority over the TASInput window
+	    if (gcmfunc[static_cast<size_t>(GCManipIndex::LuaGCManip)])
+		    gcmfunc[static_cast<size_t>(GCManipIndex::LuaGCManip)](PadStatus, controllerID);
+    }
 
 	// NOTE: CPU Thread
 	void CallWiiInputManip(u8* data, WiimoteEmu::ReportFeatures rptf, int controllerID, int ext, const wiimote_key key)
