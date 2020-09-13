@@ -691,7 +691,7 @@ void TASInputDlg::GetKeyBoardInput(u8* data, WiimoteEmu::ReportFeatures rptf, in
 // NOTE: Host / CPU Thread
 // Do not touch the GUI. Requires wxMutexGuiEnter which will deadlock against
 // the GUI when pausing/stopping.
-void TASInputDlg::GetValues(u8* data, WiimoteEmu::ReportFeatures rptf, int ext, const wiimote_key key)
+void TASInputDlg::GetValues(u8 *data, WiimoteEmu::ReportFeatures rptf, int ext, const wiimote_key key)
 {
 	if (!IsShown() || !m_has_layout)
 		return;

@@ -36,7 +36,15 @@ enum class GCManipIndex
 	LuaGCManip
 };
 
+enum class WiiManipIndex
+{
+	TASInputWiiManip,
+	LuaWiiManip
+};
+
+
 constexpr size_t gc_manip_index_size = 2;
+constexpr size_t wii_manip_index_size = 2;
 
 // GameCube Controller State
 #pragma pack(push,1)
@@ -191,10 +199,10 @@ std::string GetRAMDisplay();
 
 // Done this way to avoid mixing of core and gui code
 using GCManipFunction = std::function<void(GCPadStatus *, int)>;
-typedef void (*WiiManipFunction)(u8 *, WiimoteEmu::ReportFeatures, int, int, wiimote_key);
+using WiiManipFunction = std::function<void(u8 *, WiimoteEmu::ReportFeatures, int, int, wiimote_key)>;
 
 void SetGCInputManip(GCManipFunction func, GCManipIndex manipfunctionsindex);
-void SetWiiInputManip(WiiManipFunction);
+void SetWiiInputManip(WiiManipFunction func, WiiManipIndex manipfunctionsindex);
 void CallGCInputManip(GCPadStatus* PadStatus, int controllerID);
 void CallWiiInputManip(u8* core, WiimoteEmu::ReportFeatures rptf, int controllerID, int ext, const wiimote_key key);
 }

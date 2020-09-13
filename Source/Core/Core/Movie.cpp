@@ -92,7 +92,7 @@ namespace Movie {
 	static std::string s_InputDisplay[8];
 
 	static GCManipFunction gcmfunc[gc_manip_index_size];
-	static WiiManipFunction wiimfunc = nullptr;
+	static WiiManipFunction wiimfunc[wii_manip_index_size];
 
 	// NOTE: Host / CPU Thread
 	static void EnsureTmpInputSize(size_t bound)
@@ -1634,9 +1634,9 @@ namespace Movie {
     {
 	    gcmfunc[static_cast<size_t>(manipfunctionsindex)] = std::move(func);
     }
-    void SetWiiInputManip(WiiManipFunction func)
+    void SetWiiInputManip(WiiManipFunction func, WiiManipIndex manipfunctionsindex)
     {
-	    wiimfunc = func;
+	    wiimfunc[static_cast<size_t>(manipfunctionsindex)] = std::move(func);
     }
     // NOTE: CPU Thread
     void CallGCInputManip(GCPadStatus *PadStatus, int controllerID)
@@ -1652,8 +1652,12 @@ namespace Movie {
 	// NOTE: CPU Thread
 	void CallWiiInputManip(u8* data, WiimoteEmu::ReportFeatures rptf, int controllerID, int ext, const wiimote_key key)
 	{
-		if (wiimfunc)
-			(*wiimfunc)(data, rptf, controllerID, ext, key);
+	    if (wiimfunc[static_cast<size_t>(WiiManipIndex::TASInputWiiManip)])
+		    wiimfunc[static_cast<size_t>(WiiManipIndex::TASInputWiiManip)](data, rptf, controllerID, ext, key);
+		// Now the Lua one
+	    if (wiimfunc[static_cast<size_t>(WiiManipIndex::LuaWiiManip)])
+		    wiimfunc[static_cast<size_t>(WiiManipIndex::LuaWiiManip)](data, rptf, controllerID, ext, key);
+
 	}
 
 	// NOTE: GPU Thread

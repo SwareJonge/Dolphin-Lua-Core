@@ -6,8 +6,12 @@
 
 #include <map>
 #include <mutex>
+#include <stdio.h>
 #include <wx/frame.h>
 
+#include "Common/CommonTypes.h"
+#include "Core/HW/WiimoteEmu/Attachment/Nunchuk.h"
+#include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "InputCommon/GCPadStatus.h"
 
 // Forward Declarations
@@ -37,10 +41,21 @@ class LuaThread final : public wxThread
 public:
   LuaThread(LuaScriptFrame* p, const wxString& file);
   ~LuaThread();
-  void GetValues(GCPadStatus *PadStatus);
+  void GetValues(GCPadStatus *PadStatus, int number);
+  void GetWiiValues(u8 *data, WiimoteEmu::ReportFeatures rptf, int controllerID, int ext, const wiimote_key key);
   bool m_destruction_flag = false;
-  GCPadStatus m_pad_status;
-  GCPadStatus m_last_pad_status;
+  //std::vector<GCPadStatus> m_pad_status;
+  GCPadStatus m_pad_status[4];
+  wm_buttons m_padWii_status[4];
+  wm_nc nunchuk[4];
+  wm_ir_basic ir_data[4];
+  wm_ir_extended ext_ir_data[4];
+
+
+  GCPadStatus m_last_pad_status[4];
+  wm_buttons m_last_padWii_status[4];
+  wm_nc last_nunchuk[4];
+
 private:
   LuaScriptFrame* m_parent = nullptr;
   wxString m_file_path;
@@ -55,8 +70,11 @@ public:
 
   void Log(const wxString& message);
   void NullifyLuaThread();
-  GCPadStatus& GetPadStatus();
-  GCPadStatus GetLastPadStatus();
+  GCPadStatus& GetPadStatus(int number);  
+  wm_buttons& GetPadWiiStatus(int number);
+  wm_nc& GetNunchukStatus(int number);
+  GCPadStatus GetLastPadStatus(int number);
+  wm_buttons GetLastPadWiiStatus(int number);
   LuaThread* GetLuaThread();
   static LuaScriptFrame* GetCurrentInstance();
 

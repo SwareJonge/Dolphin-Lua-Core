@@ -22,6 +22,13 @@
 #include "Core/HW/GCPadEmu.h"
 #include "Core/State.h"
 #include "Core/HW/ProcessorInterface.h"
+
+#include "Core/HW/Wiimote.h"
+#include "Core/HW/WiimoteEmu/Attachment/Classic.h"
+#include "Core/HW/WiimoteEmu/Attachment/Nunchuk.h"
+#include "Core/HW/WiimoteEmu/WiimoteEmu.h"
+#include "Core/HW/WiimoteReal/WiimoteReal.h"
+
 #include "Core/Movie.h"
 #include "DolphinWX/Frame.h"
 #include "DolphinWX/Main.h"
@@ -77,8 +84,11 @@ static int setAnalogPolar(lua_State* L);
 static int getCStick(lua_State* L);
 static int setCStick(lua_State* L);
 static int setCStickPolar(lua_State* L);
-static int getButtons(lua_State* L);
-static int setButtons(lua_State* L);
+static int setnunstick(lua_State *L);
+static int setnunstickPolar(lua_State *L);
+static int getButtons(lua_State *L);
+static int setWiiButtons(lua_State *L);
+static int setButtons(lua_State *L);
 static int setDPad(lua_State* L);
 static int getTriggers(lua_State* L);
 static int setTriggers(lua_State* L);
@@ -274,14 +284,30 @@ void LuaScriptFrame::NullifyLuaThread()
   m_lua_thread = nullptr;
 }
 
-GCPadStatus& LuaScriptFrame::GetPadStatus()
+GCPadStatus& LuaScriptFrame::GetPadStatus(int number)
 {
-  return m_lua_thread->m_pad_status;
+  return m_lua_thread->m_pad_status[number];
 }
 
-GCPadStatus LuaScriptFrame::GetLastPadStatus()
+wm_buttons& LuaScriptFrame::GetPadWiiStatus(int number)
 {
-  return m_lua_thread->m_last_pad_status;
+	return m_lua_thread->m_padWii_status[number];
+}
+
+wm_nc& LuaScriptFrame::GetNunchukStatus(int number)
+{
+	return m_lua_thread->nunchuk[number];
+}
+
+
+GCPadStatus LuaScriptFrame::GetLastPadStatus(int number)
+{
+  return m_lua_thread->m_last_pad_status[number];
+}
+
+wm_buttons LuaScriptFrame::GetLastPadWiiStatus(int number)
+{
+	return m_lua_thread->m_last_padWii_status[number];
 }
 
 LuaThread* LuaScriptFrame::GetLuaThread()
@@ -299,19 +325,20 @@ LuaScriptFrame* LuaScriptFrame::GetCurrentInstance()
 // Functions to register with Lua
 #pragma region Lua_Functs
 
-static int band(lua_State* L)
+static int band(lua_State *L)
 {
-  lua_pushinteger(L, lua_tointeger(L, 1) & lua_tointeger(L, 2));
-  return 1;
+	lua_pushinteger(L, lua_tointeger(L, 1) & lua_tointeger(L, 2));
+	return 1;
 }
 
 // Prints a string to the text control of this frame
-static int printToTextCtrl(lua_State* L)
+static int printToTextCtrl(lua_State *L)
 {
-  LuaScriptFrame::GetCurrentInstance()->GetEventHandler()->CallAfter(&LuaScriptFrame::Log, wxString(lua_tostring(L, 1)));
-  LuaScriptFrame::GetCurrentInstance()->GetEventHandler()->CallAfter(&LuaScriptFrame::Log, wxString("\n"));
+	LuaScriptFrame::GetCurrentInstance()->GetEventHandler()->CallAfter(&LuaScriptFrame::Log,
+	                                                                   wxString(lua_tostring(L, 1)));
+	LuaScriptFrame::GetCurrentInstance()->GetEventHandler()->CallAfter(&LuaScriptFrame::Log, wxString("\n"));
 
-  return 0;
+	return 0;
 }
 
 static int ReadByte(lua_State *L)
@@ -599,7 +626,6 @@ static int Msg(lua_State *L)
 	return 0; // number of return values
 }
 
-
 // Steps a frame if the emulator is paused, pauses it otherwise.
 static int frameAdvance(lua_State *L)
 {
@@ -612,220 +638,317 @@ static int frameAdvance(lua_State *L)
 	return 0;
 }
 
-static int getFrameCount(lua_State* L)
+static int getFrameCount(lua_State *L)
 {
-  lua_pushinteger(L, Movie::g_currentFrame);
-  return 1;
+	lua_pushinteger(L, Movie::g_currentFrame);
+	return 1;
 }
 
-static int getMovieLength(lua_State* L)
+static int getMovieLength(lua_State *L)
 {
-  if (Movie::IsMovieActive())
-  {
-    lua_pushinteger(L, Movie::g_totalFrames);
-    return 1;
-  }
-  else
-  {
-    return 0;
-  }
+	if (Movie::IsMovieActive())
+	{
+		lua_pushinteger(L, Movie::g_totalFrames);
+		return 1;
+	}
+	else
+	{
+		return 0;
+	}
 }
 
-static int softReset(lua_State* L)
+static int softReset(lua_State *L)
 {
-  ProcessorInterface::ResetButton_Tap();
-  return 0;
+	ProcessorInterface::ResetButton_Tap();
+	return 0;
 }
 
-static int saveState(lua_State* L)
+static int saveState(lua_State *L)
 {
-  int slot = lua_tointeger(L, 1);
+	int slot = lua_tointeger(L, 1);
 
-  State::Save(slot);
-  return 0;
+	State::Save(slot);
+	return 0;
 }
 
-static int loadState(lua_State* L)
+static int loadState(lua_State *L)
 {
-  int slot = lua_tointeger(L, 1);
+	int slot = lua_tointeger(L, 1);
 
-  State::Load(slot);
-  return 0;
+	State::Load(slot);
+	return 0;
 }
 
-static int getAnalog(lua_State* L)
+static int getAnalog(lua_State *L)
 {
-  lua_pushinteger(L, LuaScriptFrame::GetCurrentInstance()->GetLastPadStatus().stickX);
-  lua_pushinteger(L, LuaScriptFrame::GetCurrentInstance()->GetLastPadStatus().stickY);
+	int number = lua_tointeger(L, 1) - 1;
+	lua_pushinteger(L, LuaScriptFrame::GetCurrentInstance()->GetLastPadStatus(number).stickX);
+	lua_pushinteger(L, LuaScriptFrame::GetCurrentInstance()->GetLastPadStatus(number).stickY);
 
-  return 2;
+	return 2;
 }
 
 static int setAnalog(lua_State* L)
 {
-  if (lua_gettop(L) != 2)
-  {
-    return luaL_error(
-        L, "Incorrect # of arguments passed to setAnalog. setAnalog expects two arguments/n");
-  }
+	int number = lua_tointeger(L, 1) - 1;
+	if (lua_gettop(L) != 3)
+	{
+		return luaL_error(L, "Incorrect # of arguments passed to setAnalog. setAnalog expects 3 arguments/n");
+	}
 
-  u8 x_pos = lua_tointeger(L, 1);
-  u8 y_pos = lua_tointeger(L, 2);
+	u8 x_pos = lua_tointeger(L, 2);
+	u8 y_pos = lua_tointeger(L, 3);
 
-  LuaScriptFrame::GetCurrentInstance()->GetPadStatus().stickX = x_pos;
-  LuaScriptFrame::GetCurrentInstance()->GetPadStatus().stickY = y_pos;
+	LuaScriptFrame::GetCurrentInstance()->GetPadStatus(number).stickX = x_pos;
+	LuaScriptFrame::GetCurrentInstance()->GetPadStatus(number).stickY = y_pos;
 
-  return 0;
+	return 0;
 }
 
 // Same thing as setAnalog except it takes polar coordinates
 // Must use an m int the range [0, 128)
 static int setAnalogPolar(lua_State* L)
 {
-  int m = lua_tointeger(L, 1);
-  if (m < 0 || m >= 128)
-  {
-    return luaL_error(L, "m is outside of acceptable range [0, 128)");
-  }
 
-  // Gotta convert theta to radians
-  double theta = lua_tonumber(L, 2) * M_PI / 180.0;
+	int number = lua_tointeger(L, 1) - 1;
+	int m = lua_tointeger(L, 2);
+	if (m < 0 || m >= 128)
+	{
+		return luaL_error(L, "m is outside of acceptable range [0, 128)");
+	}
 
-  // Round to the nearest whole number, then subtract 128 so that our
-  //"origin" is the stick in neutral position.
-  LuaScriptFrame::GetCurrentInstance()->GetPadStatus().stickX = static_cast<u8>(floor(m * cos(theta)) + 128);
-  LuaScriptFrame::GetCurrentInstance()->GetPadStatus().stickY = static_cast<u8>(floor(m * sin(theta)) + 128);
+	// Gotta convert theta to radians
+	double theta = lua_tonumber(L, 3) * M_PI / 180.0;
 
-  return 0;
+	// Round to the nearest whole number, then subtract 128 so that our
+	//"origin" is the stick in neutral position.
+	LuaScriptFrame::GetCurrentInstance()->GetPadStatus(number).stickX = static_cast<u8>(floor(m * cos(theta)) + 128);
+	LuaScriptFrame::GetCurrentInstance()->GetPadStatus(number).stickY = static_cast<u8>(floor(m * sin(theta)) + 128);
+
+	return 0;
 }
 
 static int getCStick(lua_State* L)
 {
-  lua_pushinteger(L, LuaScriptFrame::GetCurrentInstance()->GetLastPadStatus().substickX);
-  lua_pushinteger(L, LuaScriptFrame::GetCurrentInstance()->GetLastPadStatus().substickY);
+	int number = lua_tointeger(L, 1) - 1;
+	lua_pushinteger(L, LuaScriptFrame::GetCurrentInstance()->GetLastPadStatus(number).substickX);
+	lua_pushinteger(L, LuaScriptFrame::GetCurrentInstance()->GetLastPadStatus(number).substickY);
 
-  return 2;
+	return 2;
 }
+
+
+static int setnunstick(lua_State *L)
+{
+	int number = lua_tointeger(L, 1) - 1; 
+	if (lua_gettop(L) != 3)
+	{
+		return luaL_error(L, "Incorrect # of arguments passed to setAnalog. setAnalog expects 3 arguments/n");
+	}
+
+	u8 x_pos = lua_tointeger(L, 2);
+	u8 y_pos = lua_tointeger(L, 3);
+
+	LuaScriptFrame::GetCurrentInstance()->GetNunchukStatus(number).jx = x_pos;
+	LuaScriptFrame::GetCurrentInstance()->GetNunchukStatus(number).jy = y_pos;
+
+	return 0;
+}
+
+static int setnunstickPolar(lua_State *L)
+{
+	int number = lua_tointeger(L, 1) - 1;
+	int m = lua_tointeger(L, 2);
+	if (m < 0 || m >= 128)
+	{
+		return luaL_error(L, "m is outside of acceptable range [0, 128)");
+	}
+
+	int theta = lua_tointeger(L, 3);
+
+	// Convert theta to radians
+	theta = theta * M_PI / 180.0;
+
+	LuaScriptFrame::GetCurrentInstance()->GetNunchukStatus(number).jx = (u8)(floor(m * cos(theta)) + 128);
+	LuaScriptFrame::GetCurrentInstance()->GetNunchukStatus(number).jy = (u8)(floor(m * sin(theta)) + 128);
+
+	return 0;
+}
+
+
 
 static int setCStick(lua_State* L)
 {
-  LuaScriptFrame::GetCurrentInstance()->GetPadStatus().substickX = lua_tointeger(L, 1);
-  LuaScriptFrame::GetCurrentInstance()->GetPadStatus().substickY = lua_tointeger(L, 2);
+	int number = lua_tointeger(L, 1) - 1;
+    LuaScriptFrame::GetCurrentInstance()->GetPadStatus(number).substickX = lua_tointeger(L, 2);
+	LuaScriptFrame::GetCurrentInstance()->GetPadStatus(number).substickY = lua_tointeger(L, 3);
 
   return 0;
 }
 
 static int setCStickPolar(lua_State* L)
 {
-  int m = lua_tointeger(L, 1);
-  if (m < 0 || m >= 128)
-  {
-    return luaL_error(L, "m is outside of acceptable range [0, 128)");
-  }
+	int number = lua_tointeger(L, 1) - 1;
+	int m = lua_tointeger(L, 2);
+	if (m < 0 || m >= 128)
+	{
+		return luaL_error(L, "m is outside of acceptable range [0, 128)");
+	}
 
-  int theta = lua_tointeger(L, 2);
+	int theta = lua_tointeger(L, 3);
 
-  // Convert theta to radians
-  theta = theta * M_PI / 180.0;
+	// Convert theta to radians
+	theta = theta * M_PI / 180.0;
 
-  LuaScriptFrame::GetCurrentInstance()->GetPadStatus().substickX = (u8)(floor(m * cos(theta)) + 128);
-  LuaScriptFrame::GetCurrentInstance()->GetPadStatus().substickY = (u8)(floor(m * sin(theta)) + 128);
+	LuaScriptFrame::GetCurrentInstance()->GetPadStatus(number).substickX = (u8)(floor(m * cos(theta)) + 128);
+	LuaScriptFrame::GetCurrentInstance()->GetPadStatus(number).substickY = (u8)(floor(m * sin(theta)) + 128);
 
-  return 0;
+	return 0;
 }
 
 static int getButtons(lua_State* L)
 {
-  lua_pushinteger(L, LuaScriptFrame::GetCurrentInstance()->GetLastPadStatus().button);
-  return 1;
+	int number = lua_tointeger(L, 1) - 1;
+	lua_pushinteger(L, LuaScriptFrame::GetCurrentInstance()->GetLastPadStatus(number).button);
+	return 1;
 }
 
 // Each button passed in is set to pressed.
 static int setButtons(lua_State* L)
 {
-  const char* s = lua_tostring(L, 1);
+	int number = lua_tointeger(L, 1) - 1;
+	const char *s = lua_tostring(L, 2);
 
-  for (size_t i = 0; i < strlen(s); i++)
-  {
-    if (s[i] == 'U')
-    {
-      LuaScriptFrame::GetCurrentInstance()->GetPadStatus().button = 0;
-      break;
-    }
+	for (size_t i = 0; i < strlen(s); i++)
+	{
+		if (s[i] == 'U')
+		{
+			LuaScriptFrame::GetCurrentInstance()->GetPadStatus(number).button = 0;
+			break;
+		}
 
-    switch (s[i])
-    {
-    case 'A':
-      LuaScriptFrame::GetCurrentInstance()->GetPadStatus().button |= PadButton::PAD_BUTTON_A;
-      break;
-    case 'B':
-      LuaScriptFrame::GetCurrentInstance()->GetPadStatus().button |= PadButton::PAD_BUTTON_B;
-      break;
-    case 'X':
-      LuaScriptFrame::GetCurrentInstance()->GetPadStatus().button |= PadButton::PAD_BUTTON_X;
-      break;
-    case 'Y':
-      LuaScriptFrame::GetCurrentInstance()->GetPadStatus().button |= PadButton::PAD_BUTTON_Y;
-      break;
-    case 'S':
-      LuaScriptFrame::GetCurrentInstance()->GetPadStatus().button |= PadButton::PAD_BUTTON_START;
-      break;
-    case 'Z':
-      LuaScriptFrame::GetCurrentInstance()->GetPadStatus().button |= PadButton::PAD_TRIGGER_Z;
-      break;
-    }
-  }
+		switch (s[i])
+		{
+		case 'A':
+			LuaScriptFrame::GetCurrentInstance()->GetPadStatus(number).button |= PadButton::PAD_BUTTON_A;
+			break;
+		case 'B':
+			LuaScriptFrame::GetCurrentInstance()->GetPadStatus(number).button |= PadButton::PAD_BUTTON_B;
+			break;
+		case 'X':
+			LuaScriptFrame::GetCurrentInstance()->GetPadStatus(number).button |= PadButton::PAD_BUTTON_X;
+			break;
+		case 'Y':
+			LuaScriptFrame::GetCurrentInstance()->GetPadStatus(number).button |= PadButton::PAD_BUTTON_Y;
+			break;
+		case 'S':
+			LuaScriptFrame::GetCurrentInstance()->GetPadStatus(number).button |= PadButton::PAD_BUTTON_START;
+			break;
+		case 'Z':
+			LuaScriptFrame::GetCurrentInstance()->GetPadStatus(number).button |= PadButton::PAD_TRIGGER_Z;
+			break;
+		}
+	}
+	return 0;
+}
 
-  return 0;
+static int setWiiButtons(lua_State* L)
+{
+	int number = lua_tointeger(L, 1) - 1;
+	const char *s = lua_tostring(L, 2);
+
+	for (size_t i = 0; i < strlen(s); i++)
+	{
+		switch (s[i])
+		{
+		case 'A':
+			LuaScriptFrame::GetCurrentInstance()->GetPadWiiStatus(number).hex |= WiimoteEmu::Wiimote::BUTTON_A;
+			LuaScriptFrame::GetCurrentInstance()->GetPadWiiStatus(number).a = 0xFF;
+			break;
+		case 'B':
+			LuaScriptFrame::GetCurrentInstance()->GetPadWiiStatus(number).hex |= WiimoteEmu::Wiimote::BUTTON_B;
+			LuaScriptFrame::GetCurrentInstance()->GetPadWiiStatus(number).b = 0xFF;
+			break;
+		case '-':
+			LuaScriptFrame::GetCurrentInstance()->GetPadWiiStatus(number).hex |= WiimoteEmu::Wiimote::BUTTON_MINUS;
+			LuaScriptFrame::GetCurrentInstance()->GetPadWiiStatus(number).minus = 0xFF;
+			break;
+		case '+':
+			LuaScriptFrame::GetCurrentInstance()->GetPadWiiStatus(number).hex |= WiimoteEmu::Wiimote::BUTTON_PLUS;
+			LuaScriptFrame::GetCurrentInstance()->GetPadWiiStatus(number).plus = 0xFF;
+			break;
+		case '1':
+			LuaScriptFrame::GetCurrentInstance()->GetPadWiiStatus(number).hex |= WiimoteEmu::Wiimote::BUTTON_ONE;
+			LuaScriptFrame::GetCurrentInstance()->GetPadWiiStatus(number).one = 0xFF;
+			break;
+		case '2':
+			LuaScriptFrame::GetCurrentInstance()->GetPadWiiStatus(number).hex |= WiimoteEmu::Wiimote::BUTTON_TWO;
+			LuaScriptFrame::GetCurrentInstance()->GetPadWiiStatus(number).two = 0xFF;
+			break;
+		case 'C':
+			LuaScriptFrame::GetCurrentInstance()->GetNunchukStatus(number).bt.hex |= WiimoteEmu::Nunchuk::BUTTON_C;
+			break;
+		case 'Z':
+			LuaScriptFrame::GetCurrentInstance()->GetNunchukStatus(number).bt.hex |= WiimoteEmu::Nunchuk::BUTTON_Z;
+			break;
+		}
+
+
+	}
+
+	return 0;
 }
 
 static int setDPad(lua_State* L)
 {
-  const char* str = lua_tostring(L, 1);
+	int number = lua_tointeger(L, 1) - 1;
+	const char *str = lua_tostring(L, 2);
 
-  for (size_t i = 0; i < strlen(str); i++)
-  {
-    switch (str[i])
-    {
-    case 'U':
-      LuaScriptFrame::GetCurrentInstance()->GetPadStatus().button |= PadButton::PAD_BUTTON_UP;
-      break;
-    case 'D':
-      LuaScriptFrame::GetCurrentInstance()->GetPadStatus().button |= PadButton::PAD_BUTTON_DOWN;
-      break;
-    case 'L':
-      LuaScriptFrame::GetCurrentInstance()->GetPadStatus().button |= PadButton::PAD_BUTTON_LEFT;
-      break;
-    case 'R':
-      LuaScriptFrame::GetCurrentInstance()->GetPadStatus().button |= PadButton::PAD_BUTTON_RIGHT;
-      break;
-    }
-  }
+	for (size_t i = 0; i < strlen(str); i++)
+	{
+		switch (str[i])
+		{
+		case 'U':
+			LuaScriptFrame::GetCurrentInstance()->GetPadStatus(number).button |= PadButton::PAD_BUTTON_UP;
+			break;
+		case 'D':
+			LuaScriptFrame::GetCurrentInstance()->GetPadStatus(number).button |= PadButton::PAD_BUTTON_DOWN;
+			break;
+		case 'L':
+			LuaScriptFrame::GetCurrentInstance()->GetPadStatus(number).button |= PadButton::PAD_BUTTON_LEFT;
+			break;
+		case 'R':
+			LuaScriptFrame::GetCurrentInstance()->GetPadStatus(number).button |= PadButton::PAD_BUTTON_RIGHT;
+			break;
+		}
+	}
 
-  return 0;
+	return 0;
 }
 
-static int setEmulatorSpeed(lua_State* L)
+static int setEmulatorSpeed(lua_State *L)
 {
-  SConfig::GetInstance().m_EmulationSpeed = lua_tonumber(L, 1) * 0.01f;
+	SConfig::GetInstance().m_EmulationSpeed = lua_tonumber(L, 1) * 0.01f;
 
-  return 0;
+	return 0;
 }
 
-static int getTriggers(lua_State* L)
+static int getTriggers(lua_State *L)
 {
-  lua_pushinteger(L, LuaScriptFrame::GetCurrentInstance()->GetLastPadStatus().triggerLeft);
-  lua_pushinteger(L, LuaScriptFrame::GetCurrentInstance()->GetLastPadStatus().triggerRight);
+	int number = lua_tointeger(L, 1) - 1;
+	lua_pushinteger(L, LuaScriptFrame::GetCurrentInstance()->GetLastPadStatus(number).triggerLeft);
+	lua_pushinteger(L, LuaScriptFrame::GetCurrentInstance()->GetLastPadStatus(number).triggerRight);
 
-  return 2;
+	return 2;
 }
 
-static int setTriggers(lua_State* L)
+static int setTriggers(lua_State *L)
 {
-  LuaScriptFrame::GetCurrentInstance()->GetPadStatus().triggerLeft = lua_tointeger(L, 1);
-  LuaScriptFrame::GetCurrentInstance()->GetPadStatus().triggerRight = lua_tointeger(L, 2);
+	int number = lua_tointeger(L, 1) - 1;
+	LuaScriptFrame::GetCurrentInstance()->GetPadStatus(number).triggerLeft = lua_tointeger(L, 2);
+	LuaScriptFrame::GetCurrentInstance()->GetPadStatus(number).triggerRight = lua_tointeger(L, 3);
 
-  return 0;
+	return 0;
 }
 
 int luaopen_libs(lua_State* L)
@@ -879,7 +1002,7 @@ int luaopen_libs(lua_State* L)
     {nullptr, nullptr}
   };
 
-  static const luaL_Reg joypad[] =
+  static const luaL_Reg joypadGC[] =
   {
     {"getAnalog", getAnalog },
     {"setAnalog", setAnalog },
@@ -895,8 +1018,22 @@ int luaopen_libs(lua_State* L)
     {nullptr, nullptr}
   };
 
+  static const luaL_Reg joypadWii[] = 
+  {
+	  //{"setIR", setIR}, 
+	  {"setButtons", setWiiButtons}, 
+      {"setNunStick", setnunstick},
+	  {nullptr, nullptr}
+
+  };
 
 
+
+
+  luaL_newlib(L, joypadGC);
+  lua_setglobal(L, "joypad_GC");
+  luaL_newlib(L, joypadWii);
+  lua_setglobal(L, "joypad_Wii");
   luaL_newlib(L, bit);
   lua_setglobal(L, "bit");
   luaL_newlib(L, gui);
@@ -907,8 +1044,6 @@ int luaopen_libs(lua_State* L)
   lua_setglobal(L, "client");
   luaL_newlib(L, emu);
   lua_setglobal(L, "emu");
-  luaL_newlib(L, joypad);
-  lua_setglobal(L, "joypad");
   return 1;
 }
 #pragma endregion
