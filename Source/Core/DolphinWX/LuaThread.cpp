@@ -27,6 +27,7 @@ LuaThread::LuaThread(LuaScriptFrame* p, const wxString& file)
   // Zero out controllers
 	for (int i = 0; i < 4; i++)
 	{
+		//GC Pad
 		m_pad_status[i].button = 0;
 		m_pad_status[i].stickX = GCPadStatus::MAIN_STICK_CENTER_X;
 		m_pad_status[i].stickY = GCPadStatus::MAIN_STICK_CENTER_Y;
@@ -34,28 +35,26 @@ LuaThread::LuaThread(LuaScriptFrame* p, const wxString& file)
 		m_pad_status[i].triggerRight = 0;
 		m_pad_status[i].substickX = GCPadStatus::C_STICK_CENTER_X;
 		m_pad_status[i].substickY = GCPadStatus::C_STICK_CENTER_Y;
-		m_padWii_status[i].hex = 0;
-		nunchuk[i].bt.hex = 0;
-		nunchuk[i].jx = WiimoteEmu::Nunchuk::STICK_CENTER;
-		nunchuk[i].jy = WiimoteEmu::Nunchuk::STICK_CENTER;
+		
+		// Wiimote
+		m_Lua_Wiimote[i].m_padWii_status.hex = 0;
+		m_Lua_Wiimote[i].accelData.x = WiimoteEmu::ACCEL_ZERO_G; // hopefully this is right idk
+		m_Lua_Wiimote[i].accelData.y = WiimoteEmu::ACCEL_ZERO_G;
+		m_Lua_Wiimote[i].accelData.z = WiimoteEmu::ACCEL_ZERO_G;
+
+		// Nunchuk
+		m_Lua_Wiimote[i].m_nunchuk.bt.hex = 0;
+		m_Lua_Wiimote[i].m_nunchuk.jx = WiimoteEmu::Nunchuk::STICK_CENTER;
+		m_Lua_Wiimote[i].m_nunchuk.jy = WiimoteEmu::Nunchuk::STICK_CENTER;
+		// Classic
+		m_Lua_Wiimote[i].m_classic.bt.hex = 0;
+		m_Lua_Wiimote[i].m_classic.regular_data.lx = WiimoteEmu::Classic::LEFT_STICK_CENTER_X;
+		m_Lua_Wiimote[i].m_classic.regular_data.ly = WiimoteEmu::Classic::LEFT_STICK_CENTER_Y;
+		m_Lua_Wiimote[i].m_classic.rx1 = WiimoteEmu::Classic::RIGHT_STICK_CENTER_X & 0x1;
+		m_Lua_Wiimote[i].m_classic.rx2 = WiimoteEmu::Classic::RIGHT_STICK_CENTER_X & 0x3;
+		m_Lua_Wiimote[i].m_classic.rx3 = WiimoteEmu::Classic::RIGHT_STICK_CENTER_X & 0x3;
+		m_Lua_Wiimote[i].m_classic.ry = WiimoteEmu::Classic::RIGHT_STICK_CENTER_Y;
 	}
-
-
-  /*m_padWii_status.a = 0;
-  m_padWii_status.b = 0;
-  m_padWii_status.one = 0;
-  m_padWii_status.two = 0;
-  m_padWii_status.minus = 0;
-  m_padWii_status.plus = 0;
-  m_padWii_status.home = 0;
-  m_padWii_status.unknown = 0;
-  m_padWii_status.acc_x_lsb = 128;
-  m_padWii_status.acc_y_lsb = 128;
-  m_padWii_status.acc_z_lsb = 128;
-  m_padWii_status.up = 0;
-  m_padWii_status.down = 0;
-  m_padWii_status.left = 0;
-  m_padWii_status.right = 0;*/
 
 
   // Register GetValues()
@@ -141,42 +140,77 @@ void LuaThread::GetValues(GCPadStatus *PadStatus, int number)
 
 void LuaThread::GetWiiValues(u8 *data, WiimoteEmu::ReportFeatures rptf, int controllerID, int ext, const wiimote_key key)
 {
-	//u8 *const coreData = rptf.core ? (data + rptf.core) : nullptr;
-	//u8 *const accelData = rptf.accel ? (data + rptf.accel) : nullptr;
-	//u8 *const irData = rptf.ir ? (data + rptf.ir) : nullptr;
+	u8 *const coreData = rptf.core ? (data + rptf.core) : nullptr;
+	u8 *const accelData = rptf.accel ? (data + rptf.accel) : nullptr;
+	u8 *const irData = rptf.ir ? (data + rptf.ir) : nullptr;
 	u8 *const extData = rptf.ext ? (data + rptf.ext) : nullptr;
 
-	if (LuaThread::m_padWii_status[controllerID].hex != 0)
-		((wm_buttons *)(rptf.core ? (data + rptf.core) : nullptr))->hex |= LuaThread::m_padWii_status[controllerID].hex;
-
-	u8 mode;
-	// Mode 5 not supported in core anyway.
-	if (rptf.ext)
-		mode = (rptf.ext - rptf.ir) == 10 ? 1 : 3;
-	else
-		mode = (rptf.size - rptf.ir) == 10 ? 1 : 3;
-
-	if (mode == 1)
+	if (ext != 2)
 	{
+		if (coreData)
+			((wm_buttons *)coreData)->hex |= LuaThread::m_Lua_Wiimote[controllerID].m_padWii_status.hex;
+		if (accelData)
+		{
+			//((wm_accel *)accelData)->x = LuaThread::m_Lua_Wiimote[controllerID].accelData.x;
+			//((wm_accel *)accelData)->y = LuaThread::m_Lua_Wiimote[controllerID].accelData.y;
+			//((wm_accel *)accelData)->z = LuaThread::m_Lua_Wiimote[controllerID].accelData.z;
+		}
+		if (irData)
+		{ // Lets do this a different time
 
+		}		
 	}
-	else
-	{
-
-	}
-
+	// Nunchuk
 	if (extData && ext == 1)
 	{
-		if (LuaThread::nunchuk[controllerID].bt.hex != 0)
-			((wm_nc *)(rptf.ext ? (data + rptf.ext) : nullptr))->bt.hex |= LuaThread::nunchuk[controllerID].bt.hex;
-		if (LuaThread::nunchuk[controllerID].jx != WiimoteEmu::Nunchuk::STICK_CENTER)
-			((wm_nc *)(rptf.ext ? (data + rptf.ext) : nullptr))->jx = LuaThread::nunchuk[controllerID].jx;
-		if (LuaThread::nunchuk[controllerID].jy != WiimoteEmu::Nunchuk::STICK_CENTER)
-			((wm_nc *)(rptf.ext ? (data + rptf.ext) : nullptr))->jy = LuaThread::nunchuk[controllerID].jy;
+		WiimoteDecrypt(&key, (u8 *)(extData), 0, sizeof(wm_nc));
+		// Buttons
+		if (LuaThread::m_Lua_Wiimote[controllerID].m_nunchuk.bt.hex != 0)
+		{
+			((wm_nc *)(extData))->bt.hex |= (LuaThread::m_Lua_Wiimote[controllerID].m_nunchuk.bt.hex);
+		}
+
+		// Analog stick
+		if (LuaThread::m_Lua_Wiimote[controllerID].m_nunchuk.jx != WiimoteEmu::Nunchuk::STICK_CENTER)
+		{
+			((wm_nc *)(extData))->jx = LuaThread::m_Lua_Wiimote[controllerID].m_nunchuk.jx;
+		}
+			
+		if (LuaThread::m_Lua_Wiimote[controllerID].m_nunchuk.jy != WiimoteEmu::Nunchuk::STICK_CENTER)
+		{
+			((wm_nc *)(extData))->jy = LuaThread::m_Lua_Wiimote[controllerID].m_nunchuk.jy;
+		}
+
+		m_last_Lua_Wiimote[controllerID].m_nunchuk = *((wm_nc *)extData);
+		// Encrypt Data 
+		WiimoteEncrypt(&key, ((u8 *)(extData)), 0, sizeof(wm_nc));		
 	}
+	// Classic
+	else if (extData && ext == 2)
+	{
+		// Buttons
+		((wm_classic_extension *)extData)->bt.hex |= LuaThread::m_Lua_Wiimote[controllerID].m_classic.bt.hex;
+		// Left analog stick
+		if (LuaThread::m_Lua_Wiimote[controllerID].m_classic.regular_data.lx != WiimoteEmu::Classic::LEFT_STICK_CENTER_X)
+			((wm_classic_extension *)extData)->regular_data.lx = LuaThread::m_Lua_Wiimote[controllerID].m_classic.regular_data.lx;
+		if (LuaThread::m_Lua_Wiimote[controllerID].m_classic.regular_data.ly != WiimoteEmu::Classic::LEFT_STICK_CENTER_Y)
+			((wm_classic_extension *)extData)->regular_data.ly = LuaThread::m_Lua_Wiimote[controllerID].m_classic.regular_data.ly;
+		// Right analog stick
+		// for compiling sake just disable this, who's going to use this anyway
+		/*if (LuaThread::m_Lua_Wiimote[controllerID].m_classic.rx1 != (WiimoteEmu::Classic::RIGHT_STICK_CENTER_X & 0x1))
+			((wm_classic_extension *)extData)->rx1 = LuaThread::m_Lua_Wiimote[controllerID].m_classic.rx1;
+		if (LuaThread::m_Lua_Wiimote[controllerID].m_classic.rx2 != WiimoteEmu::Classic::RIGHT_STICK_CENTER_X & 0x3)
+			((wm_classic_extension *)extData)->rx2 = LuaThread::m_Lua_Wiimote[controllerID].m_classic.rx2;
+		if (LuaThread::m_Lua_Wiimote[controllerID].m_classic.rx3 != WiimoteEmu::Classic::RIGHT_STICK_CENTER_X & 0x3)
+			((wm_classic_extension *)extData)->rx3 = LuaThread::m_Lua_Wiimote[controllerID].m_classic.rx3;*/
+
+		m_last_Lua_Wiimote[controllerID].m_classic = *((wm_classic_extension *)extData);
+
+	}
+
 	// Update internal gamepad representation with the same struct we're sending out
-	m_last_padWii_status[controllerID] = *((wm_buttons *)(rptf.core ? (data + rptf.core) : nullptr));
-	last_nunchuk[controllerID] = *((wm_nc *)(rptf.ext ? (data + rptf.ext) : nullptr));
+	m_last_Lua_Wiimote[controllerID].m_padWii_status = *((wm_buttons *)(rptf.core ? (data + rptf.core) : nullptr));
+	
 }
 
 void HookFunction(lua_State* L, lua_Debug* ar)

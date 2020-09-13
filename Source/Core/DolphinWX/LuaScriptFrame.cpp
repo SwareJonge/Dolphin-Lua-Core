@@ -88,8 +88,10 @@ static int setnunstick(lua_State *L);
 static int setnunstickPolar(lua_State *L);
 static int getButtons(lua_State *L);
 static int setWiiButtons(lua_State *L);
+static int setNunchukButtons(lua_State *L);
 static int setButtons(lua_State *L);
 static int setDPad(lua_State* L);
+static int setWiimoteDPad(lua_State *L);
 static int getTriggers(lua_State* L);
 static int setTriggers(lua_State* L);
 LuaScriptFrame *LuaScriptFrame::m_current_instance;
@@ -291,14 +293,13 @@ GCPadStatus& LuaScriptFrame::GetPadStatus(int number)
 
 wm_buttons& LuaScriptFrame::GetPadWiiStatus(int number)
 {
-	return m_lua_thread->m_padWii_status[number];
+	return m_lua_thread->m_Lua_Wiimote[number].m_padWii_status;
 }
 
 wm_nc& LuaScriptFrame::GetNunchukStatus(int number)
 {
-	return m_lua_thread->nunchuk[number];
+	return m_lua_thread->m_Lua_Wiimote[number].m_nunchuk;
 }
-
 
 GCPadStatus LuaScriptFrame::GetLastPadStatus(int number)
 {
@@ -307,7 +308,7 @@ GCPadStatus LuaScriptFrame::GetLastPadStatus(int number)
 
 wm_buttons LuaScriptFrame::GetLastPadWiiStatus(int number)
 {
-	return m_lua_thread->m_last_padWii_status[number];
+	return m_lua_thread->m_last_Lua_Wiimote[number].m_padWii_status;
 }
 
 LuaThread* LuaScriptFrame::GetLuaThread()
@@ -746,11 +747,8 @@ static int setnunstick(lua_State *L)
 		return luaL_error(L, "Incorrect # of arguments passed to setAnalog. setAnalog expects 3 arguments/n");
 	}
 
-	u8 x_pos = lua_tointeger(L, 2);
-	u8 y_pos = lua_tointeger(L, 3);
-
-	LuaScriptFrame::GetCurrentInstance()->GetNunchukStatus(number).jx = x_pos;
-	LuaScriptFrame::GetCurrentInstance()->GetNunchukStatus(number).jy = y_pos;
+	LuaScriptFrame::GetCurrentInstance()->GetNunchukStatus(number).jx = lua_tonumber(L, 2);
+	LuaScriptFrame::GetCurrentInstance()->GetNunchukStatus(number).jy = lua_tonumber(L, 3);
 
 	return 0;
 }
@@ -852,6 +850,29 @@ static int setButtons(lua_State* L)
 	return 0;
 }
 
+static int setNunchukButtons(lua_State *L)
+{
+	int number = lua_tointeger(L, 1) - 1;
+	const char *s = lua_tostring(L, 2);
+
+	for (size_t i = 0; i < strlen(s); i++)
+	{
+		switch (s[i])
+		{
+		case 'C':
+			LuaScriptFrame::GetCurrentInstance()->GetNunchukStatus(number).bt.hex |= WiimoteEmu::Nunchuk::BUTTON_C;
+			LuaScriptFrame::GetCurrentInstance()->GetNunchukStatus(number).bt.c = 0xFF;
+			break;
+		case 'Z':
+			LuaScriptFrame::GetCurrentInstance()->GetNunchukStatus(number).bt.hex |= WiimoteEmu::Nunchuk::BUTTON_Z;
+			LuaScriptFrame::GetCurrentInstance()->GetNunchukStatus(number).bt.z = 0xFF;
+			break;
+		}
+	}
+	return 0;
+
+}
+
 static int setWiiButtons(lua_State* L)
 {
 	int number = lua_tointeger(L, 1) - 1;
@@ -885,16 +906,34 @@ static int setWiiButtons(lua_State* L)
 			LuaScriptFrame::GetCurrentInstance()->GetPadWiiStatus(number).hex |= WiimoteEmu::Wiimote::BUTTON_TWO;
 			LuaScriptFrame::GetCurrentInstance()->GetPadWiiStatus(number).two = 0xFF;
 			break;
-		case 'C':
-			LuaScriptFrame::GetCurrentInstance()->GetNunchukStatus(number).bt.hex |= WiimoteEmu::Nunchuk::BUTTON_C;
+		}
+	}
+	return 0;
+}
+
+static int setWiimoteDPad(lua_State *L)
+{
+	int number = lua_tointeger(L, 1) - 1;
+	const char *str = lua_tostring(L, 2);
+
+	for (size_t i = 0; i < strlen(str); i++)
+	{
+		switch (str[i])
+		{
+		case 'U':
+			LuaScriptFrame::GetCurrentInstance()->GetPadWiiStatus(number).hex |= WiimoteEmu::Wiimote::PAD_UP;
 			break;
-		case 'Z':
-			LuaScriptFrame::GetCurrentInstance()->GetNunchukStatus(number).bt.hex |= WiimoteEmu::Nunchuk::BUTTON_Z;
+		case 'D':
+			LuaScriptFrame::GetCurrentInstance()->GetPadWiiStatus(number).hex |= WiimoteEmu::Wiimote::PAD_DOWN;
+			break;
+		case 'L':
+			LuaScriptFrame::GetCurrentInstance()->GetPadWiiStatus(number).hex |= WiimoteEmu::Wiimote::PAD_LEFT;
+			break;
+		case 'R':
+			LuaScriptFrame::GetCurrentInstance()->GetPadWiiStatus(number).hex |= WiimoteEmu::Wiimote::PAD_RIGHT;
 			break;
 		}
-
-
-	}
+	}	
 
 	return 0;
 }
@@ -1023,6 +1062,8 @@ int luaopen_libs(lua_State* L)
 	  //{"setIR", setIR}, 
 	  {"setButtons", setWiiButtons}, 
       {"setNunStick", setnunstick},
+	  {"setNunchukButtons", setNunchukButtons},
+	  {"setDPad", setWiimoteDPad},
 	  {nullptr, nullptr}
 
   };

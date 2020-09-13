@@ -27,6 +27,17 @@ struct lua_State;
 struct lua_Debug;
 struct luaL_Reg;
 
+
+  struct LuaWiimote
+  {
+	  wm_buttons m_padWii_status;
+	  wm_accel accelData;
+	  wm_nc m_nunchuk;
+	  wm_ir_basic ir_data;
+	  wm_ir_extended ext_ir_data;
+	  wm_classic_extension m_classic;
+  };
+
 namespace Lua
 {
 using LuaFunction = int (*)(lua_State* L);
@@ -45,16 +56,13 @@ public:
   void GetWiiValues(u8 *data, WiimoteEmu::ReportFeatures rptf, int controllerID, int ext, const wiimote_key key);
   bool m_destruction_flag = false;
   //std::vector<GCPadStatus> m_pad_status;
-  GCPadStatus m_pad_status[4];
-  wm_buttons m_padWii_status[4];
-  wm_nc nunchuk[4];
-  wm_ir_basic ir_data[4];
-  wm_ir_extended ext_ir_data[4];
 
+
+  GCPadStatus m_pad_status[4];
+  LuaWiimote m_Lua_Wiimote[4];
 
   GCPadStatus m_last_pad_status[4];
-  wm_buttons m_last_padWii_status[4];
-  wm_nc last_nunchuk[4];
+  LuaWiimote m_last_Lua_Wiimote[4];
 
 private:
   LuaScriptFrame* m_parent = nullptr;
