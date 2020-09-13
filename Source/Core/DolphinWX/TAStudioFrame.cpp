@@ -7,50 +7,10 @@
 #include "TAStudioFrame.h"
 
 wxBEGIN_EVENT_TABLE(InputGrid, wxGrid)
-	//EVT_GRID_SELECT_CELL(InputGrid::OnSelectCell)
-	EVT_GRID_CELL_LEFT_CLICK(InputGrid::OnSelectCell)
-	EVT_GRID_CELL_CHANGED(InputGrid::OnCellChanged)
-	EVT_MOUSEWHEEL(InputGrid::OnMouseWheel)
-	EVT_GRID_RANGE_SELECT(InputGrid::OnRangeSelect)
-	EVT_GRID_CELL_RIGHT_CLICK(InputGrid::OnCellRightClick)
+EVT_GRID_CELL_CHANGED(InputGrid::OnCellChanged)
+EVT_MOUSEWHEEL(InputGrid::OnMouseWheel)
+EVT_GRID_CELL_RIGHT_CLICK(InputGrid::OnCellRightClick)
 wxEND_EVENT_TABLE()
-
-/*
-	TODO:
-	- Implement a function that updates InputGrid::m_inputVector when a state is loaded. DONE
-	- Optimize the functions handling groupByVI access by creating a table that indexes every frameCount to the
-		inputCount they're related to, so we don't need to execute searches everytime. DONE
-	- Update InputGrid::m_groupByVI when the checkbox TAStudioFrame::m_groupByVI is changed (using event). DONE
-	- Dolphin throws an error when the emulator is closed, probably because something should be done at the destructor.
-		Find out what that is.
-	- Dolphin sometimes crashes when there's too much input being processed (usually when groupByVI isn't checked).
-		One possible solution to that is disable the grid's auto update in GetInput (in case the crashes happen because
-		of too many GUI updates) and creating a button to do that manually.
-		DONE-ish: still getting random crashes, but less often (better after including Batch functions - maybe solved?)
-	- User functions we should look into:
-		- Insert blank inputs;  =|
-		- Copy/paste inputs;    =|--> These 3 functions should only interact with the m_inputVector
-		- Delete inputs;        =|    vector and NOT directly with the grid!
-		- Make current frame in grid selected (SelectRow isn't a good idea because calling it too many times quickly
-			causes performance issues);
-		- Go to specific frame;
-		- User friendly way to edit analog inputs (something like TAS Input maybe?). IN PROGRESS
-		- Activate/Deactivate certain buttons in TAStudio (e.g. edit button presses but leave analog stick up to a lua script)
-		- Shift-click to set multiple cell values DONE-ish: Currently reselecting a range will first unset the clicked cell, then causing the range function to set all inputs, thus preventing the user from being able to un-set a range of cell values
-	- Variable watch in grid:
-		- Allow the user to choose variables to include in the grid, which will be updated every frame
-		- Use pre-existing Lua functions as templates
-		- To select variables, we can:
-			- Either let the user input address (+ pointer if dynamic) and data type
-			- Or define game specific variables in .ini files, that this class accesses
-
-	TODO-but-not-for-now:
-	- Rewind-kind of feature
-		- Store a buffer of savestates in RAM of the recent 60-ish frames
-			- The buffer size could be a custom option to allow the user to use more/less RAM for Dolphin
-		- When the rewind function is executed, Dolphin checks in the buffer if given frame exists. If it does,
-			that state is loaded and the buffer is updated
-*/
 
 TAStudioFrame::TAStudioFrame(wxWindow* parent, wxWindowID id, const wxString& title,
 	const wxPoint& position, const wxSize& size, long style)
@@ -58,81 +18,136 @@ TAStudioFrame::TAStudioFrame(wxWindow* parent, wxWindowID id, const wxString& ti
 {
 	SetSizeHints(wxDefaultSize, wxDefaultSize);
 
-	m_stickXValue = 128;
-	m_stickYValue = 128;
-
 	// build GUI here
-	wxFlexGridSizer* fgSizer;
-	fgSizer = new wxFlexGridSizer(1, 2, 0, 0);
-	fgSizer->SetFlexibleDirection(wxBOTH);
-	fgSizer->SetNonFlexibleGrowMode(wxFLEX_GROWMODE_SPECIFIED);
+	wxBoxSizer* boxSizer;
+	boxSizer = new wxBoxSizer(wxHORIZONTAL);
 
 	m_inputGrid = new InputGrid(this);
 
-	m_sideWrapper = new  wxBoxSizer(wxVERTICAL);
-	m_controlWrapper = new wxStaticBoxSizer(wxVERTICAL, this, wxT("Controls"));
+	wxBoxSizer* sideWrapper = new wxBoxSizer(wxVERTICAL);
+	wxStaticBoxSizer* controlWrapper = new wxStaticBoxSizer(wxVERTICAL, this, _("Controls"));
 
-	m_inputFrameCount = new wxTextCtrl(this, wxID_ANY);
-	m_sendInputsToDolphin = new wxCheckBox(this, wxID_ANY, wxT("Send inputs to Dolphin"));
-	m_groupByVI = new wxCheckBox(this, wxID_ANY, wxT("Group by VI counter"));
-	m_autoUpdateGrid = new wxCheckBox(this, wxID_ANY, wxT("Auto update grid"));
+	m_sendInputsToDolphin = new wxCheckBox(this, wxID_ANY, _("Read + Write Mode"));
+	m_groupByVI = new wxCheckBox(this, wxID_ANY, _("Group by VI counter"));
+	m_autoUpdateGrid = new wxCheckBox(this, wxID_ANY, _("Disable auto update grid"));
 
-	m_updateGrid = new wxButton(this, wxID_ANY, wxT("Update grid"));
-	m_goToCurrentFrame = new wxButton(this, wxID_ANY, wxT("Go to current frame"));
+	wxButton* updateGrid = new wxButton(this, wxID_ANY, _("Update grid"), wxDefaultPosition, wxSize(200, 20));
+	wxButton* goToCurrentFrame = new wxButton(this, wxID_ANY, _("Go to current frame"), wxDefaultPosition, wxSize(200, 20));
+	wxButton* goToInputFrame = new wxButton(this, wxID_ANY, _("Go to input frame..."), wxDefaultPosition, wxSize(200, 20));
+	wxButton* goToVI = new wxButton(this, wxID_ANY, _("Go to VI..."), wxDefaultPosition, wxSize(200, 20));
+	wxButton* insertFrameAbove = new wxButton(this, wxID_ANY, _("Insert blank frame above selection"), wxDefaultPosition, wxSize(200, 20));
+	wxButton* insertFrameBelow = new wxButton(this, wxID_ANY, _("Insert blank frame below selection"), wxDefaultPosition, wxSize(200, 20));
+	wxButton* toggleSelectedInputs = new wxButton(this, wxID_ANY, _("Toggle selected inputs"), wxDefaultPosition, wxSize(200, 20));
+	wxButton* setSelectedInputsPressed = new wxButton(this, wxID_ANY, _("Set selected inputs as pressed"), wxDefaultPosition, wxSize(200, 20));
+	wxButton* setSelectedInputsNotPressed = new wxButton(this, wxID_ANY, _("Set selected inputs as not pressed"), wxDefaultPosition, wxSize(200, 20));
+	wxButton* copyFrame = new wxButton(this, wxID_ANY, _("Copy selected frames"), wxDefaultPosition, wxSize(200, 20));
+	wxButton* pasteFramesAbove = new wxButton(this, wxID_ANY, _("Paste frames above selection"), wxDefaultPosition, wxSize(200, 20));
+	wxButton* pasteFramesBelow = new wxButton(this, wxID_ANY, _("Paste frames below selection"), wxDefaultPosition, wxSize(200, 20));
 
-	m_analogWrapper = new wxStaticBoxSizer(wxHORIZONTAL, this, wxT("Analog Inputs"));
+	m_main_stick = CreateStick(ID_MAIN_STICK, 255, 255, 128, 128, false, true);
+	wxStaticBoxSizer* const main_box = CreateStickLayout(&m_main_stick, _("Main Stick"));
 
-	m_stickXSlider = new wxSlider(this, wxID_ANY, 128, 0, 255, wxDefaultPosition, wxSize(40, 100), wxSL_VERTICAL);
-	m_stickYSlider = new wxSlider(this, wxID_ANY, 128, 0, 255, wxDefaultPosition, wxSize(40, 100), wxSL_VERTICAL);
+	m_c_stick = CreateStick(ID_C_STICK, 255, 255, 128, 128, false, true);
+	wxStaticBoxSizer* const c_box = CreateStickLayout(&m_c_stick, _("C Stick"));
 
-	m_stickXText = new wxTextCtrl(this, wxID_ANY, wxT("128"), wxDefaultPosition, wxSize(40, 20));
-	m_stickYText = new wxTextCtrl(this, wxID_ANY, wxT("128"), wxDefaultPosition, wxSize(40, 20));
+	for (unsigned int i = 0; i < 4; ++i)
+	{
+		m_stick_controls[i] = nullptr;
+	}
 
-	m_setMainStick = new wxButton(this, wxID_ANY, wxT("Set Main Stick"));
+	m_stick_controls[0] = &m_main_stick.x_cont;
+	m_stick_controls[1] = &m_main_stick.y_cont;
+	m_stick_controls[2] = &m_c_stick.x_cont;
+	m_stick_controls[3] = &m_c_stick.y_cont;
+
+	for (int i = 0; i < 4; i++)
+	{
+		m_stick_controls[i]->slider->Bind(wxEVT_RIGHT_UP, &TAStudioFrame::OnRightClickSlider, this);
+	}
+
+	wxButton* getMainStick = new wxButton(this, wxID_ANY, _("Get"));
+	wxButton* setMainStick = new wxButton(this, wxID_ANY, _("Set"));
+
+	wxBoxSizer* mainStickButtonsWrapper = new wxBoxSizer(wxHORIZONTAL);
+
+	mainStickButtonsWrapper->Add(getMainStick);
+	mainStickButtonsWrapper->Add(setMainStick);
+
+	main_box->Add(mainStickButtonsWrapper);
+
+	wxButton* getCStick = new wxButton(this, wxID_ANY, _("Get"));
+	wxButton* setCStick = new wxButton(this, wxID_ANY, _("Set"));
+
+	wxBoxSizer* cStickButtonsWrapper = new wxBoxSizer(wxHORIZONTAL);
+
+	cStickButtonsWrapper->Add(getCStick);
+	cStickButtonsWrapper->Add(setCStick);
+
+	c_box->Add(cStickButtonsWrapper);
 
 	m_groupByVI->Bind(wxEVT_CHECKBOX, &TAStudioFrame::OnGroupByVIChanged, this);
 	m_autoUpdateGrid->Bind(wxEVT_CHECKBOX, &TAStudioFrame::OnAutoUpdateGridChanged, this);
-	m_updateGrid->Bind(wxEVT_BUTTON, &TAStudioFrame::OnUpdateGridClick, this);
-	m_goToCurrentFrame->Bind(wxEVT_BUTTON, &TAStudioFrame::OnGoToCurrentFrameClick, this);
-	m_setMainStick->Bind(wxEVT_BUTTON, &TAStudioFrame::OnSetMainStickClick, this);
+	updateGrid->Bind(wxEVT_BUTTON, &TAStudioFrame::OnUpdateGridClick, this);
+	goToCurrentFrame->Bind(wxEVT_BUTTON, &TAStudioFrame::OnGoToCurrentFrameClick, this);
+	goToInputFrame->Bind(wxEVT_BUTTON, &TAStudioFrame::OnGoToInputFrameClick, this);
+	goToVI->Bind(wxEVT_BUTTON, &TAStudioFrame::OnGoToVIClick, this);
+	insertFrameAbove->Bind(wxEVT_BUTTON, &TAStudioFrame::OnInsertFrameAboveClick, this);
+	insertFrameBelow->Bind(wxEVT_BUTTON, &TAStudioFrame::OnInsertFrameBelowClick, this);
+	toggleSelectedInputs->Bind(wxEVT_BUTTON, &TAStudioFrame::OnToggleSelectedInputsClick, this);
+	setSelectedInputsPressed->Bind(wxEVT_BUTTON, &TAStudioFrame::OnSetSelectedInputsPressedClick, this);
+	setSelectedInputsNotPressed->Bind(wxEVT_BUTTON, &TAStudioFrame::OnSetSelectedInputsNotPressedClick, this);
+	copyFrame->Bind(wxEVT_BUTTON, &TAStudioFrame::OnCopyFrameClick, this);
+	pasteFramesAbove->Bind(wxEVT_BUTTON, &TAStudioFrame::OnPasteFramesAboveClick, this);
+	pasteFramesBelow->Bind(wxEVT_BUTTON, &TAStudioFrame::OnPasteFramesBelowClick, this);
+	getMainStick->Bind(wxEVT_BUTTON, &TAStudioFrame::OnGetMainStickClick, this);
+	setMainStick->Bind(wxEVT_BUTTON, &TAStudioFrame::OnSetMainStickClick, this);
+	getCStick->Bind(wxEVT_BUTTON, &TAStudioFrame::OnGetCStickClick, this);
+	setCStick->Bind(wxEVT_BUTTON, &TAStudioFrame::OnSetCStickClick, this);
 
-	m_stickXSlider->Bind(wxEVT_SCROLL_CHANGED, &TAStudioFrame::OnStickXSliderChange, this);
-	m_stickYSlider->Bind(wxEVT_SCROLL_CHANGED, &TAStudioFrame::OnStickYSliderChange, this);
-	m_stickXText->Bind(wxEVT_TEXT, &TAStudioFrame::OnStickXTextChange, this);
-	m_stickYText->Bind(wxEVT_TEXT, &TAStudioFrame::OnStickYTextChange, this);
+	controlWrapper->Add(m_sendInputsToDolphin);
+	controlWrapper->AddSpacer(1);
+	controlWrapper->Add(m_groupByVI);
+	controlWrapper->AddSpacer(1);
+	controlWrapper->Add(m_autoUpdateGrid);
+	controlWrapper->AddSpacer(1);
+	controlWrapper->Add(updateGrid);
+	controlWrapper->AddSpacer(1);
+	controlWrapper->Add(goToCurrentFrame);
+	controlWrapper->AddSpacer(1);
+	controlWrapper->Add(goToInputFrame);
+	controlWrapper->AddSpacer(1);
+	controlWrapper->Add(goToVI);
+	controlWrapper->AddSpacer(1);
+	controlWrapper->Add(insertFrameAbove);
+	controlWrapper->AddSpacer(1);
+	controlWrapper->Add(insertFrameBelow);
+	controlWrapper->AddSpacer(1);
+	controlWrapper->Add(toggleSelectedInputs);
+	controlWrapper->AddSpacer(1);
+	controlWrapper->Add(setSelectedInputsPressed);
+	controlWrapper->AddSpacer(1);
+	controlWrapper->Add(setSelectedInputsNotPressed);
+	controlWrapper->AddSpacer(1);
+	controlWrapper->Add(copyFrame);
+	controlWrapper->AddSpacer(1);
+	controlWrapper->Add(pasteFramesAbove);
+	controlWrapper->AddSpacer(1);
+	controlWrapper->Add(pasteFramesBelow);
 
-	m_controlWrapper->Add(m_inputFrameCount);
-	m_controlWrapper->AddSpacer(1);
-	m_controlWrapper->Add(m_sendInputsToDolphin);
-	m_controlWrapper->AddSpacer(1);
-	m_controlWrapper->Add(m_groupByVI);
-	m_controlWrapper->AddSpacer(1);
-	m_controlWrapper->Add(m_autoUpdateGrid);
-	m_controlWrapper->AddSpacer(1);
-	m_controlWrapper->Add(m_updateGrid);
-	m_controlWrapper->AddSpacer(1);
-	m_controlWrapper->Add(m_goToCurrentFrame);
+	sideWrapper->Add(controlWrapper);
+	sideWrapper->AddSpacer(1);
+	sideWrapper->Add(main_box);
+	sideWrapper->AddSpacer(1);
+	sideWrapper->Add(c_box);
 
-	m_analogWrapper->Add(m_stickXSlider);
-	m_analogWrapper->Add(m_stickXText);
-	m_analogWrapper->AddSpacer(10);
-	m_analogWrapper->Add(m_stickYSlider);
-	m_analogWrapper->Add(m_stickYText);
-	m_analogWrapper->AddSpacer(10);
-	m_analogWrapper->Add(m_setMainStick);
+	boxSizer->Add(m_inputGrid);
+	boxSizer->AddSpacer(5);
+	boxSizer->Add(sideWrapper);
 
-	m_sideWrapper->Add(m_controlWrapper);
-	m_sideWrapper->AddSpacer(1);
-	m_sideWrapper->Add(m_analogWrapper);
-
-	fgSizer->Add(m_inputGrid);
-	fgSizer->Add(m_sideWrapper);
-	//this->SetClientSize(900, 800);
-
-	SetSizer(fgSizer);
+	SetSizer(boxSizer);
 	Layout();
 
-	fgSizer->Fit(this);
+	boxSizer->Fit(this);
 }
 
 void TAStudioFrame::GetInput(GCPadStatus* PadStatus)
@@ -142,21 +157,21 @@ void TAStudioFrame::GetInput(GCPadStatus* PadStatus)
 
 void TAStudioFrame::SetInput(GCPadStatus* PadStatus)
 {
-	if (!m_sendInputsToDolphin->GetValue()) 
-	{ 
-		return; 
+	if (!m_sendInputsToDolphin->GetValue())
+	{
+		return;
 	}
 
 	// Get input for corresponding inputCount (next in-game input)
 	int inputFrame = Movie::g_currentInputCount;
 
-	if (m_inputGrid->GetTAStudioInputVectorSize() <= inputFrame) 
+	if (m_inputGrid->GetTAStudioInputVectorSize() <= inputFrame)
 	{
 		// Handle case where we've reached the end of the InputGrid table
 		// Currently, this will start registering inputs by TASInput/Controller
-		return; 
+		return;
 	}
-																			 
+
 	*PadStatus = m_inputGrid->GetInputAtInputFrame(inputFrame);
 }
 
@@ -170,50 +185,6 @@ void TAStudioFrame::OnLoadstateCallback()
 	m_inputGrid->ParseStateInputs();
 }
 
-void TAStudioFrame::OnStickXTextChange(wxCommandEvent& evt)
-{
-	if (wxAtoi(m_stickXText->GetValue()) > 255 || wxAtoi(m_stickXText->GetValue()) < 0)
-	{
-		return;
-	}
-	m_stickXValue = wxAtoi(m_stickXText->GetValue());
-	if (m_stickXSlider->GetValue() != m_stickXValue)
-	{
-		m_stickXSlider->SetValue(m_stickXValue);
-	}
-}
-
-void TAStudioFrame::OnStickYTextChange(wxCommandEvent& evt)
-{
-	if (wxAtoi(m_stickYText->GetValue()) > 255 || wxAtoi(m_stickYText->GetValue()) < 0)
-	{
-		return;
-	}
-	m_stickYValue = wxAtoi(m_stickYText->GetValue());
-	if (m_stickYSlider->GetValue() != m_stickYValue)
-	{
-		m_stickYSlider->SetValue(m_stickYValue);
-	}
-}
-
-void TAStudioFrame::OnStickXSliderChange(wxCommandEvent& evt)
-{
-	m_stickXValue = m_stickXSlider->GetValue();
-	if (wxAtoi(m_stickXText->GetValue()) != m_stickXValue)
-	{
-		m_stickXText->SetValue(std::to_string(m_stickXValue));
-	}
-}
-
-void TAStudioFrame::OnStickYSliderChange(wxCommandEvent& evt)
-{
-	m_stickYValue = m_stickYSlider->GetValue();
-	if (wxAtoi(m_stickYText->GetValue()) != m_stickYValue)
-	{
-		m_stickYText->SetValue(std::to_string(m_stickYValue));
-	}
-}
-
 void TAStudioFrame::OnGroupByVIChanged(wxCommandEvent& evt)
 {
 	m_inputGrid->SetGroupByVI(m_groupByVI->GetValue());
@@ -221,7 +192,7 @@ void TAStudioFrame::OnGroupByVIChanged(wxCommandEvent& evt)
 
 void TAStudioFrame::OnAutoUpdateGridChanged(wxCommandEvent& evt)
 {
-	m_inputGrid->SetAutoUpdateGrid(m_autoUpdateGrid->GetValue());
+	m_inputGrid->SetAutoUpdateGrid(!m_autoUpdateGrid->GetValue());
 }
 
 void TAStudioFrame::OnUpdateGridClick(wxCommandEvent& evt)
@@ -234,26 +205,308 @@ void TAStudioFrame::OnGoToCurrentFrameClick(wxCommandEvent& evt)
 	m_inputGrid->GoToCurrentFrame();
 }
 
+void TAStudioFrame::OnGoToInputFrameClick(wxCommandEvent& evt)
+{
+	wxTextEntryDialog inputFrameDialog(this, wxEmptyString, "Insert the desired input frame number");
+	inputFrameDialog.SetTextValidator(wxFILTER_DIGITS);
+	if (inputFrameDialog.ShowModal() == wxID_OK)
+	{
+		int value = wxAtoi(inputFrameDialog.GetValue());
+		m_inputGrid->GoToInputFrame(value);
+	}
+	inputFrameDialog.Destroy();
+}
+
+void TAStudioFrame::OnGoToVIClick(wxCommandEvent& evt)
+{
+	wxTextEntryDialog viDialog(this, wxEmptyString, "Insert the desired VI number");
+	viDialog.SetTextValidator(wxFILTER_DIGITS);
+	if (viDialog.ShowModal() == wxID_OK)
+	{
+		int value = wxAtoi(viDialog.GetValue());
+		m_inputGrid->GoToVI(value);
+	}
+	viDialog.Destroy();
+}
+
+void TAStudioFrame::OnInsertFrameAboveClick(wxCommandEvent& evt)
+{
+	m_inputGrid->InsertBlankFrame(false);
+}
+
+void TAStudioFrame::OnInsertFrameBelowClick(wxCommandEvent& evt)
+{
+	m_inputGrid->InsertBlankFrame(true);
+}
+
+void TAStudioFrame::OnToggleSelectedInputsClick(wxCommandEvent& evt)
+{
+	m_inputGrid->SetSelectedInputsPress(true);
+}
+
+void TAStudioFrame::OnSetSelectedInputsPressedClick(wxCommandEvent& evt)
+{
+	m_inputGrid->SetSelectedInputsPress(false, true);
+}
+
+void TAStudioFrame::OnSetSelectedInputsNotPressedClick(wxCommandEvent& evt)
+{
+	m_inputGrid->SetSelectedInputsPress(false, false);
+}
+
+void TAStudioFrame::OnCopyFrameClick(wxCommandEvent& evt)
+{
+	m_inputGrid->CopySelectedFrames();
+}
+
+void TAStudioFrame::OnPasteFramesAboveClick(wxCommandEvent& evt)
+{
+	m_inputGrid->PasteFrames(false);
+}
+
+void TAStudioFrame::OnPasteFramesBelowClick(wxCommandEvent& evt)
+{
+	m_inputGrid->PasteFrames(true);
+}
+
+// Stick functions
+
+void TAStudioFrame::OnGetMainStickClick(wxCommandEvent& evt)
+{
+	GCPadStatus input = m_inputGrid->GetInputAtSelectedRow();
+	m_main_stick.x_cont.text->SetValue(std::to_string(input.stickX));
+	m_main_stick.y_cont.text->SetValue(std::to_string(input.stickY));
+}
+
 void TAStudioFrame::OnSetMainStickClick(wxCommandEvent& evt)
 {
-	m_inputGrid->SetMainStickInSelectedRows(m_stickXValue, m_stickYValue);
+	m_inputGrid->SetMainStickInSelectedRows(m_main_stick.x_cont.value, m_main_stick.y_cont.value);
 }
+
+void TAStudioFrame::OnGetCStickClick(wxCommandEvent& evt)
+{
+	GCPadStatus input = m_inputGrid->GetInputAtSelectedRow();
+	m_c_stick.x_cont.text->SetValue(std::to_string(input.substickX));
+	m_c_stick.y_cont.text->SetValue(std::to_string(input.substickY));
+}
+
+void TAStudioFrame::OnSetCStickClick(wxCommandEvent& evt)
+{
+	m_inputGrid->SetCStickInSelectedRows(m_c_stick.x_cont.value, m_c_stick.y_cont.value);
+}
+
+wxBitmap TAStudioFrame::CreateStickBitmap(int x, int y)
+{
+	x = x / 2;
+	y = y / 2;
+
+	wxMemoryDC memDC;
+	wxBitmap bitmap(129, 129);
+	memDC.SelectObject(bitmap);
+	memDC.SetBackground(*wxLIGHT_GREY_BRUSH);
+	memDC.Clear();
+	memDC.SetBrush(*wxWHITE_BRUSH);
+	memDC.DrawCircle(65, 65, 64);
+	memDC.SetBrush(*wxRED_BRUSH);
+	memDC.DrawLine(64, 64, x, y);
+	memDC.DrawLine(63, 64, x - 1, y);
+	memDC.DrawLine(65, 64, x + 1, y);
+	memDC.DrawLine(64, 63, x, y - 1);
+	memDC.DrawLine(64, 65, x, y + 1);
+	memDC.SetPen(*wxBLACK_PEN);
+	memDC.CrossHair(64, 64);
+	memDC.SetBrush(*wxBLUE_BRUSH);
+	memDC.DrawCircle(x, y, 5);
+	memDC.SelectObject(wxNullBitmap);
+	return bitmap;
+}
+
+TAStudioFrame::Control TAStudioFrame::CreateControl(long style, int width, int height, bool reverse, u32 range, u32 default_value)
+{
+	Control tempCont;
+	tempCont.range = range;
+	tempCont.default_value = default_value;
+	tempCont.slider = new wxSlider(this, m_eleID++, default_value, 0, range, wxDefaultPosition, wxDefaultSize, style);
+	tempCont.slider->SetMinSize(wxSize(width, height));
+	tempCont.slider->Bind(wxEVT_SLIDER, &TAStudioFrame::UpdateFromSliders, this);
+	tempCont.text = new wxTextCtrl(this, m_eleID++, std::to_string(default_value), wxDefaultPosition, wxSize(40, 20));
+	tempCont.text->SetMaxLength(range > 999 ? 4 : 3);
+	tempCont.text_id = m_eleID - 1;
+	tempCont.text->Bind(wxEVT_TEXT, &TAStudioFrame::UpdateFromText, this);
+	tempCont.slider_id = m_eleID - 2;
+	tempCont.reverse = reverse;
+	return tempCont;
+}
+
+TAStudioFrame::Stick TAStudioFrame::CreateStick(int id_stick, int xRange, int yRange, u32 defaultX, u32 defaultY, bool reverseX, bool reverseY)
+{
+	Stick tempStick;
+	tempStick.bitmap = new wxStaticBitmap(this, id_stick, CreateStickBitmap(128, 128), wxDefaultPosition, wxDefaultSize);
+	tempStick.bitmap->Bind(wxEVT_MOTION, &TAStudioFrame::OnMouseDownL, this);
+	tempStick.bitmap->Bind(wxEVT_LEFT_DOWN, &TAStudioFrame::OnMouseDownL, this);
+	tempStick.bitmap->Bind(wxEVT_RIGHT_UP, &TAStudioFrame::OnMouseUpR, this);
+	tempStick.x_cont = CreateControl(wxSL_HORIZONTAL | (reverseX ? wxSL_INVERSE : 0), 120, -1, reverseX, xRange, defaultX);
+	tempStick.y_cont = CreateControl(wxSL_VERTICAL | (reverseY ? wxSL_INVERSE : 0), -1, 120, reverseY, yRange, defaultY);
+	return tempStick;
+}
+
+wxStaticBoxSizer* TAStudioFrame::CreateStickLayout(Stick* tempStick, const wxString& title)
+{
+	wxStaticBoxSizer* const main_temp_box = new wxStaticBoxSizer(wxVERTICAL, this, title);
+	wxBoxSizer* const temp_box = new wxBoxSizer(wxHORIZONTAL);
+	wxBoxSizer* const temp_xslider_box = new wxBoxSizer(wxHORIZONTAL);
+	wxBoxSizer* const temp_yslider_box = new wxBoxSizer(wxVERTICAL);
+	wxBoxSizer* const temp_stick_box = new wxBoxSizer(wxVERTICAL);
+
+	temp_xslider_box->Add(tempStick->x_cont.slider, 0, wxALIGN_TOP);
+	temp_xslider_box->Add(tempStick->x_cont.text, 0, wxALIGN_TOP);
+	temp_stick_box->Add(temp_xslider_box);
+	temp_stick_box->Add(tempStick->bitmap, 0, wxALL | wxCenter, 3);
+	temp_box->Add(temp_stick_box);
+	temp_yslider_box->Add(tempStick->y_cont.slider, 0, wxALIGN_CENTER_VERTICAL);
+	temp_yslider_box->Add(tempStick->y_cont.text, 0, wxALIGN_CENTER_VERTICAL);
+	temp_box->Add(temp_yslider_box);
+	main_temp_box->Add(temp_box);
+	return main_temp_box;
+}
+
+void TAStudioFrame::UpdateFromSliders(wxCommandEvent& event)
+{
+	wxTextCtrl* text = nullptr;
+
+	for (unsigned int i = 0; i < 4; ++i)
+	{
+		if (m_stick_controls[i] != nullptr && event.GetId() == m_stick_controls[i]->slider_id)
+			text = m_stick_controls[i]->text;
+	}
+
+	int value = ((wxSlider*)event.GetEventObject())->GetValue();
+	if (text)
+		text->SetValue(std::to_string(value));
+}
+
+void TAStudioFrame::UpdateFromText(wxCommandEvent& event)
+{
+	unsigned long value;
+
+	if (!((wxTextCtrl*)event.GetEventObject())->GetValue().ToULong(&value))
+		return;
+
+	for (unsigned int i = 0; i < 4; ++i)
+	{
+		if (m_stick_controls[i] != nullptr && event.GetId() == m_stick_controls[i]->text_id)
+		{
+			int v = value > m_stick_controls[i]->range ? m_stick_controls[i]->range : value;
+			m_stick_controls[i]->slider->SetValue(v);
+			m_stick_controls[i]->value = v;
+		}
+	}
+
+	int x = (u8)(std::floor(((double)m_main_stick.x_cont.value / (double)m_main_stick.x_cont.range * 255.0) + .5));
+	int y = (u8)(std::floor(((double)m_main_stick.y_cont.value / (double)m_main_stick.y_cont.range * 255.0) + .5));
+	if (m_main_stick.x_cont.reverse)
+		x = 256 - (u8)x;
+	if (m_main_stick.y_cont.reverse)
+		y = 256 - (u8)y;
+	m_main_stick.bitmap->SetBitmap(CreateStickBitmap(x, y));
+
+	x = (u8)(std::floor(((double)m_c_stick.x_cont.value / (double)m_c_stick.x_cont.range * 255.0) + .5));
+	y = (u8)(std::floor(((double)m_c_stick.y_cont.value / (double)m_c_stick.y_cont.range * 255.0) + .5));
+	if (m_c_stick.x_cont.reverse)
+		x = 256 - (u8)x;
+	if (m_c_stick.y_cont.reverse)
+		y = 256 - (u8)y;
+	m_c_stick.bitmap->SetBitmap(CreateStickBitmap(x, y));
+}
+
+void TAStudioFrame::OnMouseDownL(wxMouseEvent& event)
+{
+	if (!event.LeftIsDown())
+		return;
+
+	Stick* stick;
+	if (event.GetId() == ID_MAIN_STICK)
+		stick = &m_main_stick;
+	else if (event.GetId() == ID_C_STICK)
+		stick = &m_c_stick;
+	else
+		return;
+
+	wxPoint ptM(event.GetPosition());
+	stick->x_cont.value = ptM.x * stick->x_cont.range / 127;
+	stick->y_cont.value = ptM.y * stick->y_cont.range / 127;
+
+	if ((unsigned)stick->y_cont.value > stick->y_cont.range)
+		stick->y_cont.value = stick->y_cont.range;
+	if ((unsigned)stick->x_cont.value > stick->x_cont.range)
+		stick->x_cont.value = stick->x_cont.range;
+
+	if (stick->y_cont.reverse)
+		stick->y_cont.value = stick->y_cont.range - (u16)stick->y_cont.value;
+	if (stick->x_cont.reverse)
+		stick->x_cont.value = stick->x_cont.range - (u16)stick->x_cont.value;
+
+	stick->x_cont.value = (unsigned int)stick->x_cont.value > stick->x_cont.range ? stick->x_cont.range : stick->x_cont.value;
+	stick->y_cont.value = (unsigned int)stick->y_cont.value > stick->y_cont.range ? stick->y_cont.range : stick->y_cont.value;
+
+	stick->bitmap->SetBitmap(CreateStickBitmap(ptM.x * 2, ptM.y * 2));
+
+	stick->x_cont.text->SetValue(std::to_string(stick->x_cont.value));
+	stick->y_cont.text->SetValue(std::to_string(stick->y_cont.value));
+
+	stick->x_cont.slider->SetValue(stick->x_cont.value);
+	stick->y_cont.slider->SetValue(stick->y_cont.value);
+	event.Skip(true);
+}
+
+void TAStudioFrame::OnMouseUpR(wxMouseEvent& event)
+{
+	Stick* stick = nullptr;
+	if (event.GetId() == ID_MAIN_STICK)
+		stick = &m_main_stick;
+	else if (event.GetId() == ID_C_STICK)
+		stick = &m_c_stick;
+
+	if (stick == nullptr)
+		return;
+
+	stick->x_cont.value = stick->x_cont.default_value;
+	stick->y_cont.value = stick->y_cont.default_value;
+	stick->bitmap->SetBitmap(CreateStickBitmap(128, 128));
+	stick->x_cont.text->SetValue(std::to_string(stick->x_cont.default_value));
+	stick->y_cont.text->SetValue(std::to_string(stick->y_cont.default_value));
+	stick->x_cont.slider->SetValue(stick->x_cont.default_value);
+	stick->y_cont.slider->SetValue(stick->y_cont.default_value);
+
+	event.Skip(true);
+}
+
+void TAStudioFrame::OnRightClickSlider(wxMouseEvent& event)
+{
+	for (unsigned int i = 0; i < 4; ++i)
+	{
+		if (m_stick_controls[i] != nullptr && event.GetId() == m_stick_controls[i]->slider_id)
+		{
+			m_stick_controls[i]->value = m_stick_controls[i]->default_value;
+			m_stick_controls[i]->slider->SetValue(m_stick_controls[i]->default_value);
+			m_stick_controls[i]->text->SetValue(std::to_string(m_stick_controls[i]->default_value));
+		}
+	}
+}
+
+// Input grid
 
 InputGrid::InputGrid(wxWindow* parent) : wxGrid(parent, wxID_ANY)
 {
-	Bind(wxEVT_MENU, &InputGrid::OnInsertFrameAbove, this, IDM_INSERT_FRAME_ABOVE);
-	Bind(wxEVT_MENU, &InputGrid::OnInsertFrameBelow, this, IDM_INSERT_FRAME_BELOW);
-	Bind(wxEVT_MENU, &InputGrid::OnCopyFrame, this, IDM_COPY_FRAME);
-	Bind(wxEVT_MENU, &InputGrid::OnPasteFrame, this, IDM_PASTE_FRAME);
-	
 	m_firstInputInGrid = 1;
 	m_firstFrameInGrid = 1;
-	m_gridNumberOfRows = 30;
+	m_gridNumberOfRows = 40;
 
 	m_groupByVI = false;
-	m_autoUpdateGrid = false;
+	m_autoUpdateGrid = true;
 
 	int numColumns = COLUMN_LABEL.size();
+	SetDefaultCellAlignment(wxALIGN_CENTRE, wxALIGN_CENTRE);
 	CreateGrid(m_gridNumberOfRows, numColumns, wxGridSelectCells);
 	HideRowLabels();
 	DisableDragGridSize();
@@ -264,37 +517,54 @@ InputGrid::InputGrid(wxWindow* parent) : wxGrid(parent, wxID_ANY)
 		SetColLabelValue(i, COLUMN_LABEL[i]);
 		switch (i)
 		{
-			case COLUMN_INPUT_COUNT:
-			case COLUMN_VI_COUNT:
-			case COLUMN_ACTIVE:
-				SetColAttr(i, readOnlyAttr);
-				SetColSize(i, 60);
-				break;
-			case COLUMN_ANA_X:
-			case COLUMN_ANA_Y:
-			case COLUMN_C_X:
-			case COLUMN_C_Y:
-			case COLUMN_L_ANA:
-			case COLUMN_R_ANA:
-				SetColSize(i, 40);
-				break;
-			case COLUMN_D_UP:
-			case COLUMN_D_DOWN:
-			case COLUMN_D_LEFT:
-			case COLUMN_D_RIGHT:
-				SetColAttr(i, readOnlyAttr);
-				SetColSize(i, 30);
-				break;
-			default:
-				SetColAttr(i, readOnlyAttr);
-				SetColSize(i, 20);
-				break;
+		case COLUMN_INPUT_COUNT:
+		case COLUMN_VI_COUNT:
+		case COLUMN_ACTIVE:
+			SetColAttr(i, readOnlyAttr);
+			readOnlyAttr->IncRef();
+			SetColSize(i, 60);
+			break;
+		case COLUMN_ANA_X:
+		case COLUMN_ANA_Y:
+		case COLUMN_C_X:
+		case COLUMN_C_Y:
+		case COLUMN_L_ANA:
+		case COLUMN_R_ANA:
+			SetColSize(i, 40);
+			break;
+		case COLUMN_D_UP:
+		case COLUMN_D_DOWN:
+		case COLUMN_D_LEFT:
+		case COLUMN_D_RIGHT:
+			SetColAttr(i, readOnlyAttr);
+			readOnlyAttr->IncRef();
+			SetColSize(i, 30);
+			break;
+		default:
+			SetColAttr(i, readOnlyAttr);
+			readOnlyAttr->IncRef();
+			SetColSize(i, 20);
+			break;
 		}
 	}
 }
 
 void InputGrid::SetGroupByVI(bool value)
 {
+	if (value)
+	{
+		if (m_inputVector.size() > m_firstInputInGrid)
+		{
+			m_firstFrameInGrid = m_inputVector[m_firstInputInGrid].FrameCount;
+		}
+	}
+	else
+	{
+		if (m_viToInputCount.size() > m_firstFrameInGrid)
+		{
+			m_firstInputInGrid = m_viToInputCount[m_firstFrameInGrid][0];
+		}
+	}
 	m_groupByVI = value;
 	UpdateGridValues();
 }
@@ -306,16 +576,18 @@ void InputGrid::SetAutoUpdateGrid(bool value)
 
 void InputGrid::SetMainStickInSelectedRows(u8 x, u8 y)
 {
-	const wxArrayInt rows = GetSelectedRows();
-	if (rows.GetCount() == 0)
-	{
-		return;
-	}
-	for (int i = rows.front(); i <= rows.back(); i++)
+	wxGridCellCoords topLeft = GetSelectionBlockTopLeft()[0];
+	wxGridCellCoords botRight = GetSelectionBlockBottomRight()[0];
+
+	for (int row = topLeft.GetRow(); row <= botRight.GetRow(); row++)
 	{
 		if (m_groupByVI)
 		{
-			const int frameCount = m_firstFrameInGrid + i;
+			const int frameCount = m_firstFrameInGrid + row;
+			if (m_viToInputCount[frameCount].size() == 0)
+			{
+				continue;
+			}
 			for (int j = 0; j < m_viToInputCount[frameCount].size(); j++)
 			{
 				m_inputVector[m_viToInputCount[frameCount][j]].Input.stickX = x;
@@ -324,11 +596,51 @@ void InputGrid::SetMainStickInSelectedRows(u8 x, u8 y)
 		}
 		else
 		{
-			const int inputCount = m_firstInputInGrid + i;
+			const int inputCount = m_firstInputInGrid + row;
+			if (inputCount >= m_inputVector.size())
+			{
+				continue;
+			}
 			m_inputVector[inputCount].Input.stickX = x;
 			m_inputVector[inputCount].Input.stickY = y;
 		}
 	}
+
+	UpdateGridValues();
+}
+
+void InputGrid::SetCStickInSelectedRows(u8 x, u8 y)
+{
+	wxGridCellCoords topLeft = GetSelectionBlockTopLeft()[0];
+	wxGridCellCoords botRight = GetSelectionBlockBottomRight()[0];
+
+	for (int row = topLeft.GetRow(); row <= botRight.GetRow(); row++)
+	{
+		if (m_groupByVI)
+		{
+			const int frameCount = m_firstFrameInGrid + row;
+			if (m_viToInputCount[frameCount].size() == 0)
+			{
+				continue;
+			}
+			for (int j = 0; j < m_viToInputCount[frameCount].size(); j++)
+			{
+				m_inputVector[m_viToInputCount[frameCount][j]].Input.substickX = x;
+				m_inputVector[m_viToInputCount[frameCount][j]].Input.substickY = y;
+			}
+		}
+		else
+		{
+			const int inputCount = m_firstInputInGrid + row;
+			if (inputCount >= m_inputVector.size())
+			{
+				continue;
+			}
+			m_inputVector[inputCount].Input.substickX = x;
+			m_inputVector[inputCount].Input.substickY = y;
+		}
+	}
+
 	UpdateGridValues();
 }
 
@@ -402,17 +714,250 @@ void InputGrid::GoToCurrentFrame()
 	}
 }
 
-void InputGrid::ToggleCellValue(int row, int col)
+void InputGrid::GoToInputFrame(int frame)
 {
-	std::string cell = this->GetCellValue(row, col);
-
-	if (cell == COLUMN_LABEL[col])
+	if (m_groupByVI)
 	{
-		SetCellValue(row, col, "");
+		if (frame >= m_inputVector.size())
+		{
+			return;
+		}
+		m_firstFrameInGrid = m_inputVector[frame].FrameCount - m_gridNumberOfRows / 2;
+		UpdateGridValues();
 	}
 	else
 	{
-		SetCellValue(row, col, COLUMN_LABEL[col]);
+		m_firstInputInGrid = frame - m_gridNumberOfRows / 2;
+		UpdateGridValues();
+	}
+}
+
+void InputGrid::GoToVI(int vi)
+{
+	if (m_groupByVI)
+	{
+		m_firstFrameInGrid = vi - m_gridNumberOfRows / 2;
+		UpdateGridValues();
+	}
+	else
+	{
+		if (vi >= m_viToInputCount.size())
+		{
+			return;
+		}
+		m_firstInputInGrid = m_viToInputCount[vi][0] - m_gridNumberOfRows / 2;
+		UpdateGridValues();
+	}
+}
+
+void InputGrid::ToggleCellValue(int row, int col)
+{
+	std::string cell = this->GetCellValue(row, col);
+	switch (col)
+	{
+	case COLUMN_L_ANA:
+	case COLUMN_R_ANA:
+		SetCellInput(row, col, (cell == "0"));
+		break;
+	default:
+		SetCellInput(row, col, !(cell == COLUMN_LABEL[col]));
+		break;
+	}
+}
+
+void InputGrid::OnCellRightClick(wxGridEvent& evt)
+{
+	SetSelectedInputsPress(true);
+}
+
+GCPadStatus* InputGrid::BlankInput()
+{
+	GCPadStatus* input = new GCPadStatus();
+	input->stickX = input->MAIN_STICK_CENTER_X;
+	input->stickY = input->MAIN_STICK_CENTER_Y;
+	input->substickX = input->C_STICK_CENTER_X;
+	input->substickY = input->C_STICK_CENTER_Y;
+	return input;
+}
+
+void InputGrid::InsertBlankFrame(bool below)
+{
+	int pos;
+	if (GetSelectionBlockTopLeft().size() > 0)
+	{
+		if (below)
+		{
+			wxGridCellCoords botRight = GetSelectionBlockBottomRight()[0];
+			pos = botRight.GetRow() + 1;
+		}
+		else
+		{
+			wxGridCellCoords topLeft = GetSelectionBlockTopLeft()[0];
+			pos = topLeft.GetRow();
+		}
+	}
+	else
+	{
+		if (below)
+		{
+			pos = GetGridCursorRow() + 1;
+		}
+		else
+		{
+			pos = GetGridCursorRow();
+		}
+	}
+
+	if (m_groupByVI)
+	{
+		pos += m_firstFrameInGrid;
+		std::vector<GCPadStatus> blankInputs;
+		for (int i = 0; i < m_viToInputCount[pos].size(); i++)
+		{
+			blankInputs.push_back(*BlankInput());
+		}
+		InsertInputsAtInputCount(m_viToInputCount[pos][0], blankInputs.data(), blankInputs.size());
+	}
+	else
+	{
+		pos += m_firstInputInGrid;
+		InsertInputsAtInputCount(pos, BlankInput(), 1);
+	}
+}
+
+void InputGrid::SetSelectedInputsPress(bool toggle, bool value)
+{
+	if (GetSelectionBlockTopLeft().size() > 0) {
+		wxGridCellCoords topLeft = GetSelectionBlockTopLeft()[0];
+		wxGridCellCoords botRight = GetSelectionBlockBottomRight()[0];
+
+		for (int col = topLeft.GetCol(); col <= botRight.GetCol(); col++)
+		{
+			switch (col)
+			{
+			case COLUMN_A:
+			case COLUMN_B:
+			case COLUMN_X:
+			case COLUMN_Y:
+			case COLUMN_S:
+			case COLUMN_Z:
+			case COLUMN_L:
+			case COLUMN_R:
+			case COLUMN_D_UP:
+			case COLUMN_D_DOWN:
+			case COLUMN_D_LEFT:
+			case COLUMN_D_RIGHT:
+			case COLUMN_L_ANA:
+			case COLUMN_R_ANA:
+				for (int row = topLeft.GetRow(); row <= botRight.GetRow(); row++)
+				{
+					if (m_groupByVI)
+					{
+						int currFrameCount = row + m_firstFrameInGrid;
+						if (m_viToInputCount[currFrameCount].size() == 0)
+						{
+							continue;
+						}
+					}
+					else
+					{
+						if (row + m_firstInputInGrid >= m_inputVector.size())
+						{
+							continue;
+						}
+					}
+					if (toggle)
+					{
+						ToggleCellValue(row, col);
+					}
+					else
+					{
+						SetCellInput(row, col, value);
+					}
+				}
+				break;
+			default:
+				break;
+			}
+		}
+	}
+	else
+	{
+		int row = GetGridCursorRow();
+		int col = GetGridCursorCol();
+		switch (col)
+		{
+		case COLUMN_A:
+		case COLUMN_B:
+		case COLUMN_X:
+		case COLUMN_Y:
+		case COLUMN_S:
+		case COLUMN_Z:
+		case COLUMN_L:
+		case COLUMN_R:
+		case COLUMN_D_UP:
+		case COLUMN_D_DOWN:
+		case COLUMN_D_LEFT:
+		case COLUMN_D_RIGHT:
+		case COLUMN_L_ANA:
+		case COLUMN_R_ANA:
+			if (m_groupByVI)
+			{
+				int currFrameCount = row + m_firstFrameInGrid;
+				if (m_viToInputCount[currFrameCount].size() == 0)
+				{
+					break;
+				}
+			}
+			else
+			{
+				if (row + m_firstInputInGrid >= m_inputVector.size())
+				{
+					break;
+				}
+			}
+			if (toggle)
+			{
+				ToggleCellValue(row, col);
+			}
+			else
+			{
+				SetCellInput(row, col, value);
+			}
+			break;
+		default:
+			break;
+		}
+	}
+}
+
+void InputGrid::SetCellInput(int row, int col, bool value)
+{
+	if (value)
+	{
+		switch (col)
+		{
+		case COLUMN_L_ANA:
+		case COLUMN_R_ANA:
+			SetCellValue(row, col, "255");
+			break;
+		default:
+			SetCellValue(row, col, COLUMN_LABEL[col]);
+			break;
+		}
+	}
+	else
+	{
+		switch (col)
+		{
+		case COLUMN_L_ANA:
+		case COLUMN_R_ANA:
+			SetCellValue(row, col, "0");
+			break;
+		default:
+			SetCellValue(row, col, "");
+			break;
+		}
 	}
 
 	// Update the value(s) in the vector
@@ -431,181 +976,86 @@ void InputGrid::ToggleCellValue(int row, int col)
 	}
 }
 
-void InputGrid::OnSelectCell(wxGridEvent& evt)
+void InputGrid::CopySelectedFrames()
 {
-	int row = evt.GetRow();
-	int col = evt.GetCol();
-
-	// If input doesn't exist in vector, return
-	if (m_groupByVI)
+	m_vectorClipboard.clear();
+	if (GetSelectionBlockTopLeft().size() > 0)
 	{
-		int currFrameCount = row + m_firstFrameInGrid;
-		if (m_viToInputCount[currFrameCount].size() == 0)
+		wxGridCellCoords topLeft = GetSelectionBlockTopLeft()[0];
+		wxGridCellCoords botRight = GetSelectionBlockBottomRight()[0];
+		for (int row = topLeft.GetRow(); row <= botRight.GetRow(); row++)
 		{
-			return;
+			if (m_groupByVI)
+			{
+				int currFrameCount = row + m_firstFrameInGrid;
+				for (int i = 0; i < m_viToInputCount[currFrameCount].size(); i++)
+				{
+					m_vectorClipboard.push_back(m_inputVector[m_viToInputCount[currFrameCount][i]].Input);
+				}
+			}
+			else
+			{
+				if (row + m_firstInputInGrid >= m_inputVector.size())
+				{
+					continue;
+				}
+				m_vectorClipboard.push_back(m_inputVector[row + m_firstInputInGrid].Input);
+			}
 		}
 	}
 	else
 	{
-		if (row + m_firstInputInGrid >= m_inputVector.size())
-		{
-			return;
-		}
-	}
-
-	switch (col)
-	{
-	case COLUMN_INPUT_COUNT:
-	case COLUMN_VI_COUNT:
-	case COLUMN_ACTIVE:
-		return;
-		break;
-	case COLUMN_ANA_X:
-	case COLUMN_ANA_Y:
-	case COLUMN_C_X:
-	case COLUMN_C_Y:
-	case COLUMN_L_ANA:
-	case COLUMN_R_ANA:
-		evt.Skip(); // Allow the user to edit the cell
-		return;
-		break;
-	default:
-		break;
-	}
-
-	ToggleCellValue(row, col);
-
-	UpdateGridValues(); // This can probably be removed once the program is working properly.
-						// This is being executed to make sure that the input written to the
-						// current row was correctly stored to the vector.
-	evt.Skip();
-}
-
-void InputGrid::OnRangeSelect(wxGridRangeSelectEvent& evt)
-{
-	wxGridCellCoords topLeft = evt.GetTopLeftCoords();
-	wxGridCellCoords botRight = evt.GetBottomRightCoords();
-
-	// If user selected multiple columns, then just return
-	if (topLeft.GetCol() != botRight.GetCol())
-	{
-		evt.Skip();
-		return;
-	}
-
-	int startRow = topLeft.GetRow();
-	int endRow = botRight.GetRow();
-	int col = topLeft.GetCol();
-
-	switch (col)
-	{
-	case COLUMN_INPUT_COUNT:
-	case COLUMN_VI_COUNT:
-	case COLUMN_ACTIVE:
-		return;
-		break;
-	case COLUMN_ANA_X:
-	case COLUMN_ANA_Y:
-	case COLUMN_C_X:
-	case COLUMN_C_Y:
-	case COLUMN_L_ANA:
-	case COLUMN_R_ANA:
-		evt.Skip(); // Allow the user to edit the cell
-		return;
-		break;
-	default:
-		break;
-	}
-
-	bool set = false;
-
-	for (int i = startRow; i <= endRow; i++)
-	{
-		// If input doesn't exist in vector, return
+		int row = GetGridCursorRow();
 		if (m_groupByVI)
 		{
-			int currFrameCount = i + m_firstFrameInGrid;
-			if (m_viToInputCount[currFrameCount].size() == 0)
-			{
-				return;
-			}
-		}
-		else
-		{
-			if (i + m_firstInputInGrid >= m_inputVector.size())
-			{
-				return;
-			}
-		}
-		
-		//ToggleCellValue(i, col);
-
-		// If at least one cell is blank, then set all to active button presses
-		if (GetCellValue(wxGridCellCoords(i, col)) != COLUMN_LABEL[col]) { set = true; }
-	}
-
-	for (int i = startRow; i <= endRow; i++)
-	{
-		if (set) { SetCellValue(i, col, COLUMN_LABEL[col]); }
-		else { SetCellValue(i, col, ""); }
-
-		// Update the value(s) in the vector
-		if (m_groupByVI)
-		{
-			int currFrameCount = i + m_firstFrameInGrid;
-			// Repeat for every input in m_inputVector whose FrameCount == currFrameCount
+			// currCount = frameCount
+			int currFrameCount = row + m_firstFrameInGrid;
 			for (int i = 0; i < m_viToInputCount[currFrameCount].size(); i++)
 			{
-				m_inputVector[m_viToInputCount[currFrameCount][i]].Input = GetInputAtRow(i);
+				m_vectorClipboard.push_back(m_inputVector[m_viToInputCount[currFrameCount][i]].Input);
 			}
 		}
 		else
 		{
-			m_inputVector[i + m_firstInputInGrid].Input = GetInputAtRow(i);
+			// currCount = inputCount
+			if (row + m_firstInputInGrid >= m_inputVector.size())
+			{
+				return;
+			}
+			m_vectorClipboard.push_back(m_inputVector[row + m_firstInputInGrid].Input);
 		}
 	}
-
-
-	UpdateGridValues(); // This can probably be removed once the program is working properly.
-						// This is being executed to make sure that the input written to the
-						// current row was correctly stored to the vector.
-	evt.Skip();
 }
 
-void InputGrid::OnCellRightClick(wxGridEvent& evt)
+void InputGrid::PasteFrames(bool below)
 {
-	this->SelectRow(evt.GetRow());
-	
-	wxMenu popupMenu;
-	popupMenu.Append(IDM_INSERT_FRAME_ABOVE, wxT("Insert Frame Above"));
-	popupMenu.Append(IDM_INSERT_FRAME_BELOW, wxT("Insert Frame Below"));
-	popupMenu.Append(IDM_COPY_FRAME, wxT("Copy Frame"));
 	if (m_vectorClipboard.size() == 0)
-		popupMenu.Append(IDM_PASTE_FRAME, wxT("Paste Frame"))->Enable(false);
+	{
+		return;
+	}
+	int pos;
+
+	if (GetSelectionBlockTopLeft().size() > 0)
+	{
+		wxGridCellCoords botRight = GetSelectionBlockBottomRight()[0];
+		pos = botRight.GetRow() + 1;
+	}
 	else
-		popupMenu.Append(IDM_PASTE_FRAME, wxT("Paste Frame"));
+	{
+		pos = GetGridCursorRow() + 1;
+	}
 
-	PopupMenu(&popupMenu);
-}
-
-void InputGrid::OnInsertFrameAbove(wxCommandEvent& WXUNUSED(event))
-{
-	
-}
-
-void InputGrid::OnInsertFrameBelow(wxCommandEvent& WXUNUSED(event))
-{
-
-}
-
-void InputGrid::OnCopyFrame(wxCommandEvent& WXUNUSED(event))
-{
-
-}
-
-void InputGrid::OnPasteFrame(wxCommandEvent& WXUNUSED(event))
-{
-
+	if (m_groupByVI)
+	{
+		pos += m_firstFrameInGrid;
+		// Convert frameCount to inputCount
+		pos = m_viToInputCount[pos][0];
+	}
+	else
+	{
+		pos += m_firstInputInGrid;
+	}
+	InsertInputsAtInputCount(pos, m_vectorClipboard.data(), m_vectorClipboard.size());
 }
 
 void InputGrid::OnCellChanged(wxGridEvent& evt)
@@ -660,46 +1110,24 @@ void InputGrid::OnMouseWheel(wxMouseEvent& evt)
 	}
 }
 
-void InputGrid::UpdateGridValues()
+void InputGrid::InsertInputsAtInputCount(u64 inputCount, GCPadStatus* input, int size)
 {
-	BeginBatch();
-	for (int i = 0; i < m_gridNumberOfRows; i++)
+	if (inputCount >= m_inputVector.size())
 	{
-		if (m_groupByVI) // currCount = current frameCount
-		{
-			u64 currFrameCount = i + m_firstFrameInGrid;
-			// Find if given frameCount exists in m_inputVector
-			if (currFrameCount < m_viToInputCount.size())
-			{
-				if (m_viToInputCount[currFrameCount].size() > 0)
-				{
-					u64 inputCount = m_viToInputCount[currFrameCount][0];
-					SetInputAtRow(i, m_inputVector[inputCount], inputCount);
-				}
-				else
-				{
-					DeleteInputAtRow(i);
-				}
-			}
-			else
-			{
-				DeleteInputAtRow(i);
-			}
-		}
-		else // currCount = current inputCount
-		{
-			u64 currInputCount = i + m_firstInputInGrid;
-			if (currInputCount < m_inputVector.size())
-			{
-				SetInputAtRow(i, m_inputVector[currInputCount], currInputCount);
-			}
-			else
-			{
-				DeleteInputAtRow(i);
-			}
-		}
+		return;
 	}
-	EndBatch();
+	auto itPos = m_inputVector.begin() + inputCount;
+	TAStudioInput* tastudioInputs = new TAStudioInput[size];
+	for (int i = 0; i < size; i++) {
+		tastudioInputs[i].FrameCount = itPos->FrameCount + i;
+		tastudioInputs[i].Input = input[i];
+	}
+	m_inputVector.insert(itPos, tastudioInputs, tastudioInputs + size);
+	for (int i = inputCount + 1; i < m_inputVector.size(); i++)
+	{
+		m_inputVector[i].FrameCount += size;
+	}
+	UpdateGridValues();
 }
 
 void InputGrid::AddInputToVector(u64 frameCount, u64 inputCount, GCPadStatus* input)
@@ -757,11 +1185,53 @@ void InputGrid::AddInputToVector(u64 frameCount, u64 inputCount, GCPadStatus* in
 	}
 }
 
+void InputGrid::UpdateGridValues()
+{
+	BeginBatch();
+	for (int i = 0; i < m_gridNumberOfRows; i++)
+	{
+		if (m_groupByVI)
+		{
+			u64 currFrameCount = i + m_firstFrameInGrid;
+			// Find if given frameCount exists in m_inputVector
+			if (currFrameCount < m_viToInputCount.size())
+			{
+				if (m_viToInputCount[currFrameCount].size() > 0)
+				{
+					u64 inputCount = m_viToInputCount[currFrameCount][0];
+					SetInputAtRow(i, m_inputVector[inputCount], inputCount);
+				}
+				else
+				{
+					DeleteInputAtRow(i);
+				}
+			}
+			else
+			{
+				DeleteInputAtRow(i);
+			}
+		}
+		else
+		{
+			u64 currInputCount = i + m_firstInputInGrid;
+			if (currInputCount < m_inputVector.size())
+			{
+				SetInputAtRow(i, m_inputVector[currInputCount], currInputCount);
+			}
+			else
+			{
+				DeleteInputAtRow(i);
+			}
+		}
+	}
+	EndBatch();
+}
+
 void InputGrid::DeleteInputAtRow(int row)
 {
 	for (int i = 0; i < COLUMN_LABEL.size(); i++)
 	{
-		SetCellValueIfChanged(row, i, "");
+		SetCellValue(row, i, "");
 	}
 }
 
@@ -769,40 +1239,47 @@ void InputGrid::SetInputAtRow(int row, TAStudioInput tastudioInput, u64 inputCou
 {
 	GCPadStatus padStatus = tastudioInput.Input;
 
-	SetCellValueIfChanged(row, COLUMN_INPUT_COUNT, std::to_string(inputCount));
-	SetCellValueIfChanged(row, COLUMN_VI_COUNT, std::to_string(tastudioInput.FrameCount));
+	SetCellValue(row, COLUMN_INPUT_COUNT, std::to_string(inputCount));
+	SetCellValue(row, COLUMN_VI_COUNT, std::to_string(tastudioInput.FrameCount));
 
 	int diff = (m_groupByVI ? tastudioInput.FrameCount - Movie::g_currentFrame : inputCount - Movie::g_currentInputCount);
 
-	SetCellValueIfChanged(row, COLUMN_ACTIVE, diff == 0 ? "*" : std::to_string(diff));
+	SetCellValue(row, COLUMN_ACTIVE, diff == 0 ? "*" : std::to_string(diff));
 
-	SetCellValueIfChanged(row, COLUMN_ANA_X, std::to_string(padStatus.stickX));
-	SetCellValueIfChanged(row, COLUMN_ANA_Y, std::to_string(padStatus.stickY));
-	SetCellValueIfChanged(row, COLUMN_C_X, std::to_string(padStatus.substickX));
-	SetCellValueIfChanged(row, COLUMN_C_Y, std::to_string(padStatus.substickY));
-	SetCellValueIfChanged(row, COLUMN_L_ANA, std::to_string(padStatus.triggerLeft));
-	SetCellValueIfChanged(row, COLUMN_R_ANA, std::to_string(padStatus.triggerRight));
-	
-	SetCellValueIfChanged(row, COLUMN_A, padStatus.button & PAD_BUTTON_A ? COLUMN_LABEL[COLUMN_A] : "");
-	SetCellValueIfChanged(row, COLUMN_B, padStatus.button & PAD_BUTTON_B ? COLUMN_LABEL[COLUMN_B] : "");
-	SetCellValueIfChanged(row, COLUMN_X, padStatus.button & PAD_BUTTON_X ? COLUMN_LABEL[COLUMN_X] : "");
-	SetCellValueIfChanged(row, COLUMN_Y, padStatus.button & PAD_BUTTON_Y ? COLUMN_LABEL[COLUMN_Y] : "");
-	SetCellValueIfChanged(row, COLUMN_S, padStatus.button & PAD_BUTTON_START ? COLUMN_LABEL[COLUMN_S] : "");
-	SetCellValueIfChanged(row, COLUMN_Z, padStatus.button & PAD_TRIGGER_Z ? COLUMN_LABEL[COLUMN_Z] : "");
-	SetCellValueIfChanged(row, COLUMN_L, padStatus.button & PAD_TRIGGER_L ? COLUMN_LABEL[COLUMN_L] : "");
-	SetCellValueIfChanged(row, COLUMN_R, padStatus.button & PAD_TRIGGER_R ? COLUMN_LABEL[COLUMN_R] : "");
-	SetCellValueIfChanged(row, COLUMN_D_UP, padStatus.button & PAD_BUTTON_UP ? COLUMN_LABEL[COLUMN_D_UP] : "");
-	SetCellValueIfChanged(row, COLUMN_D_DOWN, padStatus.button & PAD_BUTTON_DOWN ? COLUMN_LABEL[COLUMN_D_DOWN] : "");
-	SetCellValueIfChanged(row, COLUMN_D_LEFT, padStatus.button & PAD_BUTTON_LEFT ? COLUMN_LABEL[COLUMN_D_LEFT] : "");
-	SetCellValueIfChanged(row, COLUMN_D_RIGHT, padStatus.button & PAD_BUTTON_RIGHT ? COLUMN_LABEL[COLUMN_D_RIGHT] : "");
+	SetCellValue(row, COLUMN_ANA_X, std::to_string(padStatus.stickX));
+	SetCellValue(row, COLUMN_ANA_Y, std::to_string(padStatus.stickY));
+	SetCellValue(row, COLUMN_C_X, std::to_string(padStatus.substickX));
+	SetCellValue(row, COLUMN_C_Y, std::to_string(padStatus.substickY));
+	SetCellValue(row, COLUMN_L_ANA, std::to_string(padStatus.triggerLeft));
+	SetCellValue(row, COLUMN_R_ANA, std::to_string(padStatus.triggerRight));
+
+	SetCellValue(row, COLUMN_A, padStatus.button & PAD_BUTTON_A ? COLUMN_LABEL[COLUMN_A] : "");
+	SetCellValue(row, COLUMN_B, padStatus.button & PAD_BUTTON_B ? COLUMN_LABEL[COLUMN_B] : "");
+	SetCellValue(row, COLUMN_X, padStatus.button & PAD_BUTTON_X ? COLUMN_LABEL[COLUMN_X] : "");
+	SetCellValue(row, COLUMN_Y, padStatus.button & PAD_BUTTON_Y ? COLUMN_LABEL[COLUMN_Y] : "");
+	SetCellValue(row, COLUMN_S, padStatus.button & PAD_BUTTON_START ? COLUMN_LABEL[COLUMN_S] : "");
+	SetCellValue(row, COLUMN_Z, padStatus.button & PAD_TRIGGER_Z ? COLUMN_LABEL[COLUMN_Z] : "");
+	SetCellValue(row, COLUMN_L, padStatus.button & PAD_TRIGGER_L ? COLUMN_LABEL[COLUMN_L] : "");
+	SetCellValue(row, COLUMN_R, padStatus.button & PAD_TRIGGER_R ? COLUMN_LABEL[COLUMN_R] : "");
+	SetCellValue(row, COLUMN_D_UP, padStatus.button & PAD_BUTTON_UP ? COLUMN_LABEL[COLUMN_D_UP] : "");
+	SetCellValue(row, COLUMN_D_DOWN, padStatus.button & PAD_BUTTON_DOWN ? COLUMN_LABEL[COLUMN_D_DOWN] : "");
+	SetCellValue(row, COLUMN_D_LEFT, padStatus.button & PAD_BUTTON_LEFT ? COLUMN_LABEL[COLUMN_D_LEFT] : "");
+	SetCellValue(row, COLUMN_D_RIGHT, padStatus.button & PAD_BUTTON_RIGHT ? COLUMN_LABEL[COLUMN_D_RIGHT] : "");
 
 }
 
-void InputGrid::SetCellValueIfChanged(int row, int col, const wxString str)
+GCPadStatus InputGrid::GetInputAtSelectedRow()
 {
-	if (GetCellValue(row, col) != str)
+	if (GetSelectionBlockTopLeft().size() > 0)
 	{
-		SetCellValue(row, col, str);
+		wxGridCellCoords topLeft = GetSelectionBlockTopLeft()[0];
+		int row = topLeft.GetRow();
+		return GetInputAtRow(row);
+	}
+	else
+	{
+		int row = GetGridCursorRow();
+		return GetInputAtRow(row);
 	}
 }
 
@@ -833,16 +1310,4 @@ GCPadStatus InputGrid::GetInputAtRow(u64 row)
 	PadStatus.button |= GetCellValue(row, COLUMN_D_RIGHT) == COLUMN_LABEL[COLUMN_D_RIGHT] ? PAD_BUTTON_RIGHT : 0;
 
 	return PadStatus;
-}
-
-void InputGrid::HighlightActiveFrame(u64 frameCount)
-{
-	if (m_groupByVI)
-	{
-		this->SelectRow(frameCount - m_firstFrameInGrid);
-	}
-	else
-	{
-		this->SelectRow(frameCount - m_firstInputInGrid);
-	}
 }
