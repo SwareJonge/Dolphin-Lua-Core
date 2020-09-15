@@ -198,6 +198,7 @@ wxMenuBar* CFrame::CreateMenu()
 	movieMenu->Append(IDM_RECORD_EXPORT, GetMenuLabel(HK_EXPORT_RECORDING));
 	movieMenu->Append(IDM_RECORD_READ_ONLY, GetMenuLabel(HK_READ_ONLY_MODE), wxEmptyString, wxITEM_CHECK);
 	movieMenu->Append(IDM_TAS_INPUT, _("TAS Input"));
+	movieMenu->Append(IDM_TASTUDIO, _("TAStudio")); // TAStudio - Added by THC98
 	movieMenu->AppendSeparator();
 	movieMenu->AppendCheckItem(IDM_TOGGLE_PAUSE_MOVIE, _("Pause at End of Movie"));
 	movieMenu->Check(IDM_TOGGLE_PAUSE_MOVIE, SConfig::GetInstance().m_PauseMovie);
@@ -736,6 +737,13 @@ void CFrame::OnTASInput(wxCommandEvent& event)
 	}
 }
 
+// ======
+void CFrame::OnTAStudio(wxCommandEvent& event) // TAStudio - Added by THC98
+{
+	g_TAStudioFrame->Show();
+}
+// ======
+
 void CFrame::OnTogglePauseMovie(wxCommandEvent& WXUNUSED (event))
 {
 	SConfig::GetInstance().m_PauseMovie = !SConfig::GetInstance().m_PauseMovie;
@@ -788,6 +796,8 @@ void CFrame::OnFrameStep(wxCommandEvent& event)
 	bool wasPaused = (Core::GetState() == Core::CORE_PAUSE);
 
 	Movie::DoFrameStep();
+
+	g_TAStudioFrame->UpdateGrid(); // TAStudio - Added by THC98
 
 	bool isPaused = (Core::GetState() == Core::CORE_PAUSE);
 	if (isPaused && !wasPaused) // don't update on unpause, otherwise the status would be wrong when pausing next frame
