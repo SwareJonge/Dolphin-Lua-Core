@@ -20,6 +20,7 @@
 #include "DolphinWX/Globals.h"
 #include "InputCommon/GCPadStatus.h"
 #include "DolphinWX/LaunchLuaScript.h"
+#include "DolphinWX/TAStudioFrame.h"
 
 #if defined(HAVE_X11) && HAVE_X11
 #include "DolphinWX/X11Utils.h"
@@ -101,6 +102,8 @@ public:
 	TASInputDlg* g_TASInputDlg[8];
 
 	LuaWindow* g_ScriptLauncher; // ADDED
+
+	TAStudioFrame* g_TAStudioFrame; // TAStudio - Added by THC98
 
 	void InitBitmaps();
 	void DoPause();
@@ -277,6 +280,7 @@ private:
 	void OnRecordExport(wxCommandEvent& event);
 	void OnRecordReadOnly(wxCommandEvent& event);
 	void OnTASInput(wxCommandEvent& event);
+	void OnTAStudio(wxCommandEvent& event); // TAStudio - Added by THC98
 	void OnTogglePauseMovie(wxCommandEvent& event);
 	void OnToggleDumpFrames(wxCommandEvent& event);
 	void OnToggleDumpAudio(wxCommandEvent& event);
@@ -363,6 +367,9 @@ int GetCmdForHotkey(unsigned int key);
 
 void OnAfterLoadCallback();
 void OnStoppedCallback();
+
+void TAStudioManip(GCPadStatus* PadStatus); // TAStudio - Added by THC98
+void TAStudioReceiver(GCPadStatus* PadStatus); // TAStudio - Added by THC98
 
 // For TASInputDlg
 void GCTASManipFunction(GCPadStatus* PadStatus, int controllerID);

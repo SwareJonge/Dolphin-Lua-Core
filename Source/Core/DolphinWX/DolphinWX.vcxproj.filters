@@ -31,6 +31,9 @@
     <Filter Include="GUI\LuaCore">
       <UniqueIdentifier>{e83c2185-9d54-4972-9796-dfe21fde49dc}</UniqueIdentifier>
     </Filter>
+    <Filter Include="GUI\TAStudio">
+      <UniqueIdentifier>{469d5b51-fd30-4be1-b1de-8dc7e56c746b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp" />
@@ -210,6 +213,9 @@
     </ClCompile>
     <ClCompile Include="LuaThread.cpp">
       <Filter>GUI</Filter>
+    </CICompile>
+    <ClCompile Include="TAStudioFrame.cpp">
+      <Filter>GUI\TAStudio</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -380,6 +386,9 @@
     </ClInclude>
     <ClInclude Include="LuaScripting.h">
       <Filter>GUI</Filter>
+    </ClInclude>      
+    <ClInclude Include="TAStudioFrame.h">
+      <Filter>GUI\TAStudio</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -392,5 +401,8 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="$(CoreDir)..\..\Installer\Dolphin.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ClassDiagram.cd" />
   </ItemGroup>
 </Project>

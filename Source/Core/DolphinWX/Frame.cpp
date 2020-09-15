@@ -245,12 +245,13 @@ EVT_MENU(IDM_PLAY_RECORD, CFrame::OnPlayRecording)
 EVT_MENU(IDM_RECORD_EXPORT, CFrame::OnRecordExport)
 EVT_MENU(IDM_RECORD_READ_ONLY, CFrame::OnRecordReadOnly)
 EVT_MENU(IDM_TAS_INPUT, CFrame::OnTASInput)
+EVT_MENU(IDM_TASTUDIO, CFrame::OnTAStudio) // TAStudio - Added by THC98
 EVT_MENU(IDM_TOGGLE_PAUSE_MOVIE, CFrame::OnTogglePauseMovie)
 EVT_MENU(IDM_SHOW_LAG, CFrame::OnShowLag)
 EVT_MENU(IDM_SHOW_FRAME_COUNT, CFrame::OnShowFrameCount)
 EVT_MENU(IDM_SHOW_INPUT_DISPLAY, CFrame::OnShowInputDisplay)
 EVT_MENU(IDM_SHOW_RAM_DISPLAY, CFrame::OnShowRAMDisplay)
-EVT_MENU(IDM_SHOW_RERECORDS, CFrame::OnShowRerecordCount)	
+EVT_MENU(IDM_SHOW_RERECORDS, CFrame::OnShowRerecordCount)
 EVT_MENU(IDM_FRAMESTEP, CFrame::OnFrameStep)
 EVT_MENU(IDM_SCREENSHOT, CFrame::OnScreenshot)
 EVT_MENU(IDM_TOGGLE_DUMP_FRAMES, CFrame::OnToggleDumpFrames)
@@ -448,18 +449,23 @@ CFrame::CFrame(wxFrame* parent,
 
 	g_ScriptLauncher = new LuaWindow(this); // ADDED
 
+	g_TAStudioFrame = new TAStudioFrame(this); // TAStudio - Added by THC98
+
 	for (int i = 0; i < 8; ++i)
 		g_TASInputDlg[i] = new TASInputDlg(this);
 
-		  Movie::SetGCInputManip([this](GCPadStatus* pad, int controller_id)
-		  {			  
-			  main_frame->g_TASInputDlg[controller_id]->GetValues(pad);      
-		  }, Movie::GCManipIndex::TASInputGCManip);
-	    
-		  Movie::SetWiiInputManip([this](u8* data, WiimoteEmu::ReportFeatures rptf, int controllerID, int ext, const wiimote_key key)
-		  {    
-			  main_frame->g_TASInputDlg[controllerID + 4]->GetValues(data, rptf, ext, key);  
-		  }, Movie::WiiManipIndex::TASInputWiiManip);
+	Movie::SetTAStudioManip(TAStudioManip); // TAStudio - Added by THC98
+	Movie::SetTAStudioReceiver(TAStudioReceiver); // TAStudio - Added by THC98
+
+	Movie::SetGCInputManip([this](GCPadStatus* pad, int controller_id)
+	{
+		main_frame->g_TASInputDlg[controller_id]->GetValues(pad);
+	}, Movie::GCManipIndex::TASInputGCManip);
+
+	Movie::SetWiiInputManip([this](u8* data, WiimoteEmu::ReportFeatures rptf, int controllerID, int ext, const wiimote_key key)
+	{
+		main_frame->g_TASInputDlg[controllerID + 4]->GetValues(data, rptf, ext, key);
+	}, Movie::WiiManipIndex::TASInputWiiManip);
 
 	State::SetOnAfterLoadCallback(OnAfterLoadCallback);
 	Core::SetOnStoppedCallback(OnStoppedCallback);
@@ -1045,6 +1051,7 @@ void OnAfterLoadCallback()
 	{
 		wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATE_GUI);
 		main_frame->GetEventHandler()->AddPendingEvent(event);
+		main_frame->g_TAStudioFrame->OnLoadstateCallback(); // TAStudio - Added by Malleo
 	}
 }
 
@@ -1056,6 +1063,18 @@ void OnStoppedCallback()
 		wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_STOPPED);
 		main_frame->GetEventHandler()->AddPendingEvent(event);
 	}
+}
+
+void TAStudioManip(GCPadStatus* PadStatus) // TAStudio - Added by THC98
+{
+	if (main_frame)
+		main_frame->g_TAStudioFrame->SetInput(PadStatus);
+}
+
+void TAStudioReceiver(GCPadStatus* PadStatus) // TAStudio - Added by THC98
+{
+	if (main_frame)
+		main_frame->g_TAStudioFrame->GetInput(PadStatus);
 }
 
 void CFrame::OnKeyDown(wxKeyEvent& event)
@@ -1615,4 +1634,3 @@ void CFrame::HandleFrameSkipHotkeys()
 		holdFrameStepDelayCount = 0;
 	}
 }
-

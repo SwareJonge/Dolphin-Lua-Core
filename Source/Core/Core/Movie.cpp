@@ -63,6 +63,8 @@ namespace Movie {
 	u64 g_currentLagCount = 0;
 	static u64 s_totalLagCount = 0; // just stats
 	u64 g_currentInputCount = 0, g_totalInputCount = 0; // just stats
+	u8* g_movInputs = nullptr;	// TAStudio - Added by Malleo
+	u32 g_movInputsLen = 0;		// TAStudio - Added by Malleo
 	static u64 s_totalTickCount = 0, s_tickCountAtLastInput = 0; // just stats
 	static u64 s_recordingStartTime; // seconds since 1970 that recording started
 	static bool s_bSaveConfig = false, s_bSkipIdle = false, s_bDualCore = false;
@@ -91,6 +93,8 @@ namespace Movie {
 	static std::mutex  s_input_display_lock;
 	static std::string s_InputDisplay[8];
 
+	static TAStudioManip tasmfunc = nullptr; // TAStudio - Added by THC98
+	static TAStudioReceiver tasrfunc = nullptr; // TAStudio - Added by THC98
 	static GCManipFunction gcmfunc[gc_manip_index_size];
 	static WiiManipFunction wiimfunc[wii_manip_index_size];
 
@@ -618,18 +622,18 @@ namespace Movie {
 	}
 
 	u64 GetCurrentFrame()
-    {
-	    return g_currentFrame;
-    }
+  {
+	  return g_currentFrame;
+  }
 
 
-	
+
 	std::string GetRerecordCount()
         {
 	    std::string output = StringFromFormat("Rerecords: %d", s_rerecords);
 	    output.append("\n");
 	    return output;
-        }	
+        }
 
 	bool IsUsingPad(int controller)
 	{
@@ -1241,6 +1245,11 @@ namespace Movie {
 
 		t_record.ReadArray(&tmpHeader, 1);
 
+		// TAStudio - Edited by THC98: g_movInputs have to be set regardless of ReadOnly state
+		g_movInputsLen = (u32)s_currentByte;
+		g_movInputs = new u8[g_movInputsLen];
+		t_record.ReadArray(g_movInputs, (size_t)g_movInputsLen);
+
 		if (!IsMovieHeader(tmpHeader.filetype))
 		{
 			PanicAlertT("Savestate movie %s is corrupted, movie recording stopping...", filename.c_str());
@@ -1294,12 +1303,9 @@ namespace Movie {
 			else if (s_currentByte > 0 && s_totalBytes > 0)
 			{
 				// verify identical from movie start to the save's current frame
-				u32 len = (u32)s_currentByte;
-				u8* movInput = new u8[len];
-				t_record.ReadArray(movInput, (size_t)len);
-				for (u32 i = 0; i < len; ++i)
+				for (u32 i = 0; i < g_movInputsLen; ++i)
 				{
-					if (movInput[i] != tmpInput[i])
+					if (g_movInputs[i] != tmpInput[i])
 					{
 						// this is a "you did something wrong" alert for the user's benefit.
 						// we'll try to say what's going on in excruciating detail, otherwise the user might not believe us.
@@ -1307,7 +1313,7 @@ namespace Movie {
 						{
 							// TODO: more detail
 							PanicAlertT("Warning: You loaded a save whose movie mismatches on byte %d (0x%X). You should load another save before continuing, or load this state with read-only mode off. Otherwise you'll probably get a desync.", i + 256, i + 256);
-							memcpy(tmpInput, movInput, s_currentByte);
+							memcpy(tmpInput, g_movInputs, s_currentByte);
 						}
 						else
 						{
@@ -1315,7 +1321,7 @@ namespace Movie {
 							ControllerState curPadState;
 							memcpy(&curPadState, &(tmpInput[frame * 8]), 8);
 							ControllerState movPadState;
-							memcpy(&movPadState, &(movInput[frame * 8]), 8);
+							memcpy(&movPadState, &(g_movInputs[frame * 8]), 8);
 							PanicAlertT("Warning: You loaded a save whose movie mismatches on frame %d. You should load another save before continuing, or load this state with read-only mode off. Otherwise you'll probably get a desync.\n\n"
 								"More information: The current movie is %d frames long and the savestate's movie is %d frames long.\n\n"
 								"On frame %d, the current movie presses:\n"
@@ -1334,7 +1340,7 @@ namespace Movie {
 						break;
 					}
 				}
-				delete[] movInput;
+				// Set global values without getting a nullptr error due to movInput being freed
 			}
 		}
 		t_record.Close();
@@ -1630,24 +1636,46 @@ namespace Movie {
 			Core::DisplayMessage(StringFromFormat("Failed to save %s", filename.c_str()), 2000);
 	}
 
-    void SetGCInputManip(GCManipFunction func, GCManipIndex manipfunctionsindex)
-    {
-	    gcmfunc[static_cast<size_t>(manipfunctionsindex)] = std::move(func);
-    }
-    void SetWiiInputManip(WiiManipFunction func, WiiManipIndex manipfunctionsindex)
-    {
-	    wiimfunc[static_cast<size_t>(manipfunctionsindex)] = std::move(func);
-    }
-    // NOTE: CPU Thread
-    void CallGCInputManip(GCPadStatus *PadStatus, int controllerID)
-    {
-	    if (gcmfunc[static_cast<size_t>(GCManipIndex::TASInputGCManip)])
-		    gcmfunc[static_cast<size_t>(GCManipIndex::TASInputGCManip)](PadStatus, controllerID);
+	void SetTAStudioManip(TAStudioManip func) // TAStudio - Added by THC98
+	{
+		tasmfunc = func;
+	}
 
-	    // With this ordering, the Lua script will have priority over the TASInput window
-	    if (gcmfunc[static_cast<size_t>(GCManipIndex::LuaGCManip)])
-		    gcmfunc[static_cast<size_t>(GCManipIndex::LuaGCManip)](PadStatus, controllerID);
-    }
+	void SetTAStudioReceiver(TAStudioReceiver func) // TAStudio - Added by THC98
+	{
+		tasrfunc = func;
+	}
+
+	void SetGCInputManip(GCManipFunction func, GCManipIndex manipfunctionsindex)
+	{
+		gcmfunc[static_cast<size_t>(manipfunctionsindex)] = std::move(func);
+	}
+	void SetWiiInputManip(WiiManipFunction func, WiiManipIndex manipfunctionsindex)
+	{
+		wiimfunc[static_cast<size_t>(manipfunctionsindex)] = std::move(func);
+	}
+	// NOTE: CPU Thread
+	void CallGCInputManip(GCPadStatus *PadStatus, int controllerID)
+	{
+		if (gcmfunc[static_cast<size_t>(GCManipIndex::TASInputGCManip)])
+			gcmfunc[static_cast<size_t>(GCManipIndex::TASInputGCManip)](PadStatus, controllerID);
+
+		// With this ordering, the Lua script will have priority over the TASInput window
+		if (gcmfunc[static_cast<size_t>(GCManipIndex::LuaGCManip)])
+			gcmfunc[static_cast<size_t>(GCManipIndex::LuaGCManip)](PadStatus, controllerID);
+	}
+
+	void CallTAStudioManip(GCPadStatus* PadStatus) // TAStudio - Added by THC98
+	{
+		if (tasmfunc)
+			(*tasmfunc)(PadStatus);
+	}
+
+	void CallTAStudioReceiver(GCPadStatus* PadStatus) // TAStudio - Added by THC98
+	{
+		if (tasrfunc)
+			(*tasrfunc)(PadStatus);
+	}
 
 	// NOTE: CPU Thread
 	void CallWiiInputManip(u8* data, WiimoteEmu::ReportFeatures rptf, int controllerID, int ext, const wiimote_key key)
