@@ -55,8 +55,6 @@ public:
   void GetValues(GCPadStatus *PadStatus, int number);
   void GetWiiValues(u8 *data, WiimoteEmu::ReportFeatures rptf, int controllerID, int ext, const wiimote_key key);
   bool m_destruction_flag = false;
-  //std::vector<GCPadStatus> m_pad_status;
-
 
   GCPadStatus m_pad_status[4];
   LuaWiimote m_Lua_Wiimote[4];

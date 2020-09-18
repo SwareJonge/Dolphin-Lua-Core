@@ -861,14 +861,15 @@ static int setNunchukButtons(lua_State *L)
 		{
 		case 'C':
 			LuaScriptFrame::GetCurrentInstance()->GetNunchukStatus(number).bt.hex |= WiimoteEmu::Nunchuk::BUTTON_C;
-			LuaScriptFrame::GetCurrentInstance()->GetNunchukStatus(number).bt.c = 0xFF;
+			//LuaScriptFrame::GetCurrentInstance()->GetNunchukStatus(number).bt.c = 0x0;
 			break;
 		case 'Z':
 			LuaScriptFrame::GetCurrentInstance()->GetNunchukStatus(number).bt.hex |= WiimoteEmu::Nunchuk::BUTTON_Z;
-			LuaScriptFrame::GetCurrentInstance()->GetNunchukStatus(number).bt.z = 0xFF;
+			//LuaScriptFrame::GetCurrentInstance()->GetNunchukStatus(number).bt.z = 0x0;
 			break;
 		}
 	}
+
 	return 0;
 
 }

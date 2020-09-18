@@ -38,9 +38,9 @@ LuaThread::LuaThread(LuaScriptFrame* p, const wxString& file)
 		
 		// Wiimote
 		m_Lua_Wiimote[i].m_padWii_status.hex = 0;
-		m_Lua_Wiimote[i].accelData.x = WiimoteEmu::ACCEL_ZERO_G; // hopefully this is right idk
-		m_Lua_Wiimote[i].accelData.y = WiimoteEmu::ACCEL_ZERO_G;
-		m_Lua_Wiimote[i].accelData.z = WiimoteEmu::ACCEL_ZERO_G;
+		//m_Lua_Wiimote[i].accelData.x = WiimoteEmu::ACCEL_ZERO_G; // hopefully this is right idk
+		//m_Lua_Wiimote[i].accelData.y = WiimoteEmu::ACCEL_ZERO_G;
+		//m_Lua_Wiimote[i].accelData.z = WiimoteEmu::ACCEL_ZERO_G;
 
 		// Nunchuk
 		m_Lua_Wiimote[i].m_nunchuk.bt.hex = 0;
@@ -143,7 +143,7 @@ void LuaThread::GetWiiValues(u8 *data, WiimoteEmu::ReportFeatures rptf, int cont
 	u8 *const coreData = rptf.core ? (data + rptf.core) : nullptr;
 	u8 *const accelData = rptf.accel ? (data + rptf.accel) : nullptr;
 	u8 *const irData = rptf.ir ? (data + rptf.ir) : nullptr;
-	u8 *const extData = rptf.ext ? (data + rptf.ext) : nullptr;
+	u8 *const extData = rptf.ext ? (data + rptf.ext) : nullptr;	
 
 	if (ext != 2)
 	{
@@ -167,7 +167,9 @@ void LuaThread::GetWiiValues(u8 *data, WiimoteEmu::ReportFeatures rptf, int cont
 		// Buttons
 		if (LuaThread::m_Lua_Wiimote[controllerID].m_nunchuk.bt.hex != 0)
 		{
-			((wm_nc *)(extData))->bt.hex |= (LuaThread::m_Lua_Wiimote[controllerID].m_nunchuk.bt.hex);
+		((wm_nc *)(extData))->bt.hex ^= 3; // XOR with 0x3 to "normalize"
+		((wm_nc *)(extData))->bt.hex |= (LuaThread::m_Lua_Wiimote[controllerID].m_nunchuk.bt.hex);
+		((wm_nc *)(extData))->bt.hex ^= 3; // XOR with 0x3 again
 		}
 
 		// Analog stick
