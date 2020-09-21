@@ -35,7 +35,8 @@ enum EState
 	CORE_UNINITIALIZED,
 	CORE_PAUSE,
 	CORE_RUN,
-	CORE_STOPPING
+	CORE_STOPPING,
+	CORE_STARTING
 };
 
 bool Init();
@@ -89,6 +90,9 @@ bool PauseAndLock(bool doLock, bool unpauseOnUnlock = true);
 typedef void(*StoppedCallbackFunc)(void);
 void SetOnStoppedCallback(StoppedCallbackFunc callback);
 
+using StateChangedCallbackFunc = std::function<void(EState)>;
+
+
 // Run on the Host thread when the factors change. [NOT THREADSAFE]
 void UpdateWantDeterminism(bool initial = false);
 
@@ -106,5 +110,6 @@ void QueueHostJob(std::function<void()> job, bool run_during_stop = false);
 // Should be called periodically by the Host to run pending jobs.
 // WM_USER_JOB_DISPATCH will be sent when something is added to the queue.
 void HostDispatchJobs();
+void DoFrameStep();
 
 }  // namespace

@@ -65,6 +65,7 @@ struct Statistics
 	ThisFrame thisFrame;
 	void ResetFrame();
 	static void SwapDL();
+	static void ClearLuaText();
 
 	static void SetString(std::string text);
 

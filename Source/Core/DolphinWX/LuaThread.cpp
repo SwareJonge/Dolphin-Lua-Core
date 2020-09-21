@@ -51,8 +51,8 @@ LuaThread::LuaThread(LuaScriptFrame* p, const wxString& file)
 		m_Lua_Wiimote[i].m_classic.regular_data.lx = WiimoteEmu::Classic::LEFT_STICK_CENTER_X;
 		m_Lua_Wiimote[i].m_classic.regular_data.ly = WiimoteEmu::Classic::LEFT_STICK_CENTER_Y;
 		m_Lua_Wiimote[i].m_classic.rx1 = WiimoteEmu::Classic::RIGHT_STICK_CENTER_X & 0x1;
-		m_Lua_Wiimote[i].m_classic.rx2 = WiimoteEmu::Classic::RIGHT_STICK_CENTER_X & 0x3;
-		m_Lua_Wiimote[i].m_classic.rx3 = WiimoteEmu::Classic::RIGHT_STICK_CENTER_X & 0x3;
+		m_Lua_Wiimote[i].m_classic.rx2 = (WiimoteEmu::Classic::RIGHT_STICK_CENTER_X >> 1) & 0x3;
+		m_Lua_Wiimote[i].m_classic.rx3 = (WiimoteEmu::Classic::RIGHT_STICK_CENTER_X >> 3) & 0x3;
 		m_Lua_Wiimote[i].m_classic.ry = WiimoteEmu::Classic::RIGHT_STICK_CENTER_Y;
 	}
 
@@ -144,7 +144,7 @@ void LuaThread::GetWiiValues(u8 *data, WiimoteEmu::ReportFeatures rptf, int cont
 	u8 *const accelData = rptf.accel ? (data + rptf.accel) : nullptr;
 	u8 *const irData = rptf.ir ? (data + rptf.ir) : nullptr;
 	u8 *const extData = rptf.ext ? (data + rptf.ext) : nullptr;	
-
+	m_last_Lua_Wiimote[controllerID].m_extension = ext;
 	if (ext != 2)
 	{
 		if (coreData)
@@ -183,30 +183,51 @@ void LuaThread::GetWiiValues(u8 *data, WiimoteEmu::ReportFeatures rptf, int cont
 			((wm_nc *)(extData))->jy = LuaThread::m_Lua_Wiimote[controllerID].m_nunchuk.jy;
 		}
 
-		m_last_Lua_Wiimote[controllerID].m_nunchuk = *((wm_nc *)extData);
+		m_last_Lua_Wiimote[controllerID].m_nunchuk = *((wm_nc *)extData);		
 		// Encrypt Data 
-		WiimoteEncrypt(&key, ((u8 *)(extData)), 0, sizeof(wm_nc));		
+		WiimoteEncrypt(&key, ((u8 *)(extData)), 0, sizeof(wm_nc));
 	}
 	// Classic
 	else if (extData && ext == 2)
 	{
+		// Decrypt
+		WiimoteDecrypt(&key, (u8 *)(extData), 0, sizeof(wm_classic_extension));
 		// Buttons
-		((wm_classic_extension *)extData)->bt.hex |= LuaThread::m_Lua_Wiimote[controllerID].m_classic.bt.hex;
+		if (LuaThread::m_Lua_Wiimote[controllerID].m_classic.bt.hex != 0)
+		{
+			((wm_classic_extension *)extData)->bt.hex ^= 0xFFFF; // XOR with 0xFFFF to normalize
+			((wm_classic_extension *)extData)->bt.hex |= LuaThread::m_Lua_Wiimote[controllerID].m_classic.bt.hex;
+			((wm_classic_extension *)extData)->bt.hex ^= 0xFFFF; // XOR with 0xFFFF to get it back to normal
+		}
+		
 		// Left analog stick
 		if (LuaThread::m_Lua_Wiimote[controllerID].m_classic.regular_data.lx != WiimoteEmu::Classic::LEFT_STICK_CENTER_X)
+		{
 			((wm_classic_extension *)extData)->regular_data.lx = LuaThread::m_Lua_Wiimote[controllerID].m_classic.regular_data.lx;
+		}
+			
 		if (LuaThread::m_Lua_Wiimote[controllerID].m_classic.regular_data.ly != WiimoteEmu::Classic::LEFT_STICK_CENTER_Y)
+		{
 			((wm_classic_extension *)extData)->regular_data.ly = LuaThread::m_Lua_Wiimote[controllerID].m_classic.regular_data.ly;
+		}
+			
 		// Right analog stick
-		// for compiling sake just disable this, who's going to use this anyway
-		/*if (LuaThread::m_Lua_Wiimote[controllerID].m_classic.rx1 != (WiimoteEmu::Classic::RIGHT_STICK_CENTER_X & 0x1))
+		if ((LuaThread::m_Lua_Wiimote[controllerID].m_classic.rx1 | (LuaThread::m_Lua_Wiimote[controllerID].m_classic.rx2 << 1)
+			| (LuaThread::m_Lua_Wiimote[controllerID].m_classic.rx3 << 3)) != WiimoteEmu::Classic::RIGHT_STICK_CENTER_X)
+		{
 			((wm_classic_extension *)extData)->rx1 = LuaThread::m_Lua_Wiimote[controllerID].m_classic.rx1;
-		if (LuaThread::m_Lua_Wiimote[controllerID].m_classic.rx2 != WiimoteEmu::Classic::RIGHT_STICK_CENTER_X & 0x3)
 			((wm_classic_extension *)extData)->rx2 = LuaThread::m_Lua_Wiimote[controllerID].m_classic.rx2;
-		if (LuaThread::m_Lua_Wiimote[controllerID].m_classic.rx3 != WiimoteEmu::Classic::RIGHT_STICK_CENTER_X & 0x3)
-			((wm_classic_extension *)extData)->rx3 = LuaThread::m_Lua_Wiimote[controllerID].m_classic.rx3;*/
+			((wm_classic_extension *)extData)->rx3 = LuaThread::m_Lua_Wiimote[controllerID].m_classic.rx3;
+		}
+
+		if (LuaThread::m_Lua_Wiimote[controllerID].m_classic.regular_data.ly != WiimoteEmu::Classic::LEFT_STICK_CENTER_Y)
+		{
+			((wm_classic_extension *)extData)->ry = LuaThread::m_Lua_Wiimote[controllerID].m_classic.ry;
+		}
 
 		m_last_Lua_Wiimote[controllerID].m_classic = *((wm_classic_extension *)extData);
+		// Encrypt
+		WiimoteEncrypt(&key, ((u8 *)(extData)), 0, sizeof(wm_classic_extension));
 
 	}
 

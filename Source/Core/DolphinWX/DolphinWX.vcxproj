@@ -71,6 +71,9 @@ xcopy /y /d "$(DolphinRootDir)Data\*.lua" $(OutDir)</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="bit.cpp" />
+    <ClCompile Include="emu.cpp" />
+    <ClCompile Include="gui.cpp" />
     <ClCompile Include="LuaScriptFrame.cpp" />
     <ClCompile Include="LuaThread.cpp" />
     <ClCompile Include="AboutDolphin.cpp" />
@@ -106,6 +109,7 @@ xcopy /y /d "$(DolphinRootDir)Data\*.lua" $(OutDir)</Command>
     <ClCompile Include="Debugger\RegisterWindow.cpp" />
     <ClCompile Include="Debugger\WatchView.cpp" />
     <ClCompile Include="Debugger\WatchWindow.cpp" />
+    <ClCompile Include="memory.cpp" />
     <ClCompile Include="NetPlay\ChangeGameDialog.cpp" />
     <ClCompile Include="NetPlay\NetPlaySetupFrame.cpp" />
     <ClCompile Include="NetPlay\NetWindow.cpp" />
@@ -128,7 +132,11 @@ xcopy /y /d "$(DolphinRootDir)Data\*.lua" $(OutDir)</Command>
     <ClCompile Include="MemcardManager.cpp" />
     <ClCompile Include="NetPlay\PadMapDialog.cpp" />
     <ClCompile Include="PatchAddEdit.cpp" />
+    <ClCompile Include="savestate.cpp" />
     <ClCompile Include="SoftwareVideoConfigDialog.cpp" />
+    <ClCompile Include="joypad.cpp" />
+    <ClCompile Include="console.cpp" />
+    <ClCompile Include="movie.cpp" />
     <ClCompile Include="TASInputDlg.cpp" />
     <ClCompile Include="TAStudioFrame.cpp" />
     <ClCompile Include="VideoConfigDiag.cpp" />
@@ -138,6 +146,7 @@ xcopy /y /d "$(DolphinRootDir)Data\*.lua" $(OutDir)</Command>
     <ClCompile Include="WxUtils.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="LUA_API.h" />
     <ClInclude Include="LuaScripting.h" />
     <ClInclude Include="Config\AdvancedConfigPane.h" />
     <ClInclude Include="Config\AudioConfigPane.h" />

@@ -622,18 +622,16 @@ namespace Movie {
 	}
 
 	u64 GetCurrentFrame()
-  {
-	  return g_currentFrame;
-  }
-
-
+	{
+		return g_currentFrame;
+	}
 
 	std::string GetRerecordCount()
-        {
+	{
 	    std::string output = StringFromFormat("Rerecords: %d", s_rerecords);
 	    output.append("\n");
 	    return output;
-        }
+	}
 
 	bool IsUsingPad(int controller)
 	{
@@ -1654,6 +1652,7 @@ namespace Movie {
 	{
 		wiimfunc[static_cast<size_t>(manipfunctionsindex)] = std::move(func);
 	}
+
 	// NOTE: CPU Thread
 	void CallGCInputManip(GCPadStatus *PadStatus, int controllerID)
 	{

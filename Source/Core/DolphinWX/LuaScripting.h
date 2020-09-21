@@ -11,6 +11,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Core/HW/WiimoteEmu/Attachment/Nunchuk.h"
+#include "Core/HW/WiimoteEmu/Attachment/Classic.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "InputCommon/GCPadStatus.h"
 
@@ -36,6 +37,7 @@ struct luaL_Reg;
 	  wm_ir_basic ir_data;
 	  wm_ir_extended ext_ir_data;
 	  wm_classic_extension m_classic;
+	  int m_extension;
   };
 
 namespace Lua
@@ -79,8 +81,15 @@ public:
   GCPadStatus& GetPadStatus(int number);  
   wm_buttons& GetPadWiiStatus(int number);
   wm_nc& GetNunchukStatus(int number);
+  wm_classic_extension& GetClassicStatus(int number);
+
   GCPadStatus GetLastPadStatus(int number);
   wm_buttons GetLastPadWiiStatus(int number);
+  wm_nc GetLastNunchuckStatus(int number);
+  wm_classic_extension GetLastClassicStatus(int number);
+
+  int GetLastWiimoteExt(int number);
+
   LuaThread* GetLuaThread();
   static LuaScriptFrame* GetCurrentInstance();
 

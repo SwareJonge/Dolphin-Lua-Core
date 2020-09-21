@@ -26,6 +26,11 @@ void Statistics::SwapDL()
 	std::swap(stats.thisFrame.numBPLoadsInDL, stats.thisFrame.numBPLoads);
 }
 
+void Statistics::ClearLuaText()
+{
+	stats.statistics_text = "";
+}
+
 void Statistics::SetString(std::string text)
 {
 	stats.statistics_text = text;

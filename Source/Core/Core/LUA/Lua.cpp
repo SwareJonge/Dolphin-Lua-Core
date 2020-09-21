@@ -873,7 +873,7 @@ namespace Lua
 
 	void Shutdown()
 	{
-		//Kill all Scripts
+		// Kill all Scripts
 		for (std::list<LuaScript>::iterator it = scriptList.begin(); it != scriptList.end(); ++it)
 		{
 			if (it->hasStarted)

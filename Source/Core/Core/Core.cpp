@@ -36,7 +36,8 @@
 #include "Core/MemoryWatcher.h"
 #endif
 #include "Core/Movie.h"
-#include "Core/LUA/Lua.h" //Dragonbane
+#include "Core/LUA/Lua.h" // Dragonbane
+#include "VideoCommon/Statistics.h"
 #include "Core/NetPlayClient.h"
 #include "Core/NetPlayProto.h"
 #include "Core/PatchEngine.h"
@@ -287,6 +288,7 @@ void Stop()  // - Hammertime!
 	// Stop the CPU
 	INFO_LOG(CONSOLE, "%s", StopMessage(true, "Stop CPU").c_str());
 	CPU::Stop();
+	Statistics::ClearLuaText(); // Clear Lua text so we don't have to do this manually
 
 	if (_CoreParameter.bCPUThread)
 	{
