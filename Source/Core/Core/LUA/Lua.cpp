@@ -680,10 +680,8 @@ namespace Lua
 	u32 readPointer(u32 startAddress, u32 offset)
 	{
 	    u32 pointer = Memory::Read_U32(startAddress) + offset;
-	    bool isInMEM = false;
-	    Lua::IsInMEMArea(pointer, &isInMEM);
 	    // check if pointer is not in the mem1 or mem2
-	    if (!isInMEM)
+	    if (!Lua::IsInMEMArea(pointer))
 	    {
 		    // break and return 0
 		    pointer = 0;
@@ -885,22 +883,21 @@ namespace Lua
 		scriptList.clear();
 	}
 
-	void IsInMEMArea(u32 pointer, bool *b)
+	bool IsInMEMArea(u32 pointer)
 	{
 	    if (pointer > 0x80000000 && pointer < 0x81800000 || pointer > 0x90000000 && pointer < 0x94000000)
 	    {
-		    *b = true;
-		    return;
+			pointer -= 0x80000000;
+			return true;
 	    }
 	    else if (pointer > 0x0 && pointer < 0x1800000 || pointer > 0x10000000 && pointer < 0x14000000)
 	    {
-		    *b = true;
-		    return ;
+		    
+			return true;
 	    }
 		else
 		{		   
-		    *b = false;
-		    return;
+		    return false;
 		}
 		    
 	}

@@ -19,6 +19,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
+#include "Core/LUA/Lua.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayClient.h"
 #include "Core/NetPlayProto.h"
@@ -276,8 +277,19 @@ namespace Movie {
 					    u32 offset;
 
 					    pointerAddress = strtol(argString.substr(0, locPlus - 1).c_str(), nullptr, 16);
+						//u32 pointer = Memory::Read_U32(pointerAddress);
 
-					    std::string arguString = argString.substr(locPlus + 2);
+						std::vector<size_t> positions; // holds all the positions that sub occurs within str
+						std::string arguString = argString.substr(locPlus + 2);
+						while (locPlus != std::string::npos)
+						{
+							offset = strtol(arguString.c_str(), nullptr, 16);
+							pointerAddress = Lua::readPointer(pointerAddress, offset);
+							positions.push_back(locPlus);
+							locPlus = argString.find("+", locPlus + 1);
+							arguString = argString.substr(locPlus + 2);							
+						}					    
+						//std::string arguString = argString.substr(locPlus + 2);
 
 					    if (locHint != std::string::npos)
 					    {
@@ -286,17 +298,11 @@ namespace Movie {
 						    arguString = arguString.substr(0, locHint - 1);
 					    }
 
-					    offset = strtol(arguString.c_str(), nullptr, 16);
+					   // offset = strtol(arguString.c_str(), nullptr, 16);					    
+						
+						readAddress = pointerAddress;
 
-					    u32 pointer = Memory::Read_U32(pointerAddress);
-
-					    if (pointer > 0x80000000)
-					    {
-						    pointer -= 0x80000000;
-
-						    readAddress = pointer + offset;
-					    }
-					    else
+					    if(readAddress == 0)
 					    {
 						    RAMDisplay.append(currSectionOutput + "N/A");
 						    locNext = subLine.find("%", 0);

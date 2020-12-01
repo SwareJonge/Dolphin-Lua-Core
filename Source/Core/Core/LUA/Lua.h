@@ -79,7 +79,7 @@ namespace Lua
 	void UpdateScripts(GCPadStatus* PadStatus);
     u32 readPointer(u32 startAddress, u32 offset);
     u32 ExecuteMultilevelLoop(lua_State *L);
-    void IsInMEMArea(u32 pointer, bool *b);
+    bool IsInMEMArea(u32 pointer);
 
 	void iPressButton(const char* button);
 	void iReleaseButton(const char* button);
