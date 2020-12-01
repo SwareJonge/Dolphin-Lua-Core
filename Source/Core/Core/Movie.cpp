@@ -297,16 +297,14 @@ namespace Movie {
 						
 						readAddress = pointerAddress;
 
-						if (readAddress == 0)
+						if ((readAddress == 0) || (readAddress == offset))
 						{
 							RAMDisplay.append(currSectionOutput + "N/A");
 							locNext = subLine.find("%", 0);
 							continue;
 						}
-
 				    }
-
-
+									   					 				  
 
 
 				    std::string finalOutput;
