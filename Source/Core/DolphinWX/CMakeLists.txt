@@ -33,6 +33,14 @@ set(GUI_SRCS
 	Debugger/RegisterWindow.cpp
 	Debugger/WatchView.cpp
 	Debugger/WatchWindow.cpp
+        LuaScripting/API/bit.cpp
+        LuaScripting/API/console.cpp
+        LuaScripting/API/emu.cpp
+        LuaScripting/API/gui.cpp
+        LuaScripting/API/joypad.cpp
+        LuaScripting/API/memory.cpp
+        LuaScripting/API/movie.cpp
+        LuaScripting/API/savestate.cpp
 	NetPlay/ChangeGameDialog.cpp
 	NetPlay/NetPlaySetupFrame.cpp
 	NetPlay/NetWindow.cpp
@@ -46,7 +54,8 @@ set(GUI_SRCS
 	ISOProperties.cpp
 	InputConfigDiag.cpp
 	InputConfigDiagBitmaps.cpp
-    LaunchLuaScript.cpp
+        LaunchLuaScript.cpp
+        LuaScriptFrame.cpp
 	LogConfigWindow.cpp
 	LogWindow.cpp
 	Main.cpp
@@ -55,6 +64,7 @@ set(GUI_SRCS
 	PostProcessingConfigDiag.cpp
 	SoftwareVideoConfigDialog.cpp
 	TASInputDlg.cpp
+        TAStudioFrame.cpp
 	VideoConfigDiag.cpp
 	WXInputBase.cpp
 	WxUtils.cpp)
