@@ -334,7 +334,6 @@ private:
 	void OnExportAllSaves(wxCommandEvent& event);
 
 	void OnScriptLaunch(wxCommandEvent& event); // ADDED
-	void OnLua(wxCommandEvent &event); // Added
 
 	void OnNetPlay(wxCommandEvent& event);
 

@@ -74,8 +74,6 @@ xcopy /y /d "$(DolphinRootDir)Data\*.lua" $(OutDir)</Command>
     <ClCompile Include="LuaScripting\API\bit.cpp" />
     <ClCompile Include="LuaScripting\API\emu.cpp" />
     <ClCompile Include="LuaScripting\API\gui.cpp" />
-    <ClCompile Include="LuaScriptFrame.cpp" />
-    <ClCompile Include="LuaThread.cpp" />
     <ClCompile Include="AboutDolphin.cpp" />
     <ClCompile Include="ARCodeAddEdit.cpp" />
     <ClCompile Include="Cheats\CheatSearchTab.cpp" />
@@ -134,8 +132,6 @@ xcopy /y /d "$(DolphinRootDir)Data\*.lua" $(OutDir)</Command>
     <ClCompile Include="PatchAddEdit.cpp" />
     <ClCompile Include="LuaScripting\API\savestate.cpp" />
     <ClCompile Include="SoftwareVideoConfigDialog.cpp" />
-    <ClCompile Include="LuaScripting\API\joypad.cpp" />
-    <ClCompile Include="LuaScripting\API\console.cpp" />
     <ClCompile Include="LuaScripting\API\movie.cpp" />
     <ClCompile Include="TASInputDlg.cpp" />
     <ClCompile Include="TAStudioFrame.cpp" />
@@ -147,7 +143,6 @@ xcopy /y /d "$(DolphinRootDir)Data\*.lua" $(OutDir)</Command>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="LUA_API.h" />
-    <ClInclude Include="LuaScripting.h" />
     <ClInclude Include="Config\AdvancedConfigPane.h" />
     <ClInclude Include="Config\AudioConfigPane.h" />
     <ClInclude Include="Config\GameCubeConfigPane.h" />

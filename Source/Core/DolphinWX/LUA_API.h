@@ -8,6 +8,7 @@
 #include <lua.h>
 #include <luaconf.h>
 
+#include "Core/LUA/Lua.h"
 #include "Common/CommonTypes.h"
 
 
@@ -18,10 +19,6 @@ namespace Lua
 	namespace bit
 	{    
 		int band(lua_State *L);
-	}
-	namespace console
-	{
-		int log(lua_State *L);
 	}
 	namespace emu
 	{
@@ -35,45 +32,6 @@ namespace Lua
 	{
 		int DrawText(lua_State *L);
 		int Msg(lua_State *L);
-	}
-	namespace joypad
-	{				
-		namespace GC
-		{
-			int getAnalog(lua_State *L);
-            int setAnalog(lua_State *L);
-            int setAnalogPolar(lua_State *L);
-            int getCStick(lua_State *L);
-            int setCStick(lua_State *L);
-            int setCStickPolar(lua_State *L);
-            int getButtons(lua_State *L);
-            int setButtons(lua_State *L);
-            int getTriggers(lua_State *L);
-            int setTriggers(lua_State *L);
-		}
-		namespace Wii
-		{
-			int getExtension(lua_State *L);
-			int getButtons(lua_State *L);
-            int setButtons(lua_State *L);
-			// Extensions
-			namespace Nunchuk
-			{
-				int getButtons(lua_State *L);
-				int setButtons(lua_State *L);
-                int getAnalog(lua_State *L);
-                int setAnalog(lua_State *L);
-			} // namespace Nunchuk
-            namespace Classic					
-			{            
-				int getButtons(lua_State *L);            
-				int setButtons(lua_State *L);
-				int getAnalogL(lua_State *L);
-				int setAnalogL(lua_State *L);
-                int getAnalogR(lua_State *L);
-                int setAnalogR(lua_State *L);
-            } // namespace Classic
-		} // namespace Wii
 	}
 	namespace memory
 	{    

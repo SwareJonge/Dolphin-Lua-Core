@@ -24,12 +24,6 @@
     <ClCompile Include="ControllerConfigDiag.cpp" />
     <ClCompile Include="WXInputBase.cpp" />
     <ClCompile Include="WxUtils.cpp" />
-    <ClCompile Include="LuaScriptFrame.cpp">
-      <Filter>LuaScripting</Filter>
-    </ClCompile>
-    <ClCompile Include="LuaThread.cpp">
-      <Filter>LuaScripting</Filter>
-    </ClCompile>
     <ClCompile Include="Config\AdvancedConfigPane.cpp">
       <Filter>Config</Filter>
     </ClCompile>
@@ -143,16 +137,10 @@
     <ClCompile Include="LuaScripting\API\bit.cpp">
       <Filter>LuaScripting\API</Filter>
     </ClCompile>
-    <ClCompile Include="LuaScripting\API\console.cpp">
-      <Filter>LuaScripting\API</Filter>
-    </ClCompile>
     <ClCompile Include="LuaScripting\API\emu.cpp">
       <Filter>LuaScripting\API</Filter>
     </ClCompile>
     <ClCompile Include="LuaScripting\API\gui.cpp">
-      <Filter>LuaScripting\API</Filter>
-    </ClCompile>
-    <ClCompile Include="LuaScripting\API\joypad.cpp">
       <Filter>LuaScripting\API</Filter>
     </ClCompile>
     <ClCompile Include="LuaScripting\API\memory.cpp">
@@ -187,9 +175,6 @@
     <ClInclude Include="ControllerConfigDiag.h" />
     <ClInclude Include="WXInputBase.h" />
     <ClInclude Include="WxUtils.h" />
-    <ClInclude Include="LuaScripting.h">
-      <Filter>LuaScripting</Filter>
-    </ClInclude>
     <ClInclude Include="LUA_API.h">
       <Filter>LuaScripting\API</Filter>
     </ClInclude>

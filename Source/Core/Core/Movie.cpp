@@ -277,38 +277,37 @@ namespace Movie {
 					    u32 offset;
 
 					    pointerAddress = strtol(argString.substr(0, locPlus - 1).c_str(), nullptr, 16);
-						//u32 pointer = Memory::Read_U32(pointerAddress);
 
-						std::vector<size_t> positions; // holds all the positions that sub occurs within str
 						std::string arguString = argString.substr(locPlus + 2);
+
+						if (locHint != std::string::npos)
+						{
+							locHint = arguString.find(">>", 0);
+
+							arguString = arguString.substr(0, locHint - 1);
+						}
+						
 						while (locPlus != std::string::npos)
 						{
 							offset = strtol(arguString.c_str(), nullptr, 16);
 							pointerAddress = Lua::readPointer(pointerAddress, offset);
-							positions.push_back(locPlus);
 							locPlus = argString.find("+", locPlus + 1);
-							arguString = argString.substr(locPlus + 2);							
-						}					    
-						//std::string arguString = argString.substr(locPlus + 2);
-
-					    if (locHint != std::string::npos)
-					    {
-						    locHint = arguString.find(">>", 0);
-
-						    arguString = arguString.substr(0, locHint - 1);
-					    }
-
-					   // offset = strtol(arguString.c_str(), nullptr, 16);					    
+							arguString = argString.substr(locPlus + 2);
+						}			    
 						
 						readAddress = pointerAddress;
 
-					    if(readAddress == 0)
-					    {
-						    RAMDisplay.append(currSectionOutput + "N/A");
-						    locNext = subLine.find("%", 0);
-						    continue;
-					    }
+						if (readAddress == 0)
+						{
+							RAMDisplay.append(currSectionOutput + "N/A");
+							locNext = subLine.find("%", 0);
+							continue;
+						}
+
 				    }
+
+
+
 
 				    std::string finalOutput;
 

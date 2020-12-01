@@ -681,16 +681,16 @@ namespace Lua
 	{
 	    u32 pointer = Memory::Read_U32(startAddress) + offset;
 	    // check if pointer is not in the mem1 or mem2
-	    if (!Lua::IsInMEMArea(pointer))
+	    if (Lua::IsInMEMArea(pointer))
 	    {
-		    // break and return 0
-		    pointer = 0;
+			if (pointer >= 0x80000000)
+			{
+				pointer -= 0x80000000;
+			}
+
+			return pointer;
 	    }
-	    else
-	    {
-		    pointer -= 0x80000000;	    
-		}
-	    return pointer;
+		else return 0;
 	}
 
 	u32 ExecuteMultilevelLoop(lua_State *L)
@@ -885,12 +885,11 @@ namespace Lua
 
 	bool IsInMEMArea(u32 pointer)
 	{
-	    if (pointer > 0x80000000 && pointer < 0x81800000 || pointer > 0x90000000 && pointer < 0x94000000)
+	    if ((pointer > 0x80000000 && pointer < 0x81800000) || (pointer > 0x90000000 && pointer < 0x94000000))
 	    {
-			pointer -= 0x80000000;
 			return true;
 	    }
-	    else if (pointer > 0x0 && pointer < 0x1800000 || pointer > 0x10000000 && pointer < 0x14000000)
+	    else if ((pointer > 0x0 && pointer < 0x1800000) || (pointer > 0x10000000 && pointer < 0x14000000))
 	    {
 		    
 			return true;

@@ -3,7 +3,6 @@
 // Refer to the license.txt file included.
 
 #include "DolphinWX/LUA_API.h"
-#include "DolphinWX/LuaScripting.h"
 
 #include "Core/Movie.h"
 #include "Core/HW/ProcessorInterface.h"

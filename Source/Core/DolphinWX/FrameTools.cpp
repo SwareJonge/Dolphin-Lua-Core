@@ -53,7 +53,6 @@
 #include "Core/PowerPC/PPCSymbolDB.h"
 
 #include "DiscIO/NANDContentLoader.h"
-#include "DolphinWX/LuaScripting.h"
 #include "DolphinWX/LaunchLuaScript.h"
 #include "DolphinWX/AboutDolphin.h"
 #include "DolphinWX/ControllerConfigDiag.h"
@@ -239,7 +238,6 @@ wxMenuBar* CFrame::CreateMenu()
 	wxMenu* toolsMenu = new wxMenu;
 	toolsMenu->Append(IDM_MEMCARD, _("&Memcard Manager (GC)"));
 	toolsMenu->Append(IDM_SCRIPTLAUNCH, "Execute Script"); // ADDED
-	toolsMenu->Append(IDM_LUA_SCRIPT, _("Lua Console"));
 	toolsMenu->Append(IDM_IMPORT_SAVE, _("Import Wii Save"));
 	toolsMenu->Append(IDM_EXPORT_ALL_SAVE, _("Export All Wii Saves"));
 	toolsMenu->Append(IDM_CHEATS, _("&Cheat Manager"));
@@ -1664,23 +1662,11 @@ void CFrame::OnUndoSaveState(wxCommandEvent& WXUNUSED (event))
 		State::UndoSaveState();
 }
 
-// === ADDED FUNCTIONS ===
+// === ADDED FUNCTION ===
 void CFrame::OnScriptLaunch(wxCommandEvent &WXUNUSED(event))
 {
 	g_ScriptLauncher->Show(true);
 	g_ScriptLauncher->Shown();
-}
-
-void CFrame::OnLua(wxCommandEvent &WXUNUSED(event))
-{
-	if (!m_lua_script_frame)
-	{
-		m_lua_script_frame = Lua::LuaScriptFrame::GetCurrentInstance();
-	}
-	else
-	{
-		m_lua_script_frame->Raise();
-	}
 }
 // === ===
 

@@ -2,8 +2,9 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <stdint.h>
+
 #include "DolphinWX/LUA_API.h"
-#include "DolphinWX/LuaScripting.h"
 #include "Core/State.h"
 
 namespace Lua
