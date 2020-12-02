@@ -24,9 +24,10 @@ IMPORTANT: MKW_TAS_Toolkit_active_reload.lua RELOADS BOTH INPUT FILES ON EVERY F
 Executable Files:
 ~/Scripts/MKW_GHOST_store_inputs.lua 			--stores the ghosts input from the internal mkw memory into the ~/mkw_input_reader_ghost.lua input file
 ~/Scripts/MKW_GHOST_store_inputs_runner.lua 	--stores the ghosts input from the internal mkw memory into BOTH ~/mkw_input_reader_ghost.lua AND ~/mkw_input_reader_runner.lua input files
-~/Scripts/MKW_TAS_Toolkit.lua					--when loaded, uses the currently saved ~/mkw_input_reader_ghost.lua AND ~/mkw_input_reader_runner.lua input files to influence the runners and ghosts inputs, savestate compatible
-~/Scripts/MKW_TAS_Toolkit_active_reload.lua		--when loaded, uses ~/mkw_input_reader_ghost.lua AND ~/mkw_input_reader_runner.lua input files to influence the runners and ghosts inputs, savestate compatible
-												--updates with changing the files in realtime, CAUSES HEAVY FRAMEDROPS, ONLY USE WHILE TASING
+~/Scripts/MKW_TAS_Toolkit.lua					--when loaded, uses ~/mkw_input_reader_ghost.lua AND ~/mkw_input_reader_runner.lua input files to influence the runners and ghosts inputs, savestate compatible
+												--updates with reloading the files after using a savestate to go back to an earlier frame than the current one
+~/Scripts/MKW_TAS_Toolkit_copytoghost.lua		--copies the ~/mkw_input_reader_runner.lua to the ~/mkw_input_reader_ghost.lua
+												--changes invalid GCC-inputs to valid runs, to keep the ghost from desyncing, uses ~/input_mask.lua to do so
 ~/Scripts/MKW_TAS_Toolkit_input_writer.lua		--writes inputs made with Controller/TAS-Input into the ~/mkw_input_reader_runner.lua input file, saves file when script is canceled, savestate compatible
 												--keeps old inputs alive, if they are not overwritten, fills gaps between frames with the basic input of no button pressed
 ~/Scripts/MKW_TAS_Toolkit_rewrite.lua			--rewrites the ~/mkw_input_reader_runner.lua input file to match the commentated frames
@@ -36,10 +37,14 @@ Helper Files:
 ~/MKW_core.lua  			--latest MKW_core.lua version, current standard
 ~/MKW_ghost_core.lua  		--used for pointer finding in all ghost based lua scripts
 							--includes basic function to overwrite ghost data using an input list
+~/input_mask.lua			--collection of all input conversions for the GC controller
 
 Input Files:
 ~/mkw_input_reader_ghost.lua	--representates the inputs of the ghost
 ~/mkw_input_reader_runner.lua	--representates the inputs of the runner
+
+Input Collection Files:
+~/InputCollection/...		--collection of several prepared input strings such as start slides or Auto-Spear turning
 
 Test Files:
 ~/Test_Scripts/TEST_MKW_GHOST_overwrite_data_copy.lua	--converts the ~/mkw_input_reader_ghost.lua input file into binary RKG data saved in the ~/mkw_input_reader_ghost_raw.rrkg file (Raw RKG, does not include header or checksum)
@@ -48,10 +53,24 @@ Test Files:
 Deprecated/Deleted Files:
 ~/Scripts/MKW_ghost_overwrite.lua				--overwrite the ghost in the internal mkw memory using the ~/mkw_input_reader_ghost.lua input file, DOES NOT affect save data
 												--effectively replaced by MKW_TAS_Toolkit.lua
+~/Scripts/MKW_TAS_Toolkit_active_reload.lua		--when loaded, uses ~/mkw_input_reader_ghost.lua AND ~/mkw_input_reader_runner.lua input files to influence the runners and ghosts inputs, savestate compatible
+												--updates with changing the files in realtime, CAUSES HEAVY FRAMEDROPS, ONLY USE WHILE TASING
+												--effectively replaced by MKW_TAS_Toolkit.lua
 
 
 -----------------------
 versions:
+
+v1.3
+-fixed ~/MKW_ghost_core.lua to actively replace the length of the ghost input size for each section
+-updated ~/Scripts/MKW_TAS_Toolkit.lua to replace the old ~/Scripts/MKW_TAS_Toolkit_active_reload.lua without lag issues
+-added ~/InputCollection/... files for prepared input strings
+-added ~/input_mask.lua for a collection of valid GCC-input conversions
+-added ~/Scripts/MKW_TAS_Toolkit_copytoghost.lua to convert the ~/mkw_input_reader_runner.lua to a synchonized ~/mkw_input_reader_ghost.lua
+-deleted ~/Scripts/MKW_TAS_Toolkit_active_reload.lua
+-changed directory from ~/Scripts/... to ~/Sys/Scripts/... to match the newest Dolphin LUA version
+	-this change does not apply to this READMII
+
 
 v1.2
 -fixed ~/MKW_ghost_core.lua RKG face button masking

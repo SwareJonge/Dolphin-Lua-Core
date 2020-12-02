@@ -1,72 +1,34 @@
 local core = {}
 
-local function getGameID()
-    return ReadValueString(0x0, 6)
-end
-core.getGameID = getGameID
-
---local function checkIfInRace(x)
-  -- if x >= 0x80000000 and x < 0x90000000  and x ~= nil then
-    -- return true
-   --else return false
-   --end
---end
-core.checkIfInRace = checkIfInRace
+local Pointers = require "MKW_Pointers"
 
 local function getPos()
-  local pointer
-  if getGameID() == "RMCP01" then pointer = 0x9C2EF8
-  elseif getGameID() == "RMCE01"then pointer = 0x9BE738
-  elseif getGameID() == "RMCJ01" then pointer = 0x9C1F58
-  elseif getGameID() == "RMCK01" then pointer = 0x9B1538
+  local address = Pointers.getPositionPointer(0x0) -- 0x0 first player in the array, to get the most accurate, read playerindex first
+  if address == 0 then
+    return {X = 0, Y = 0, Z = 0}
   end
-  local offset1 = 0x40
-  local address1 = GetPointerNormal(pointer)
-  if ReadValue32(address1) >= 0x80000000 then
-  local address2 = GetPointerNormal(address1 + offset1)
-  local offset2 = 0x0
-  return {X = ReadValueFloat(address2 + offset2), Y = ReadValueFloat(address2 + offset2 + 4), Z = ReadValueFloat(address2 + offset2 + 8)}
-  else return {X = 0, Y = 0, Z = 0}
-  end
+  return {X = ReadValueFloat(address), Y = ReadValueFloat(address + 0x4), Z = ReadValueFloat(address + 0x8)}
 end
 core.getPos = getPos
 
 local function getPosGhost()
-  local pointer
-  if getGameID() == "RMCP01" then pointer = 0x9C2EF8
-  elseif getGameID() == "RMCE01"then pointer = 0x9BE738
-  elseif getGameID() == "RMCJ01" then pointer = 0x9C1F58
-  elseif getGameID() == "RMCK01" then pointer = 0x9B1538
+  local address = Pointers.getPositionPointer(0x4)
+  if address == 0 then
+    return {X = 0, Y = 0, Z = 0}
   end
-  local offset1 = 0x64
-  local address1 = GetPointerNormal(pointer)
-  if ReadValue32(address1) >= 0x80000000 then
-  local address2 = GetPointerNormal(address1 + offset1)
-  local offset2 = 0x0
-  return {X = ReadValueFloat(address2 + offset2), Y = ReadValueFloat(address2 + offset2 + 4), Z = ReadValueFloat(address2 + offset2 + 8)}
-  else return {X = 0, Y = 0, Z = 0}
-  end
+  return {X = ReadValueFloat(address), Y = ReadValueFloat(address + 0x4), Z = ReadValueFloat(address + 0x8)}
 end
 core.getPosGhost = getPosGhost
 
-local function getPrevPos()
-  local pointer
-  if getGameID() == "RMCP01"then pointer = 0x9C2EF8
-  elseif getGameID() == "RMCE01"then pointer = 0x9BE738
-  elseif getGameID() == "RMCJ01"then pointer = 0x9C1F58
-  elseif getGameID() == "RMCK01" then pointer = 0x9B1538
+local function getPrevPos() -- TODO rewrite this function but with accurate previous position
+  local address = Pointers.getPositionPointer(0x0)
+  local prevOffset = 0x160
+  if address == 0 then
+    return {X = 0, Y = 0, Z = 0}
   end
-  local offset1 = 0x40
-  local address1 = GetPointerNormal(pointer)
-  if ReadValue32(address1) >= 0x80000000 then
-  local address2 = GetPointerNormal(address1 + offset1)
-  local offset2 = -0x160
-  return {X = ReadValueFloat(address2 + offset2), Y = ReadValueFloat(address2 + offset2 + 4), Z = ReadValueFloat(address2 + offset2 + 8)}
-  else return {X = 0, Y = 0, Z = 0}
-  end
+  return {X = ReadValueFloat(address - prevOffset), Y = ReadValueFloat((address - prevOffset) + 0x4), Z = ReadValueFloat((address - prevOffset) + 0x8)}
 end
 core.getPrevPos = getPrevPos
-
 
 local function getSpd()
   local PrevXpos = getPrevPos().X
@@ -80,22 +42,16 @@ end
 core.getSpd = getSpd
 
 local function getInput()
-  local pointer = 0
-  if getGameID() == "RMCP01" then pointer = 0x42E324
-  elseif getGameID() == "RMCE01" then pointer = 0x429FA4
-  elseif getGameID() == "RMCJ01" then pointer = 0x42DC14
-  elseif getGameID() == "RMCK01" then pointer = 0x41C2B4
-  end
-  local offset = 0x2840
-  local address = GetPointerNormal(pointer)
-  if ReadValue32(pointer) == 0 then
-		return {ABLR = 0, X = 0, Y = 0, DPAD = 0}
-	end
-  return {
+  local address = Pointers.getInputPointer(0x0) -- change this to 0x4 for ghost
+  local offset = 0x8 -- too lazy to adjust the values beneath...
+
+  if address == 0 then return {ABLR = 0, X = 0, Y = 0, DPAD = 0}
+  else return {
    ABLR = ReadValue8(address + offset + 0x1),
    X = ReadValue8(address + offset + 0xC),
    Y = ReadValue8(address + offset + 0xD),
    DPAD = ReadValue8(address + offset + 0xF)}
+ end
 end
 core.getInput = getInput
 
@@ -112,13 +68,7 @@ core.PosToAngle = PosToAngle
 
 --FrameCounter in Race
 local function getFrameOfInput()
-  local frameaddress = 0x0
-  if getGameID() == "RMCP01" then frameaddress = 0x9C38C2
-  elseif getGameID() == "RMCE01" then frameaddress = 0x9BF0BA
-  elseif getGameID() == "RMCJ01" then frameaddress = 0x9C2922
-  elseif getGameID() == "RMCK01" then frameaddress = 0x9B1F02
-  end
-  return ReadValue16(frameaddress)
+  return ReadValue32(Pointers.getFrameOfInputAddress())
 end
 core.getFrameOfInput = getFrameOfInput
 
@@ -136,21 +86,13 @@ end
 core.math_atan2 = math_atan2
 
 function getQuaternion()
-  local pointer
-  if getGameID() == "RMCP01" then pointer = 0x9C2EF8
-  elseif getGameID() == "RMCE01"then pointer = 0x9BE738
-  elseif getGameID() == "RMCJ01" then pointer = 0x9C1F58
-  elseif getGameID() == "RMCK01" then pointer = 0x9B1538
+  local offset2 = 0x88
+  local address2 = Pointers.getPositionPointer(0x0)
+  if(address2 == 0) then
+    return {X = 0, Y = 0, Z = 0, W = 0}
   end
-	local offset1 = 0x40
-	local address1 = GetPointerNormal(pointer)
-  if ReadValue32(address1) >= 0x80000000 then
-	local address2 = GetPointerNormal(address1 + offset1)
-	local offset2 = 0x88
 	return {X = ReadValueFloat(address2 + offset2), Y = ReadValueFloat(address2 + offset2 + 4),
 			Z = ReadValueFloat(address2 + offset2 + 8), W = ReadValueFloat(address2 + offset2 + 12)}
-  else return {X = 0, Y = 0, Z = 0, W = 0}
-  end
 end
 core.getQuaternion = getQuaternion
 

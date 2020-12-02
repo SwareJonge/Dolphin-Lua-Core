@@ -11,6 +11,19 @@ local function getRaceData2Pointer(Offset)
 end
 Pointers.getRaceData2Pointer = getRaceData2Pointer
 
+local function getInputPointer(offset)
+  local gameID = GetGameID()
+	local baseAddress = 0x0
+
+	if gameID == "RMCE01" then baseAddress = 0x9B8F70
+	elseif gameID == "RMCP01" then baseAddress = 0x9BD730
+	elseif gameID == "RMCJ01" then baseAddress = 0x9BC790
+	elseif gameID == "RMCK01" then baseAddress = 0x9ABD70
+	end
+  return ReadValue32(baseAddress, 0xC, offset, 0x48, 0x4)
+end
+Pointers.getInputPointer = getInputPointer
+
 local function getPositionPointer(Offset)
   local pointer
   if GetGameID() == "RMCP01" then pointer = 0x9C18F8
