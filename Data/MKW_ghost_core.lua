@@ -3,7 +3,7 @@ local core = require "MKW_core"
 local ghost_core = {}
 
 local function getGhostAddressPointer()
-	local gameID = core.getGameID()
+	local gameID = GetGameID()
 	local baseAddress = 0x0
 
 	if gameID == "RMCE01" then baseAddress = 0x9B8F70
@@ -78,26 +78,26 @@ end
 
 function writeInputsIntoRKG(input_ghost)
 	local currentAddress = 0x0
-	
+
 	local addressFaceButton, addressDirectionInput, addressTrickInput = getGhostAddresses()
 	local addressFaceButtonPointer, addressDirectionInputPointer, addressTrickInputPointer = getGhostAddressPointer()
-	
+
 	local prevInput = maskFaceButton(input_ghost[1][1], input_ghost[1][2], input_ghost[1][3], 0x0)
 	local amountCurrentFrames = 0x0
-	
+
 	currentAddress = addressFaceButton
-	
+
 	for _, inputs in ipairs(input_ghost) do
 		local currentInput = maskFaceButton(inputs[1], inputs[2], inputs[3], prevInput)
 		if prevInput ~= currentInput then
 			currentAddress = writeRKGData(currentAddress, prevInput, amountCurrentFrames)
-			
+
 			prevInput = currentInput
 			amountCurrentFrames = 0x1
 		else
 			if amountCurrentFrames >= 0xFF then
 				currentAddress = writeRKGData(currentAddress, prevInput, amountCurrentFrames)
-				
+
 				prevInput = currentInput
 				amountCurrentFrames = 0x1
 			else
@@ -105,25 +105,25 @@ function writeInputsIntoRKG(input_ghost)
 			end
 		end
 	end
-	
+
 	currentAddress = writeRKGData(currentAddress, prevInput, amountCurrentFrames)
-	
+
 	WriteValue32(addressDirectionInputPointer, currentAddress + 0x80000000)
-	
+
 	prevInput = maskDirectionInput(input_ghost[1][4], input_ghost[1][5])
 	amountCurrentFrames = 0x0
-	
+
 	for _, inputs in ipairs(input_ghost) do
 		local currentInput = maskDirectionInput(inputs[4], inputs[5])
 		if prevInput ~= currentInput then
 			currentAddress = writeRKGData(currentAddress, prevInput, amountCurrentFrames)
-			
+
 			prevInput = currentInput
 			amountCurrentFrames = 0x1
 		else
 			if amountCurrentFrames >= 0xFF then
 				currentAddress = writeRKGData(currentAddress, prevInput, amountCurrentFrames)
-				
+
 				prevInput = currentInput
 				amountCurrentFrames = 0x1
 			else
@@ -131,29 +131,29 @@ function writeInputsIntoRKG(input_ghost)
 			end
 		end
 	end
-	
+
 	currentAddress = writeRKGData(currentAddress, prevInput, amountCurrentFrames)
-	
+
 	WriteValue32(addressTrickInputPointer, currentAddress + 0x80000000)
-	
+
 	prevInput = maskTrickInput(input_ghost[1][6])
 	amountCurrentFrames = 0x0
-	
+
 	for _, inputs in ipairs(input_ghost) do
 		local currentInput = maskTrickInput(inputs[6])
 		if prevInput ~= currentInput then
 			local inputData = prevInput + math.floor(amountCurrentFrames / 0x100)
-			
+
 			currentAddress = writeRKGData(currentAddress, inputData, amountCurrentFrames % 0x100)
-			
+
 			prevInput = currentInput
 			amountCurrentFrames = 0x1
 		else
 			if amountCurrentFrames >= 0xFFF then
 				local inputData = prevInput + math.floor(amountCurrentFrames / 0x100)
-				
+
 				currentAddress = writeRKGData(currentAddress, inputData, amountCurrentFrames % 0x100)
-				
+
 				prevInput = currentInput
 				amountCurrentFrames = 0x1
 			else
@@ -161,10 +161,10 @@ function writeInputsIntoRKG(input_ghost)
 			end
 		end
 	end
-	
+
 	local inputData = prevInput + math.floor(amountCurrentFrames / 0x100)
 	currentAddress = writeRKGData(currentAddress, inputData, amountCurrentFrames % 0x100)
-	
+
 	endOfFile = addressFaceButton + 0x2774
 	while currentAddress < endOfFile do
 		WriteValue16(currentAddress, 0x0)

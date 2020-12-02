@@ -4,7 +4,7 @@ local core = require "MKW_core"
 
 
 function onScriptStart()
-	if core.getGameID() ~= "RMCP01" and core.getGameID() ~= "RMCJ01" and core.getGameID() ~= "RMCE01" and core.getGameID() ~= "RMCK01" then
+	if GetGameID() ~= "RMCP01" and GetGameID() ~= "RMCJ01" and GetGameID() ~= "RMCE01" and GetGameID() ~= "RMCK01" then
 		SetScreenText("")
 		CancelScript()
 	end

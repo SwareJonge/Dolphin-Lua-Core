@@ -64,7 +64,7 @@ int ReadValue8(lua_State* L)
 	
 	if (Lua::ExecuteMultilevelLoop(L) != 0)
 	{
-		result = Memory::Read_U8(Lua::ExecuteMultilevelLoop(L));
+		result = Lua::normalizePointer(Memory::Read_U8(Lua::ExecuteMultilevelLoop(L)));
 	}
 	lua_pushinteger(L, result);
 
@@ -93,7 +93,7 @@ int ReadValue16(lua_State* L)
 	// if more than 1 argument, read multilelve pointer
 	if (Lua::ExecuteMultilevelLoop(L) != 0)
 	{
-		result = Memory::Read_U16(Lua::ExecuteMultilevelLoop(L));
+		result = Lua::normalizePointer(Memory::Read_U16(Lua::ExecuteMultilevelLoop(L)));
 	}
 	lua_pushinteger(L, result);
 
@@ -121,7 +121,7 @@ int ReadValue32(lua_State* L)
 	// if more than 1 argument, read multilelve pointer
 	if (Lua::ExecuteMultilevelLoop(L) != 0)
 	{
-		result = Memory::Read_U32(Lua::ExecuteMultilevelLoop(L));
+		result = Lua::normalizePointer(Memory::Read_U32(Lua::ExecuteMultilevelLoop(L)));
 		// result = Memory::Read_U8(LastOffset);
 	}
 	lua_pushinteger(L, result); // return value
@@ -149,7 +149,7 @@ int ReadValueFloat(lua_State* L)
 	// if more than 1 argument, read multilelve pointer
 	if (Lua::ExecuteMultilevelLoop(L) != 0)
 	{
-		result = PowerPC::Read_F32(Lua::ExecuteMultilevelLoop(L));
+		result = Lua::normalizePointer(PowerPC::Read_F32(Lua::ExecuteMultilevelLoop(L)));
 	}
 
 	lua_pushnumber(L, result); // return value
@@ -284,6 +284,12 @@ int GetPointerNormal(lua_State* L)
 	u32 pointer = Lua::ExecuteMultilevelLoop(L);
 	lua_pushinteger(L, pointer); // return value
 	return 1; // number of return values
+}
+
+int GetGameID(lua_State* L)
+{
+	lua_pushstring(L, PowerPC::Read_String(0, 6).c_str());
+	return 1;
 }
 
 int PressButton(lua_State* L)
@@ -683,7 +689,7 @@ namespace Lua
 	    // check if pointer is not in the mem1 or mem2
 	    if (Lua::IsInMEMArea(pointer))
 	    {
-			if (pointer >= 0x80000000)
+			if ((pointer > 0x80000000 && pointer < 0x81800000) || (pointer > 0x90000000 && pointer < 0x94000000))
 			{
 				pointer -= 0x80000000;
 			}
@@ -691,6 +697,15 @@ namespace Lua
 			return pointer;
 	    }
 		else return 0;
+	}
+
+	u32 normalizePointer(u32 pointer)
+	{
+		if ((pointer > 0x80000000 && pointer < 0x81800000) || (pointer > 0x90000000 && pointer < 0x94000000))
+		{
+			pointer -= 0x80000000;
+		}
+		return pointer;
 	}
 
 	u32 ExecuteMultilevelLoop(lua_State *L)
@@ -706,7 +721,7 @@ namespace Lua
 		    u32 offset = lua_tointeger(L, i);
 		    // dedicated function to read the offsets and pointer
 		    pointer = readPointer(pointer, offset);
-		    if (pointer == 0)
+		    if ((pointer == 0) || (pointer == offset))
 		    {
 			    pointer = 0;
 			    break;			    
@@ -824,6 +839,8 @@ namespace Lua
 		lua_register(luaState, "WriteValue32", WriteValue32);
 		lua_register(luaState, "WriteValueFloat", WriteValueFloat);
 		lua_register(luaState, "WriteValueString", WriteValueString);
+
+		lua_register(luaState, "GetGameID", GetGameID);
 
 		lua_register(luaState, "PressButton", PressButton);
 		lua_register(luaState, "ReleaseButton", ReleaseButton);

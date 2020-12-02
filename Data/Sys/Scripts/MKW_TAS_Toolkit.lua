@@ -1,27 +1,33 @@
 -- general TAS Toolkit
 -- used to do inputs of yourself and your ghost simultaneously
 
+-- IMPORTANT: to use this, you first need to create a mkw_input_reader_ghost.lua file by running the MKW_ghost_store_inputs.lua script after the ghost and track has been fully loaded
+-- ALSO: use MKW_ghost_store_inputs_runner.lua to both create a runner and a ghost file
+
+-- once both created files are existing, you don't need to run the named script again and can edit both runner and ghost according to the pattern it was created, including adding and deleting lines
+
+-- WARNING: this version reloads the input files on every frame, which causes huge frame drops, only use with the attempt of TASing
+
 
 local core = require "MKW_core"
 local ghost_core = require "MKW_ghost_core"
+
 local input_ghost = {}
 local input_runner = {}
 
 local runner_loaded = false
 local ghost_loaded = false
 
-local frameCount = 0
+local prevFrame = core.getFrameOfInput() + 1
 
-function tableLength(tableInput)
-	local count = 0
-	for _ in pairs(tableInput) do count = count + 1 end
-	return count
+function containsFrame(input_table, frame)
+	return input_table[frame] ~= nil
 end
 
 function runInputs()
 	local currentFrame = core.getFrameOfInput() + 1
 	
-	if currentFrame <= frameCount then
+	if containsFrame(input_runner, currentFrame) then
 	
 		local inputs = input_runner[currentFrame]
 		
@@ -85,16 +91,15 @@ function runInputs()
 	end
 end
 
--- ##################################
+-- ###############################
 
 function onScriptStart()
 	MsgBox("Script started.")
 	runner_loaded, input_runner = pcall(require, "mkw_input_reader_runner")
 	ghost_loaded, input_ghost = pcall(require, "mkw_input_reader_ghost")
 	
-	if(runner_loaded) then
-		frameCount = tableLength(input_runner)
-	end
+	MsgBox(string.format("%s, %s", tostring(runner_loaded), tostring(ghost_loaded)))
+	
 	if(ghost_loaded) then
 		ghost_core.writeInputsIntoRKG(input_ghost)
 	end
@@ -105,15 +110,39 @@ function onScriptCancel()
 end
 
 function onScriptUpdate()
+	local currentFrame = core.getFrameOfInput() + 1
+
 	if(runner_loaded) then
 		runInputs()
 	end
+	
+	if currentFrame < prevFrame then
+		if(runner_loaded) then
+			package.loaded.mkw_input_reader_runner = nil
+			input_runner = require "mkw_input_reader_runner"
+		end
+		if(ghost_loaded) then
+			package.loaded.mkw_input_reader_ghost = nil
+			input_ghost = require "mkw_input_reader_ghost"
+			ghost_core.writeInputsIntoRKG(input_ghost)
+		end
+	end
+	
+	prevFrame = currentFrame
+	
 end
 
 function onStateLoaded()
 	if(ghost_loaded) then
+		package.loaded.mkw_input_reader_ghost = nil
+		input_ghost = require "mkw_input_reader_ghost"
 		ghost_core.writeInputsIntoRKG(input_ghost)
 	end
+	if(runner_loaded) then
+		package.loaded.mkw_input_reader_runner = nil
+		input_runner = require "mkw_input_reader_runner"
+	end
+	prevFrame = core.getFrameOfInput() + 1
 end
 
 function onStateSaved()

@@ -27,6 +27,7 @@ int WriteValue32(lua_State *L);
 int WriteValueFloat(lua_State *L);
 int WriteValueString(lua_State *L);
 int GetPointerNormal(lua_State *L);
+int GetGameID(lua_State *L);
 int PressButton(lua_State *L);
 int ReleaseButton(lua_State *L);
 int SetMainStickX(lua_State *L);
@@ -78,6 +79,7 @@ namespace Lua
 	bool IsScriptRunning(std::string fileName);
 	void UpdateScripts(GCPadStatus* PadStatus);
     u32 readPointer(u32 startAddress, u32 offset);
+	u32 normalizePointer(u32 pointer);
     u32 ExecuteMultilevelLoop(lua_State *L);
     bool IsInMEMArea(u32 pointer);
 
