@@ -145,7 +145,7 @@ void CPUInfo::Detect()
 		//  - XGETBV result has the XCR bit set.
 		if (((cpu_id[2] >> 28) & 1) && ((cpu_id[2] >> 27) & 1))
 		{
-			if ((xgetbv(XCR_XFEATURE_ENABLED_MASK) & 0x6) == 0x6)
+			if ((_xgetbv(XCR_XFEATURE_ENABLED_MASK) & 0x6) == 0x6)
 			{
 				bAVX = true;
 				if ((cpu_id[2] >> 12) & 1)
