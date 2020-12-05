@@ -42,7 +42,7 @@ static inline void __cpuid(int info[4], int function_id)
 }
 
 #endif  // ifndef _WIN32
-static u64 _xgetbv(u32 index);	
+static u64 xgetbv(u32 index);	
 #ifdef _WIN32
 
 static u64 xgetbv(u32 index)
