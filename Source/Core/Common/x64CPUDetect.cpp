@@ -60,7 +60,7 @@ static u64 xgetbv(u32 index)
 	return ((u64)edx << 32) | eax;
 }
 constexpr u32 XCR_XFEATURE_ENABLED_MASK = 0;
-#endif  // ifdef
+#endif  // ifdef _WIN32
 
 CPUInfo cpu_info;
 
