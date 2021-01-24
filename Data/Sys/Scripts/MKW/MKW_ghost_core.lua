@@ -1,4 +1,6 @@
-local core = require "MKW_core"
+----- GLOBAL VARIABLES -----
+package.path = GetScriptsDir() .. "/MKW/MKW_Core.lua"
+local core = require("MKW_Core")
 
 local ghost_core = {}
 

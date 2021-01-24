@@ -9,8 +9,10 @@
 -- WARNING: this version reloads the input files on every frame, which causes huge frame drops, only use with the attempt of TASing
 
 
-local core = require "MKW_core"
-local ghost_core = require "MKW_ghost_core"
+package.path = GetScriptsDir() .. "/MKW/MKW_Core.lua"
+local core = require("MKW_Core")
+package.path = GetScriptsDir() .. "/MKW/MKW_ghost_core.lua"
+local ghost_core = require("MKW_ghost_core") 
 
 local input_ghost = {}
 local input_runner = {}
@@ -26,18 +28,18 @@ end
 
 function runInputs()
 	local currentFrame = core.getFrameOfInput() + 1
-	
+
 	if containsFrame(input_runner, currentFrame) then
-	
+
 		local inputs = input_runner[currentFrame]
-		
+
 		local aButton = inputs[1]
 		local bButton = inputs[2]
 		local lButton = inputs[3]
 		local horizontalInput = inputs[4]
 		local verticalInput = inputs[5]
 		local dPad = inputs[6]
-		
+
 		if horizontalInput == nil then SetMainStickX(128)
 		else
 			if horizontalInput == 0 then SetMainStickX(59)
@@ -76,18 +78,18 @@ function runInputs()
 			elseif verticalInput == 13 then SetMainStickY(197)
 			elseif verticalInput == 14 then SetMainStickY(205)
 			end
-		end		
-		
+		end
+
 		if aButton == 1 then PressButton("A") end
 		if bButton == 1 then PressButton("B") end
 		if lButton == 1 then PressButton("L") end
-		
+
 		if dPad == 1 then PressButton("D-Up")
 		elseif dPad == 2 then PressButton("D-Down")
 		elseif dPad == 3 then PressButton("D-Left")
 		elseif dPad == 4 then PressButton("D-Right")
 		end
-	
+
 	end
 end
 
@@ -97,9 +99,9 @@ function onScriptStart()
 	MsgBox("Script started.")
 	runner_loaded, input_runner = pcall(require, "mkw_input_reader_runner")
 	ghost_loaded, input_ghost = pcall(require, "mkw_input_reader_ghost")
-	
+
 	MsgBox(string.format("%s, %s", tostring(runner_loaded), tostring(ghost_loaded)))
-	
+
 	if(ghost_loaded) then
 		ghost_core.writeInputsIntoRKG(input_ghost)
 	end
@@ -115,7 +117,7 @@ function onScriptUpdate()
 	if(runner_loaded) then
 		runInputs()
 	end
-	
+
 	if currentFrame ~= prevFrame then
 		if(runner_loaded) then
 			package.loaded.mkw_input_reader_runner = nil
@@ -128,7 +130,7 @@ function onScriptUpdate()
 		end
 		prevFrame = currentFrame
 	end
-	
+
 end
 
 function onStateLoaded()

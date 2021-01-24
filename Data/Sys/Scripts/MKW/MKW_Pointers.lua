@@ -11,18 +11,21 @@ local function getRaceData2Pointer(Offset)
 end
 Pointers.getRaceData2Pointer = getRaceData2Pointer
 
-local function getInputPointer(offset)
-  local gameID = GetGameID()
-	local baseAddress = 0x0
-
-	if gameID == "RMCE01" then baseAddress = 0x9B8F70
-	elseif gameID == "RMCP01" then baseAddress = 0x9BD730
-	elseif gameID == "RMCJ01" then baseAddress = 0x9BC790
-	elseif gameID == "RMCK01" then baseAddress = 0x9ABD70
-	end
-  return ReadValue32(baseAddress, 0xC, offset, 0x48, 0x4)
+local function getInputPointer(Offset)
+  return ReadValue32(getRaceData2Pointer(Offset), 0x48, 0x4)
 end
 Pointers.getInputPointer = getInputPointer
+
+local function getPrevPositionPointer(Offset)
+  local pointer
+  if GetGameID() == "RMCP01" then pointer = 0x9C18F8
+  elseif GetGameID() == "RMCE01"then pointer = 0x9BD110
+  elseif GetGameID() == "RMCJ01" then pointer = 0x9C0958
+  elseif GetGameID() == "RMCK01" then pointer = 0x9AFF38
+  end
+  return GetPointerNormal(pointer, 0xC, 0x10, Offset, 0x0, 0x8, 0x90)
+end
+Pointers.getPrevPositionPointer = getPrevPositionPointer
 
 local function getPositionPointer(Offset)
   local pointer
@@ -31,23 +34,18 @@ local function getPositionPointer(Offset)
   elseif GetGameID() == "RMCJ01" then pointer = 0x9C0958
   elseif GetGameID() == "RMCK01" then pointer = 0x9AFF38
   end
-  local returnValue = ReadValue32(pointer, 0xC, 0x10, Offset, 0x10, 0x10, 0x4, 0x18, 0xC, 0x34, 0x0, 0x8, 0x8, 0x8, 0x90, 0x4) + 0x68 -- innaccurate, fix this next update
-
-  if returnValue == 0 or returnValue == 0x68 then
-  returnValue = 0
-  end
-  return returnValue
+  return GetPointerNormal(pointer, 0xC, 0x10, Offset, 0x0, 0x8, 0x90, 0x4)
 end
 Pointers.getPositionPointer = getPositionPointer
 
-local function getPlayerBasePointer()
+local function getPlayerBasePointer(Offset)
   local pointer
   if GetGameID() == "RMCP01" then pointer = 0x9C18F8
   elseif GetGameID() == "RMCE01"then pointer = 0x9BD110
   elseif GetGameID() == "RMCJ01" then pointer = 0x9C0958
   elseif GetGameID() == "RMCK01" then pointer = 0x9AFF38
   end
-  return ReadValue32(pointer, 0xC, 0x10, 0x0, 0x10, 0x10)
+  return ReadValue32(pointer, 0xC, 0x10, Offset, 0x10, 0x10)
 end
 Pointers.getPlayerBasePointer = getPlayerBasePointer
 

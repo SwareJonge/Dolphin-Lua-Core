@@ -64,11 +64,10 @@ int ReadValue8(lua_State* L)
 	
 	if (Lua::ExecuteMultilevelLoop(L) != 0)
 	{
-		result = Lua::normalizePointer(Memory::Read_U8(Lua::ExecuteMultilevelLoop(L)));
+		result =Memory::Read_U8(Lua::ExecuteMultilevelLoop(L));
 	}
+
 	lua_pushinteger(L, result);
-
-
 	return 1; // number of return values
 }
 
@@ -93,10 +92,10 @@ int ReadValue16(lua_State* L)
 	// if more than 1 argument, read multilelve pointer
 	if (Lua::ExecuteMultilevelLoop(L) != 0)
 	{
-		result = Lua::normalizePointer(Memory::Read_U16(Lua::ExecuteMultilevelLoop(L)));
+		result = Memory::Read_U16(Lua::ExecuteMultilevelLoop(L));
 	}
-	lua_pushinteger(L, result);
 
+	lua_pushinteger(L, result);
 	return 1; // number of return values
 }
 
@@ -121,9 +120,10 @@ int ReadValue32(lua_State* L)
 	// if more than 1 argument, read multilelve pointer
 	if (Lua::ExecuteMultilevelLoop(L) != 0)
 	{
-		result = Lua::normalizePointer(Memory::Read_U32(Lua::ExecuteMultilevelLoop(L)));
+		result = Memory::Read_U32(Lua::ExecuteMultilevelLoop(L));
 		// result = Memory::Read_U8(LastOffset);
 	}
+
 	lua_pushinteger(L, result); // return value
 	return 1; // number of return values
 }
@@ -149,12 +149,13 @@ int ReadValueFloat(lua_State* L)
 	// if more than 1 argument, read multilelve pointer
 	if (Lua::ExecuteMultilevelLoop(L) != 0)
 	{
-		result = Lua::normalizePointer(PowerPC::Read_F32(Lua::ExecuteMultilevelLoop(L)));
+		result = PowerPC::Read_F32(Lua::ExecuteMultilevelLoop(L));
 	}
 
 	lua_pushnumber(L, result); // return value
 	return 1;                   // number of return values
 }
+
 int ReadValueString(lua_State* L)
 {
 	int argc = lua_gettop(L);
@@ -243,6 +244,7 @@ int WriteValueFloat(lua_State* L)
 
 	return 0; // number of return values
 }
+
 int WriteValueString(lua_State* L)
 {
 	if (Movie::IsPlayingInput())
@@ -282,13 +284,20 @@ int GetPointerNormal(lua_State* L)
 	// new method, supports multilevel pointers
 	// we need to read the main pointer once, so we can use this one in the for loop
 	u32 pointer = Lua::ExecuteMultilevelLoop(L);
+
 	lua_pushinteger(L, pointer); // return value
 	return 1; // number of return values
 }
 
 int GetGameID(lua_State* L)
 {
-	lua_pushstring(L, PowerPC::Read_String(0, 6).c_str());
+	lua_pushstring(L, SConfig::GetInstance().GetUniqueID().c_str());
+	return 1;
+}
+
+int GetScriptsDir(lua_State* L)
+{
+	lua_pushstring(L, (SYSDATA_DIR "/Scripts/"));
 	return 1;
 }
 
@@ -453,7 +462,6 @@ int LoadState(lua_State* L)
 	return 0; // number of return values
 }
 
-
 int GetFrameCount(lua_State* L)
 {
 	int argc = lua_gettop(L);
@@ -547,7 +555,6 @@ void HandleLuaErrors(lua_State* L, int status)
 		lua_pop(L, 1); // remove error message
 	}
 }
-
 
 namespace Lua
 {
@@ -841,6 +848,7 @@ namespace Lua
 		lua_register(luaState, "WriteValueString", WriteValueString);
 
 		lua_register(luaState, "GetGameID", GetGameID);
+		lua_register(luaState, "GetScriptsDir", GetScriptsDir);
 
 		lua_register(luaState, "PressButton", PressButton);
 		lua_register(luaState, "ReleaseButton", ReleaseButton);

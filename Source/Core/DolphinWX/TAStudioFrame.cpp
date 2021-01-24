@@ -752,7 +752,7 @@ void InputGrid::GoToVI(int vi)
 
 void InputGrid::ToggleCellValue(int row, int col)
 {
-	std::string cell = this->GetCellValue(row, col);
+	std::string cell = std::string(this->GetCellValue(row, col).mb_str());
 	switch (col)
 	{
 	case COLUMN_L_ANA:

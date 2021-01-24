@@ -82,7 +82,7 @@ bool AVIDump::CreateFile()
 
 	s_format_context = avformat_alloc_context();
 	snprintf(s_format_context->filename, sizeof(s_format_context->filename), "%s",
-	         (File::GetUserPath(D_DUMPFRAMES_IDX) + "framedump0.avi").c_str());
+		(File::GetUserPath(D_DUMPFRAMES_IDX) + "framedump0.avi").c_str());
 	File::CreateFullPath(s_format_context->filename);
 
 	// Ask to delete file
@@ -101,13 +101,13 @@ bool AVIDump::CreateFile()
 	}
 
 	if (!(s_format_context->oformat = av_guess_format("avi", nullptr, nullptr)) ||
-	    !(s_stream = avformat_new_stream(s_format_context, codec)))
+		!(s_stream = avformat_new_stream(s_format_context, codec)))
 	{
 		return false;
 	}
 
 	s_stream->codec->codec_id = g_Config.bUseFFV1 ? AV_CODEC_ID_FFV1
-	                                              : s_format_context->oformat->video_codec;
+		: s_format_context->oformat->video_codec;
 	if (!g_Config.bUseFFV1)
 		s_stream->codec->codec_tag = MKTAG('X', 'V', 'I', 'D'); // Force XVID FourCC for better compatibility
 	s_stream->codec->codec_type = AVMEDIA_TYPE_VIDEO;
@@ -120,7 +120,7 @@ bool AVIDump::CreateFile()
 	s_stream->codec->pix_fmt = g_Config.bUseFFV1 ? AV_PIX_FMT_BGRA : AV_PIX_FMT_YUV420P;
 
 	if (!(codec = avcodec_find_encoder(s_stream->codec->codec_id)) ||
-	    (avcodec_open2(s_stream->codec, codec, nullptr) < 0))
+		(avcodec_open2(s_stream->codec, codec, nullptr) < 0))
 	{
 		return false;
 	}
@@ -159,12 +159,12 @@ void AVIDump::AddFrame(const u8* data, int width, int height)
 	// Convert image from {BGR24, RGBA} to desired pixel format, and scale to initial
 	// width and height
 	if ((s_sws_context = sws_getCachedContext(s_sws_context,
-	                                          width, height, s_pix_fmt,
-	                                          s_width, s_height, s_stream->codec->pix_fmt,
-	                                          SWS_BICUBIC, nullptr, nullptr, nullptr)))
+		width, height, s_pix_fmt,
+		s_width, s_height, s_stream->codec->pix_fmt,
+		SWS_BICUBIC, nullptr, nullptr, nullptr)))
 	{
 		sws_scale(s_sws_context, s_src_frame->data, s_src_frame->linesize, 0,
-		          height, s_scaled_frame->data, s_scaled_frame->linesize);
+			height, s_scaled_frame->data, s_scaled_frame->linesize);
 	}
 
 	s_scaled_frame->format = s_stream->codec->pix_fmt;
@@ -205,12 +205,12 @@ void AVIDump::AddFrame(const u8* data, int width, int height)
 		if (pkt.pts != (s64)AV_NOPTS_VALUE)
 		{
 			pkt.pts = av_rescale_q(pkt.pts,
-			                       s_stream->codec->time_base, s_stream->time_base);
+				s_stream->codec->time_base, s_stream->time_base);
 		}
 		if (pkt.dts != (s64)AV_NOPTS_VALUE)
 		{
 			pkt.dts = av_rescale_q(pkt.dts,
-			                       s_stream->codec->time_base, s_stream->time_base);
+				s_stream->codec->time_base, s_stream->time_base);
 		}
 #if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(56, 60, 100)
 		if (s_stream->codec->coded_frame->key_frame)

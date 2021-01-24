@@ -1,6 +1,5 @@
------ GLOBAL VARIABLES -----
---Add an underscore (_) to the beginning of the filename if you want the script to auto launch once you start a game!
-local core = require "MKW_core"
+package.path = GetScriptsDir() .. "/MKW/MKW_Core.lua"
+local core = require("MKW_Core")
 
 function onScriptStart()
 	MsgBox("Script Started.")

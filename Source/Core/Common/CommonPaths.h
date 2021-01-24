@@ -30,8 +30,6 @@
 // Shared data dirs (Sys and shared User for Linux)
 #if defined(_WIN32) || defined(LINUX_LOCAL_DEV)
 	#define SYSDATA_DIR "Sys"
-    #define SCRIPTS_DIR "Sys/Scripts"
-    #define INFODISPLAY_DIR "Sys/InfoDisplay"
 #elif defined __APPLE__
 	#define SYSDATA_DIR "Contents/Resources/Sys"
 #elif defined ANDROID
