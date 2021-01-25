@@ -3,8 +3,8 @@
 -- keeps the previous inputs up to the current frame alive
 -- write the file on the cancel button press
 
-package.path = GetScriptsDir() .. "/MKW/MKW_Core.lua"
-local core = require("MKW_Core")
+package.path = GetScriptsDir() .. "MKW/MKW_core.lua"
+local core = require("MKW_core")
 
 local input_list = {}
 local prevFrame = core.getFrameOfInput() + 1

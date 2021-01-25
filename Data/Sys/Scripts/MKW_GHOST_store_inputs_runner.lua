@@ -6,10 +6,10 @@
 -- WARNING: this will overwrite any changes you have made to your runner file, make sure to use the other one to only write onto the ghost
 
 
-package.path = GetScriptsDir() .. "/MKW/MKW_Core.lua"
-local core = require("MKW_Core")
-package.path = GetScriptsDir() .. "/MKW/MKW_ghost_core.lua"
-local ghost_core = require("MKW_ghost_core") 
+package.path = GetScriptsDir() .. "MKW/MKW_core.lua"
+local core = require("MKW_core")
+package.path = GetScriptsDir() .. "MKW/MKW_ghost_core.lua"
+local ghost_core = require("MKW_ghost_core")
 
 function onScriptStart()
 	MsgBox("Script started.")

@@ -4,10 +4,10 @@
 -- after that you can run the script any time you want, before the first inputs can be made or even midrace
 
 
-package.path = GetScriptsDir() .. "/MKW/MKW_Core.lua"
-local core = require("MKW_Core")
-package.path = GetScriptsDir() .. "/MKW/MKW_ghost_core.lua"
-local ghost_core = require("MKW_ghost_core") 
+package.path = GetScriptsDir() .. "MKW/MKW_core.lua"
+local core = require("MKW_core")
+package.path = GetScriptsDir() .. "MKW/MKW_ghost_core.lua"
+local ghost_core = require("MKW_ghost_core")
 
 write_file = io.open("mkw_input_reader_ghost.lua", "w")
 io.output(write_file)

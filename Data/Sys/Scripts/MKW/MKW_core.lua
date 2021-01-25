@@ -1,6 +1,6 @@
 local core = {}
 
-package.path = GetScriptsDir() .. "/MKW/MKW_Pointers.lua"
+package.path = GetScriptsDir() .. "MKW/MKW_Pointers.lua"
 local Pointers = require("MKW_Pointers")
 
 local function getPos()

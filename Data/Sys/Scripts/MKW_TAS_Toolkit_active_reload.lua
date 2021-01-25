@@ -9,10 +9,10 @@
 -- WARNING: this version reloads the input files on every frame, which causes huge frame drops, only use with the attempt of TASing
 
 
-package.path = GetScriptsDir() .. "/MKW/MKW_Core.lua"
-local core = require("MKW_Core")
-package.path = GetScriptsDir() .. "/MKW/MKW_ghost_core.lua"
-local ghost_core = require("MKW_ghost_core") 
+package.path = GetScriptsDir() .. "MKW/MKW_core.lua"
+local core = require("MKW_core")
+package.path = GetScriptsDir() .. "MKW/MKW_ghost_core.lua"
+local ghost_core = require("MKW_ghost_core")
 
 local input_ghost = {}
 local input_runner = {}
