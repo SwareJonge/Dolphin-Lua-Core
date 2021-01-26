@@ -63,9 +63,8 @@ function onScriptStart()
 		rawData = ReadValue16(currentAddress)
 	until frameCount < input_index
 
-
-	ghost_file = io.open("mkw_input_reader_ghost.lua", "w")
-	runner_file = io.open("mkw_input_reader_runner.lua", "w")
+	ghost_file = io.open(GetScriptsDir() .."MKW/mkw_input_reader_ghost.lua", "w")
+	runner_file = io.open(GetScriptsDir() .."MKW/mkw_input_reader_runner.lua", "w")
 
 	io.output(ghost_file)
 

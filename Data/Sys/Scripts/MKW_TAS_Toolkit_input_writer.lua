@@ -27,6 +27,7 @@ end
 
 function onScriptStart()
 	MsgBox("Script started.")
+	package.path = GetScriptsDir() .. "MKW/mkw_input_reader_runner.lua"
 	local runner_exists, input_runner = pcall(require, "mkw_input_reader_runner")
 
 	if runner_exists then
@@ -39,7 +40,7 @@ function onScriptCancel()
 
 	deleteOverloadedInputs()
 
-	write_file = io.open("mkw_input_reader_runner.lua", "w")
+	write_file = io.open(GetScriptsDir() .. "MKW/mkw_input_reader_runner.lua", "w")
 	io.output(write_file)
 
 	io.write("local mkw_input_reader_runner = {")

@@ -97,7 +97,9 @@ end
 
 function onScriptStart()
 	MsgBox("Script started.")
+	package.path = GetScriptsDir() .. "MKW/mkw_input_reader_runner.lua"
 	runner_loaded, input_runner = pcall(require, "mkw_input_reader_runner")
+	package.path = GetScriptsDir() .. "MKW/mkw_input_reader_runner.lua"
 	ghost_loaded, input_ghost = pcall(require, "mkw_input_reader_ghost")
 
 	MsgBox(string.format("%s, %s", tostring(runner_loaded), tostring(ghost_loaded)))
@@ -120,12 +122,14 @@ function onScriptUpdate()
 
 	if currentFrame ~= prevFrame then
 		if(runner_loaded) then
+			package.path = GetScriptsDir() .. "MKW/mkw_input_reader_runner.lua"
 			package.loaded.mkw_input_reader_runner = nil
-			input_runner = require "mkw_input_reader_runner"
+			input_runner = require("mkw_input_reader_runner")
 		end
 		if(ghost_loaded) then
+			package.path = GetScriptsDir() .. "MKW/mkw_input_reader_ghost.lua"
 			package.loaded.mkw_input_reader_ghost = nil
-			input_ghost = require "mkw_input_reader_ghost"
+			input_ghost = require("mkw_input_reader_ghost")
 			ghost_core.writeInputsIntoRKG(input_ghost)
 		end
 		prevFrame = currentFrame
@@ -135,13 +139,15 @@ end
 
 function onStateLoaded()
 	if(ghost_loaded) then
+		package.path = GetScriptsDir() .. "MKW/mkw_input_reader_ghost.lua"
 		package.loaded.mkw_input_reader_ghost = nil
-		input_ghost = require "mkw_input_reader_ghost"
+		input_ghost = require("mkw_input_reader_ghost")
 		ghost_core.writeInputsIntoRKG(input_ghost)
 	end
 	if(runner_loaded) then
+		package.path = GetScriptsDir() .. "MKW/mkw_input_reader_runner.lua"
 		package.loaded.mkw_input_reader_runner = nil
-		input_runner = require "mkw_input_reader_runner"
+		input_runner = require("mkw_input_reader_runner")
 	end
 	prevFrame = core.getFrameOfInput() + 1
 end

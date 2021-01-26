@@ -1,5 +1,5 @@
-package.path = GetScriptsDir() .. "/MKW/MKW_Core.lua"
-local core = require("MKW_Core")
+package.path = GetScriptsDir() .. "MKW/MKW_core.lua"
+local core = require("MKW_core")
 
 function onScriptStart()
 	MsgBox("Script Started")

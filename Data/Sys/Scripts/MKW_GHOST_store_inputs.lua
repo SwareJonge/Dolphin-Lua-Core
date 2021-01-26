@@ -9,7 +9,7 @@ local core = require("MKW_core")
 package.path = GetScriptsDir() .. "MKW/MKW_ghost_core.lua"
 local ghost_core = require("MKW_ghost_core")
 
-write_file = io.open("mkw_input_reader_ghost.lua", "w")
+write_file = io.open(GetScriptsDir() .. "MKW/mkw_input_reader_ghost.lua", "w")
 io.output(write_file)
 
 function onScriptStart()

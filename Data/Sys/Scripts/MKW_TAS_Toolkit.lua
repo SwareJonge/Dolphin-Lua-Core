@@ -9,10 +9,10 @@
 -- WARNING: this version reloads the input files on every frame, which causes huge frame drops, only use with the attempt of TASing
 
 
-package.path = GetScriptsDir() .. "/MKW/MKW_Core.lua"
-local core = require("MKW_Core")
-package.path = GetScriptsDir() .. "/MKW/MKW_ghost_core.lua"
-local ghost_core = require("MKW_ghost_core") 
+package.path = GetScriptsDir() .. "MKW/MKW_core.lua"
+local core = require("MKW_core")
+package.path = GetScriptsDir() .. "MKW/MKW_ghost_core.lua"
+local ghost_core = require("MKW_ghost_core")
 
 local input_ghost = {}
 local input_runner = {}
@@ -97,7 +97,9 @@ end
 
 function onScriptStart()
 	MsgBox("Script started.")
+	package.path = GetScriptsDir() .. "MKW/mkw_input_reader_runner.lua"
 	runner_loaded, input_runner = pcall(require, "mkw_input_reader_runner")
+	package.path = GetScriptsDir() .. "MKW/mkw_input_reader_ghost.lua"
 	ghost_loaded, input_ghost = pcall(require, "mkw_input_reader_ghost")
 
 	MsgBox(string.format("%s, %s", tostring(runner_loaded), tostring(ghost_loaded)))
@@ -121,11 +123,13 @@ function onScriptUpdate()
 	if currentFrame < prevFrame then
 		if(runner_loaded) then
 			package.loaded.mkw_input_reader_runner = nil
-			input_runner = require "mkw_input_reader_runner"
+			package.path = GetScriptsDir() .. "MKW/mkw_input_reader_runner.lua"
+			input_runner = require("mkw_input_reader_runner")
 		end
 		if(ghost_loaded) then
 			package.loaded.mkw_input_reader_ghost = nil
-			input_ghost = require "mkw_input_reader_ghost"
+			package.path = GetScriptsDir() .. "MKW/mkw_input_reader_ghost.lua"
+			input_ghost = require("mkw_input_reader_ghost")
 			ghost_core.writeInputsIntoRKG(input_ghost)
 		end
 	end
@@ -137,12 +141,14 @@ end
 function onStateLoaded()
 	if(ghost_loaded) then
 		package.loaded.mkw_input_reader_ghost = nil
-		input_ghost = require "mkw_input_reader_ghost"
+		package.path = GetScriptsDir() .. "MKW/mkw_input_reader_ghost.lua"
+		input_ghost = require("mkw_input_reader_ghost")
 		ghost_core.writeInputsIntoRKG(input_ghost)
 	end
 	if(runner_loaded) then
 		package.loaded.mkw_input_reader_runner = nil
-		input_runner = require "mkw_input_reader_runner"
+		package.path = GetScriptsDir() .. "MKW/mkw_input_reader_runner.lua"
+		input_runner = require("mkw_input_reader_runner")
 	end
 	prevFrame = core.getFrameOfInput() + 1
 end
