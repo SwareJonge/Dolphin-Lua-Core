@@ -2,6 +2,9 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+// Contributions by luckytyphlosion are
+// licensed under GPLv2+
+
 #include <mbedtls/md5.h>
 #include <lua.hpp>
 #include <lua.h>
@@ -39,6 +42,9 @@
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VideoConfig.h"
 #include "Core/Host.h"
+
+//#include "DolphinWX/Main.h"
+//#include "DolphinWX/Frame.h"
 
 //Lua Functions (C)
 int ReadValue8(lua_State* L)
@@ -512,6 +518,20 @@ int SetInfoDisplay(lua_State* L)
 	return 0;
 }
 
+int SetFrameAndAudioDump(lua_State* L)
+{
+	int argc = lua_gettop(L);
+
+	bool enableDump = (lua_toboolean(L, 1) != 0);
+	SConfig::GetInstance().m_DumpFrames = enableDump;
+	SConfig::GetInstance().m_DumpAudio = enableDump;
+	//main_frame->GetMenuBar()->FindItem(IDM_TOGGLE_DUMP_FRAMES)->Check(enableDump);
+	//main_frame->GetMenuBar()->FindItem(IDM_TOGGLE_DUMP_AUDIO)->Check(enableDump);    
+	SConfig::GetInstance().SaveSettings();
+
+	return 0;
+}
+
 int MsgBox(lua_State* L)
 {
 	int argc = lua_gettop(L);
@@ -866,7 +886,10 @@ namespace Lua
 		
 		lua_register(luaState, "SetScreenText", SetScreenText);
 		lua_register(luaState, "PauseEmulation", PauseEmulation);
-	    lua_register(luaState, "SetInfoDisplay", SetInfoDisplay);
+		lua_register(luaState, "SetInfoDisplay", SetInfoDisplay);
+
+		// added by luckytyphlosion
+		lua_register(luaState, "SetFrameAndAudioDump", SetFrameAndAudioDump);
 	}
 
 	void Init()
