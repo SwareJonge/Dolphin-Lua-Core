@@ -192,7 +192,7 @@ namespace Movie {
 	    std::string iniContent;
 
 	    bool success =
-	        File::ReadFileToString(SYSDATA_DIR "/InfoDisplay/" + gameID + ".ini", iniContent);
+	        File::ReadFileToString(File::GetSysDirectory() + "/InfoDisplay/" + gameID + ".ini", iniContent);
 
 	    if (success)
 	    {
