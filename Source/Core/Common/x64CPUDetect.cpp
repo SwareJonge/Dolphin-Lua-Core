@@ -42,7 +42,7 @@ static inline void __cpuid(int info[4], int function_id)
 }
 
 #define _XCR_XFEATURE_ENABLED_MASK 0
-static u64 _xgetbv(u32 index)
+static u64 _xgetbv_fix(u32 index)
 {
 	u32 eax, edx;
 	__asm__ __volatile__("xgetbv" : "=a"(eax), "=d"(edx) : "c"(index));
@@ -134,7 +134,7 @@ void CPUInfo::Detect()
 		//  - XGETBV result has the XCR bit set.
 		if (((cpu_id[2] >> 28) & 1) && ((cpu_id[2] >> 27) & 1))
 		{
-			if ((_xgetbv(_XCR_XFEATURE_ENABLED_MASK) & 0x6) == 0x6)
+			if ((_xgetbv_fix(_XCR_XFEATURE_ENABLED_MASK) & 0x6) == 0x6)
 			{
 				bAVX = true;
 				if ((cpu_id[2] >> 12) & 1)
