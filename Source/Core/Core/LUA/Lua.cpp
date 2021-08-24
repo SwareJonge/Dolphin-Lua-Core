@@ -303,7 +303,7 @@ int GetGameID(lua_State* L)
 
 int GetScriptsDir(lua_State* L)
 {
-	lua_pushstring(L, (SYSDATA_DIR "/Scripts/"));
+	lua_pushstring(L, File::GetUserPath(D_SCRIPTS_IDX));
 	return 1;
 }
 
@@ -899,8 +899,7 @@ namespace Lua
 
 		//Auto launch Scripts that start with _
 
-
-	    std::vector<std::string> rFilenames = DoFileSearch({".lua"}, {SYSDATA_DIR "/Scripts"});
+	    std::vector<std::string> rFilenames = DoFileSearch({".lua"}, {File::GetUserPath(D_SCRIPTS_IDX)});
 
 		if (rFilenames.size() > 0)
 		{
@@ -1019,7 +1018,7 @@ namespace Lua
 				//Unique to normal Scripts
 				lua_register(it->luaState, "CancelScript", CancelScript);
 
-				std::string file = SYSDATA_DIR "/Scripts/" + it->fileName;
+				std::string file = File::GetUserPath(D_SCRIPTS_IDX) + it->fileName;
 
 				status = luaL_dofile(it->luaState, file.c_str());
 
