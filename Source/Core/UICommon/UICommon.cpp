@@ -49,6 +49,10 @@ void CreateDirectories()
 	File::CopyDir(File::GetSysDirectory() + WII_USER_DIR,
 				  File::GetUserPath(D_WIIROOT_IDX));
 
+	// Copy built-in scripts.
+	File::CopyDir(File::GetSysDirectory() + SCRIPTS_DIR,
+				  File::GetUserPath(D_SCRIPTS_IDX));
+
 	File::CreateFullPath(File::GetUserPath(D_USER_IDX));
 	File::CreateFullPath(File::GetUserPath(D_CACHE_IDX));
 	File::CreateFullPath(File::GetUserPath(D_CONFIG_IDX));
@@ -65,7 +69,6 @@ void CreateDirectories()
 	File::CreateFullPath(File::GetUserPath(D_SCREENSHOTS_IDX));
 	File::CreateFullPath(File::GetUserPath(D_SHADERS_IDX));
 	File::CreateFullPath(File::GetUserPath(D_SHADERS_IDX) + ANAGLYPH_DIR DIR_SEP);
-	File::CreateFullPath(File::GetUserPath(D_SCRIPTS_IDX));
 	File::CreateFullPath(File::GetUserPath(D_STATESAVES_IDX));
 	File::CreateFullPath(File::GetUserPath(D_THEMES_IDX));
 }
