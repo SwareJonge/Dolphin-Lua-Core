@@ -1,20 +1,15 @@
 ----- GLOBAL VARIABLES -----
 package.path = GetScriptsDir() .. "MKW/MKW_core.lua"
 local core = require("MKW_core")
+package.path = GetScriptsDir() .. "MKW/MKW_Pointers.lua"
+local Pointers = require("MKW_Pointers")
 
 local ghost_core = {}
 
 local function getGhostAddressBase()
-	local gameID = GetGameID()
-	local baseAddress = 0x0
-
-	if gameID == "RMCE01" then baseAddress = 0x9B8F70
-	elseif gameID == "RMCP01" then baseAddress = 0x9BD730
-	elseif gameID == "RMCJ01" then baseAddress = 0x9BC790
-	elseif gameID == "RMCK01" then baseAddress = 0x9ABD70
-	end
-
-	local address = ReadValue32(baseAddress, 0xC, 0x4, 0x48, 0x4)
+	local raceData = Pointers.getRaceData2Pointer(0x4)
+	local address = ReadValue32(raceData, 0x48, 0x4)
+	
 	local offsetFaceButton = 0x94
 	local addressF1 = GetPointerNormal(address + offsetFaceButton)
 	local offsetDirectionInput = 0x98
@@ -40,31 +35,7 @@ local function getGhostAddressLengthPointer()
 	local offset = 0xC
 	return addressF1 + offset, addressD1 + offset, addressT1 + offset
 end
-ghost_core.getGhostAddressPointer = getGhostAddressPointer
-
-local function getGhostAddressPointerDepricated()
-	local gameID = GetGameID()
-	local baseAddress = 0x0
-
-	if gameID == "RMCE01" then baseAddress = 0x9B8F70
-	elseif gameID == "RMCP01" then baseAddress = 0x9BD730
-	elseif gameID == "RMCJ01" then baseAddress = 0x9BC790
-	elseif gameID == "RMCK01" then baseAddress = 0x9ABD70
-	end
-
-	local address = ReadValue32(baseAddress, 0xC, 0x4, 0x48, 0x4)
-	local offsetFaceButton = 0x94
-	local addressF1 = GetPointerNormal(address + offsetFaceButton)
-	local offsetDirectionInput = 0x98
-	local addressD1 = GetPointerNormal(address + offsetDirectionInput)
-	local offsetTrickInput = 0x9C
-	local addressT1 = GetPointerNormal(address + offsetTrickInput)
-
-	local offset3 = 0x4
-
-	return addressF1+offset3, addressD1+offset3, addressT1+offset3
-end
-ghost_core.getGhostAddressPointerDepricated = getGhostAddressPointerDepricated
+ghost_core.getGhostAddressLengthPointer = getGhostAddressLengthPointer
 
 local function getGhostAddresses()
 	local addressF1, addressD1, addressT1 = getGhostAddressPointer()
@@ -77,12 +48,23 @@ local function getGhostAddresses()
 end
 ghost_core.getGhostAddresses = getGhostAddresses
 
+local function getInputStorageAddresses()
+	local raceData = Pointers.getRaceData2Pointer(0x0)
+	
+	local addressF = GetPointerNormal(raceData, 0x48, 0xE8, 0x2C)
+	local addressD = addressF + 0x276C
+	local addressT = addressD + 0x276C
+	
+	return addressF, addressD, addressT
+end
+ghost_core.getInputStorageAddresses = getInputStorageAddresses
+
 
 -- ###############################
 
 local function maskFaceButton(aButton, bButton, lButton, prevMask)
 	local x8Mask = 0x0
-	if bButton == 1 and (prevMask == 0x1 or prevMask == 0x5 or prevMask == 0xB or prevMask == 0xF) then
+	if aButton == 1 and bButton == 1 and not(prevMask == 0x2 or prevMask == 0x3 or prevMask == 0x7) then
 		x8Mask = 0x8
 	end
 	return aButton * 0x1 + bButton * 0x2 + lButton * 0x4 + x8Mask
