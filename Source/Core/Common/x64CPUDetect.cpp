@@ -42,14 +42,21 @@ static inline void __cpuid(int info[4], int function_id)
 }
 
 #define _XCR_XFEATURE_ENABLED_MASK 0
-#endif // ifndef _WIN32
-
 static u64 _xgetbv_fix(u32 index)
 {
 	u32 eax, edx;
 	__asm__ __volatile__("xgetbv" : "=a"(eax), "=d"(edx) : "c"(index));
 	return ((u64)edx << 32) | eax;
 }
+#endif // ifndef _WIN32
+
+#ifdef _WIN32
+static u64 _xgetbv_fix(u32 index)
+{
+	return _xgetbv(index);
+}
+
+#endif // iddef _WIN32
 
 CPUInfo cpu_info;
 
