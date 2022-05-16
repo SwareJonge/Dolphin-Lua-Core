@@ -49,6 +49,12 @@ static u64 _xgetbv_fix(u32 index)
 	return ((u64)edx << 32) | eax;
 }
 
+#else
+// Define _xgetbv_fix for windows
+static u64 _xgetbv_fix(u32 index)
+{
+	return _xgetbv(index)
+}
 #endif // ifndef _WIN32
 
 CPUInfo cpu_info;
