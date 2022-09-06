@@ -1,6 +1,7 @@
 # Dolphin Lua Core + TAStudio (custom Dolphin build)
 
 This project adds Lua support and TAStudio interface in the revision 5.0 of Dolphin Emulator. The Lua API is based on Dragonbane0's Zelda Edition, which can be found [here](https://github.com/dragonbane0/dolphin).
+NOTE: this repository will not be updated anymore, future updates of this project will be [here](https://github.com/TASLabz/dolphin-lua-core) 
 
 ## Lua Core
 
