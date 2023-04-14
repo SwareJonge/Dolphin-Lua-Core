@@ -74,6 +74,7 @@
 #define ANAGLYPH_DIR        "Anaglyph"
 #define PIPES_DIR           "Pipes"
 #define MEMORYWATCHER_DIR   "MemoryWatcher"
+#define SCRIPTS_DIR         "Scripts"
 
 // This one is only used to remove it if it was present
 #define SHADERCACHE_LEGACY_DIR "ShaderCache"

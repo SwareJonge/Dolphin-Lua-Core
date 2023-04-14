@@ -808,6 +808,7 @@ static void RebuildUserDirectories(unsigned int dir_index)
 		s_user_paths[F_GCSRAM_IDX]         = s_user_paths[D_GCUSER_IDX] + GC_SRAM;
 
 		s_user_paths[D_MEMORYWATCHER_IDX]          = s_user_paths[D_USER_IDX] + MEMORYWATCHER_DIR DIR_SEP;
+		s_user_paths[D_SCRIPTS_IDX]          = s_user_paths[D_USER_IDX] + SCRIPTS_DIR DIR_SEP;
 		s_user_paths[F_MEMORYWATCHERLOCATIONS_IDX] = s_user_paths[D_MEMORYWATCHER_IDX] + MEMORYWATCHER_LOCATIONS;
 		s_user_paths[F_MEMORYWATCHERSOCKET_IDX]    = s_user_paths[D_MEMORYWATCHER_IDX] + MEMORYWATCHER_SOCKET;
 

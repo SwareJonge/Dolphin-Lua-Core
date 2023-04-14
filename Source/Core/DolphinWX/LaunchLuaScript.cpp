@@ -119,7 +119,7 @@ void LuaWindow::OnButtonPressed(wxCommandEvent& event)
 
 	if (event.GetId() == 2) //Start
 	{
-		if (File::Exists(SYSDATA_DIR "/Scripts/" + FileName) == false)
+		if (File::Exists(File::GetUserPath(D_SCRIPTS_IDX) + FileName) == false)
 		{
 			wxMessageBox("Script file does not exist anymore!");
 			return;
@@ -152,7 +152,7 @@ void LuaWindow::Shown()
 	m_choice_script->Clear();
 
 	//Find all Lua files
-	std::vector<std::string> rFilenames = DoFileSearch({".lua"}, {SYSDATA_DIR "/Scripts" });
+	std::vector<std::string> rFilenames = DoFileSearch({".lua"}, {File::GetUserPath(D_SCRIPTS_IDX)});
 
 	if (rFilenames.size() > 0)
 	{
